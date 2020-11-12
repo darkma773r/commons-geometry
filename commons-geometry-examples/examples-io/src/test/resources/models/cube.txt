@@ -1,0 +1,11 @@
+# unit cube
+# contains 6 quads
+
+1 0 0; 1 1 0; 1 1 1; 1 0 1 # +x normal
+0 0 0; 0 0 1; 0 1 1; 0 1 0 # -x normal
+
+0 1 0; 0 1 1; 1 1 1; 1 1 0 # +y normal
+0 0 0; 1 0 0; 1 0 1; 0 0 1 # -y normal
+
+0 0 1; 1 0 1; 1 1 1; 0 1 1 # +z normal
+0 0 0; 0 1 0; 1 1 0; 1 0 0 # -z normal

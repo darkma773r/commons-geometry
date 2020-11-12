@@ -33,6 +33,22 @@ public final class ModelIO {
      */
     public static final String OBJ = "obj";
 
+    /** String representing the simple text format described by
+     * {@link org.apache.commons.geometry.examples.io.threed.text.TextFacetDefinitionReader TextFacetDefinitionReader}
+     * and
+     * {@link org.apache.commons.geometry.examples.io.threed.text.TextFacetDefinitionWriter TextFacetDefinitionWriter}.
+     * This format describes facets by listing the coordinates of its vertices in order, with one facet
+     * described per line. Facets may have 3 or more vertices and do not need to all have the same
+     * number of vertices.
+     */
+    public static final String TXT = "txt";
+
+    /** String representing the CSV file format. When used to represent 3D geometry information, the coordinates
+     * of the vertices of the facets are listed in order, with one facet defined per row. This is similar to the
+     * {@link #TXT} format but each row is required to have the same number of vertices.
+     */
+    public static final String CSV = "csv";
+
     /** Singleton handler registry. */
     private static final ModelIOHandlerRegistry HANDLER_REGISTRY = new DefaultModelIOHandlerRegistry();
 
