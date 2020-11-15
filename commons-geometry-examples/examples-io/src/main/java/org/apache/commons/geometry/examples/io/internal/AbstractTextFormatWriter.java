@@ -20,15 +20,15 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
 
+/** Base type for classes that write text-based geometry file formats. This class provides
+ * a number of common configuration options and utility methods.
+ */
 public abstract class AbstractTextFormatWriter {
 
     /** The default maximum number of fraction digits in formatted numbers. */
     private static final int DEFAULT_MAXIMUM_FRACTION_DIGITS = 6;
 
-    /** The default line separator value. This is not directly specified by the OBJ format
-     * but the value used here matches that
-     * <a href="https://docs.blender.org/manual/en/2.80/addons/io_scene_obj.html">used by Blender</a>.
-     */
+    /** The default line separator value. */
     private static final String DEFAULT_LINE_SEPARATOR = "\n";
 
     /** Underlying writer instance. */
@@ -40,6 +40,9 @@ public abstract class AbstractTextFormatWriter {
     /** Decimal formatter. */
     private DecimalFormat decimalFormat;
 
+    /** Construct a new instance that writes content to the given writer.
+     * @param writer writer instance
+     */
     protected AbstractTextFormatWriter(final Writer writer) {
         this.writer = writer;
 
@@ -75,22 +78,40 @@ public abstract class AbstractTextFormatWriter {
         this.decimalFormat = decimalFormat;
     }
 
+    /** Get the underlying writer instance.
+     * @return writer instance
+     */
     protected Writer getWriter() {
         return writer;
     }
 
+    /** Write a double value formatted using the configured decimal formatter.
+     * @param n value to write
+     * @throws IOException if an I/O error occurs
+     */
     protected void write(final double n) throws IOException {
         write(decimalFormat.format(n));
     }
 
+    /** Write an integer value.
+     * @param n value to write
+     * @throws IOException if an I/O error occurs
+     */
     protected void write(final int n) throws IOException {
         write(String.valueOf(n));
     }
 
+    /** Write a string.
+     * @param str string to write
+     * @throws IOException if an I/O error occurs
+     */
     protected void write(final String str) throws IOException {
         writer.write(str);
     }
 
+    /** Write the configured line separator to the output.
+     * @throws IOException if an I/O error occurs
+     */
     protected void writeNewLine() throws IOException {
         write(lineSeparator);
     }

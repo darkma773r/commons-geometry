@@ -43,9 +43,11 @@ public final class ModelIO {
      */
     public static final String TXT = "txt";
 
-    /** String representing the CSV file format. When used to represent 3D geometry information, the coordinates
-     * of the vertices of the facets are listed in order, with one facet defined per row. This is similar to the
-     * {@link #TXT} format but each row is required to have the same number of vertices.
+    /** String representing the CSV file format as described by
+     * {@link {@link org.apache.commons.geometry.examples.io.threed.text.TextFacetDefinitionWriter#csvFormat(java.io.Writer) TextFacetDefinitionWriter}.
+     * When used to represent 3D geometry information, the coordinates of the vertices of the facets are listed in order,
+     * with one facet defined per row. This is similar to the {@link #TXT} format with the exception that facets
+     * are are converted to triangles before writing so that all rows have the same number of columns.
      */
     public static final String CSV = "csv";
 

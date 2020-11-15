@@ -37,7 +37,7 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
 
     private static final String DEFAULT_VERTEX_COORDINATE_SEPARATOR = " ";
 
-    private static final String DEFAULT_VERTEX_SEPARATOR = " ";
+    private static final String DEFAULT_VERTEX_SEPARATOR = "; ";
 
     private String vertexCoordinateSeparator = DEFAULT_VERTEX_COORDINATE_SEPARATOR;
 
@@ -112,10 +112,10 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
     public void write(final List<Vector3D> vertices) throws IOException {
         final int size = vertices.size();
         if (size < 3) {
-            throw new IllegalArgumentException("At least 3 vertices required per facet; found " + size);
+            throw new IllegalArgumentException("At least 3 vertices are required per facet; found " + size);
         } else if (facetVertexCount > -1 && size != facetVertexCount) {
             throw new IllegalArgumentException("Writer requires " + facetVertexCount +
-                    " vertices per facet; found" + size);
+                    " vertices per facet; found " + size);
         }
 
         final Iterator<Vector3D> it = vertices.iterator();
@@ -144,6 +144,5 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         fdWriter.setFacetVertexCount(CSV_FACET_VERTEX_COUNT);
 
         return fdWriter;
-
     }
 }
