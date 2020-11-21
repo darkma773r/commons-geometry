@@ -35,26 +35,30 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
 
     private static final int CSV_FACET_VERTEX_COUNT = 3;
 
-    private static final String DEFAULT_VERTEX_COORDINATE_SEPARATOR = " ";
+    private static final String DEFAULT_VERTEX_COMPONENT_SEPARATOR = " ";
 
     private static final String DEFAULT_VERTEX_SEPARATOR = "; ";
 
-    private String vertexCoordinateSeparator = DEFAULT_VERTEX_COORDINATE_SEPARATOR;
+    private static final String DEFAULT_COMMENT_TOKEN = "# ";
+
+    private String vertexComponentSeparator = DEFAULT_VERTEX_COMPONENT_SEPARATOR;
 
     private String vertexSeparator = DEFAULT_VERTEX_SEPARATOR;
 
     private int facetVertexCount = -1;
 
+    private String commentToken = DEFAULT_COMMENT_TOKEN;
+
     public TextFacetDefinitionWriter(final Writer writer) {
         super(writer);
     }
 
-    public String getVertexCoordinateSeparator() {
-        return vertexCoordinateSeparator;
+    public String getVertexComponentSeparator() {
+        return vertexComponentSeparator;
     }
 
-    public void setVertexCoordinateSeparator(final String sep) {
-        this.vertexCoordinateSeparator = sep;
+    public void setVertexComponentSeparator(final String sep) {
+        this.vertexComponentSeparator = sep;
     }
 
     public String getVertexSeparator() {
@@ -78,6 +82,40 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         this.facetVertexCount = vertexCount;
     }
 
+    public String getCommentToken() {
+        return commentToken;
+    }
+
+    public void setCommentToken(final String commentToken) {
+        if (commentToken != null) {
+            if (commentToken.isEmpty()) {
+                throw new IllegalArgumentException("Comment token cannot be empty");
+            } else if (Character.isWhitespace(commentToken.charAt(0))) {
+                throw new IllegalArgumentException("Comment token cannot begin with whitespace");
+            }
+
+        }
+
+        this.commentToken = commentToken;
+    }
+
+    public void writeComment(final String comment) throws IOException {
+        if (commentToken == null) {
+            throw new IllegalStateException("Cannot write comment: no comment token configured");
+        }
+
+        if (comment != null) {
+            for (final String line : comment.split("\\R")) {
+                write(commentToken + line);
+                writeNewLine();
+            }
+        }
+    }
+
+    public void writeBlankLine() throws IOException {
+        writeNewLine();
+    }
+
     public void write(final BoundarySource3D src) throws IOException {
         try (final Stream<PlaneConvexSubset> stream = src.boundaryStream()) {
             final Iterator<PlaneConvexSubset> it = stream.iterator();
@@ -88,19 +126,18 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
     }
 
     public void write(final PlaneConvexSubset convexSubset) throws IOException {
-        if (convexSubset.isEmpty()) {
-            throw new IllegalArgumentException("Cannot write empty convex subset");
-        } else if (convexSubset.isInfinite()) {
+        if (convexSubset.isInfinite()) {
             throw new IllegalArgumentException("Cannot write infinite convex subset");
         }
 
         if (facetVertexCount == 3) {
             // force conversion to triangles
             for (final Triangle3D tri : convexSubset.toTriangles()) {
-                write(tri);
+                write(tri.getVertices());
             }
         } else {
-            // write as-is
+            // write as-is; callers are responsible for making sure that the number of
+            // vertices matches the required number for the writer
             write(convexSubset.getVertices());
         }
     }
@@ -109,6 +146,19 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         write(facet.getVertices());
     }
 
+    /** Write a list of vertices defining a facet as a single line of text to the output. Vertex components
+     * (ie, individual x, y, z values) are separated with the configured
+     * {@link #getVertexComponentSeparator() vertex component separator} and vertices are separated with the
+     * configured {@link #getVertexSeparator() vertex separator}.
+     * @param vertices vertices to write
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalArgumentException if the vertex list contains less than 3 vertices or a
+     *      {@link #getFacetVertexCount() facet vertex count} has been configured and the number of required
+     *      vertices does not match that given
+     * @see #getVertexComponentSeparator()
+     * @see #getVertexSeparator()
+     * @see #getFacetVertexCount()
+     */
     public void write(final List<Vector3D> vertices) throws IOException {
         final int size = vertices.size();
         if (size < 3) {
@@ -129,19 +179,24 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         writeNewLine();
     }
 
+    /** Write a single vertex to the output.
+     * @param vertex vertex to write
+     * @throws IOException if an I/O error occurs
+     */
     private void write(final Vector3D vertex) throws IOException {
         write(vertex.getX());
-        write(vertexCoordinateSeparator);
+        write(vertexComponentSeparator);
         write(vertex.getY());
-        write(vertexCoordinateSeparator);
+        write(vertexComponentSeparator);
         write(vertex.getZ());
     }
 
     public static TextFacetDefinitionWriter csvFormat(final Writer writer) {
         final TextFacetDefinitionWriter fdWriter = new TextFacetDefinitionWriter(writer);
-        fdWriter.setVertexCoordinateSeparator(CSV_SEPARATOR);
-        fdWriter.setVertexCoordinateSeparator(CSV_SEPARATOR);
+        fdWriter.setVertexComponentSeparator(CSV_SEPARATOR);
+        fdWriter.setVertexSeparator(CSV_SEPARATOR);
         fdWriter.setFacetVertexCount(CSV_FACET_VERTEX_COUNT);
+        fdWriter.setCommentToken(null);
 
         return fdWriter;
     }

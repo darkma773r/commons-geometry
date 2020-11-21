@@ -69,6 +69,8 @@ import org.apache.commons.geometry.examples.io.threed.facet.SimpleFacetDefinitio
  *  0 0 0; 1 0 0; 1 1 0 # 3 vertices
  *  1 0 0; 1 1 0; 1 1 1; 1 0 1 # 4 vertices
  * </pre>
+ *
+ * @see TextFacetDefinitionWriter
  */
 public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
