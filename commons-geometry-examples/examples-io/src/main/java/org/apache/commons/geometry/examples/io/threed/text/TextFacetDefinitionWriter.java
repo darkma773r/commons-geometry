@@ -29,63 +29,155 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.examples.io.internal.AbstractTextFormatWriter;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 
+/** Class for writing 3D facet geometry in a simple human-readable text format. The
+ * format simply consists of sequences of decimal numbers defining the vertices of each
+ * facet, with one facet defined per line. Facet vertices are defined by listing their
+ * {@code x}, {@code y}, and {@code z} components in that order. At least 3 vertices are
+ * required for each facet but more can be specified. The facet normal is defined implicitly
+ * from the facet vertices using the right-hand rule.
+ *
+ * <p>Delimiters can be configured for both {@link #getVertexComponentSeparator() vertex components} and
+ * {@link #getVertexSeparator() vertices}. This allows a wide range of outputs to be configured, from standard
+ * {@link #csvFormat(Writer) CSV format} to formats designed for easy human readability.</p>
+ *
+ * <p><strong>Examples</strong></p>
+ * <p>The examples below demonstrate output from two square facets using different writer
+ * configurations.</p>
+ *
+ * <p><em>Default</em></p>
+ * <p>The default writer configuration uses distinct vertex and vertex component separators to make it
+ * easier to visually distinguish vertices. Comments are supported and facets are allowed to have
+ * any geometrically valid number of vertices. This format is designed for human readability and ease
+ * of editing.
+ * <pre>
+ * # two square facets
+ * 0 0 0; 1 0 0; 1 1 0; 0 1 0
+ * 0 0 0; 0 1 0; 0 1 1; 0 0 1
+ * </pre>
+ * </p>
+ *
+ * <p><em>CSV</em></p>
+ * <p>The example below uses a comma as both the vertex and vertex component separators to produce
+ * a standard CSV format. The facet vertex count is set to 3 to ensure that each row has the same number
+ * of columns and all numbers are written with at least a single fraction digit to ensure proper interpretation
+ * as floating point data. Comments are not supported. This configuration is produced by the
+ * {@link #csvFormat(Writer)} factory method.
+ * <pre>
+ * 0.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0
+ * 0.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0
+ * 0.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0
+ * 0.0,0.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0
+ * </pre>
+ * </p>
+ *
+ * @see TextFacetDefinitionReader
+ */
 public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
 
+    /** Vertex and vertex component separator used in the CSV format. */
     private static final String CSV_SEPARATOR = ",";
 
+    /** Number of vertices required per facet in the CSV format. */
     private static final int CSV_FACET_VERTEX_COUNT = 3;
 
+    /** Default vertex component separator. */
     private static final String DEFAULT_VERTEX_COMPONENT_SEPARATOR = " ";
 
+    /** Default vertex separator. */
     private static final String DEFAULT_VERTEX_SEPARATOR = "; ";
 
+    /** Default facet vertex count. */
+    private static final int DEFAULT_FACET_VERTEX_COUNT = -1;
+
+    /** Default comment token. */
     private static final String DEFAULT_COMMENT_TOKEN = "# ";
 
+    /** String used to separate vertex components, ie, x, y, z values. */
     private String vertexComponentSeparator = DEFAULT_VERTEX_COMPONENT_SEPARATOR;
 
+    /** String used to separate vertices. */
     private String vertexSeparator = DEFAULT_VERTEX_SEPARATOR;
 
-    private int facetVertexCount = -1;
+    /** Number of vertices required per facet; will be -1 if disabled. */
+    private int facetVertexCount = DEFAULT_FACET_VERTEX_COUNT;
 
+    /** Comment start token; may be null. */
     private String commentToken = DEFAULT_COMMENT_TOKEN;
 
+    /** Construct a new instance that writes facet information to the given writer.
+     * @param writer writer to write output to
+     */
     public TextFacetDefinitionWriter(final Writer writer) {
         super(writer);
     }
 
+    /** Get the string used to separate vertex components (ie, individual x, y, z values).
+     * The default value is {@value #DEFAULT_VERTEX_COMPONENT_SEPARATOR}.
+     * @return string used to separate vertex components
+     */
     public String getVertexComponentSeparator() {
         return vertexComponentSeparator;
     }
 
+    /** Set the string used to separate vertex components (ie, individual x, y, z values).
+     * @param sep string used to separate vertex components
+     */
     public void setVertexComponentSeparator(final String sep) {
         this.vertexComponentSeparator = sep;
     }
 
+    /** Get the string used to separate facet vertices. The default value is {@value #DEFAULT_VERTEX_SEPARATOR}.
+     * @return string used to separate facet vertices
+     */
     public String getVertexSeparator() {
         return vertexSeparator;
     }
 
+    /** Set the string used to separate facet vertices.
+     * @param sep string used to separate facet vertices
+     */
     public void setVertexSeparator(final String sep) {
         this.vertexSeparator = sep;
     }
 
+    /** Get the number of vertices required per facet or {@code -1} if no specific
+     * number is required. The default value is {@value #DEFAULT_FACET_VERTEX_COUNT}.
+     * @return the number of vertices required per facet or {@code -1} if any geometricallly
+     *      valid number is allowed (ie, any number greater than or equal to 3)
+     */
     public int getFacetVertexCount() {
         return facetVertexCount;
     }
 
+    /** Set the number of vertices required per facet. This can be used to enforce a consistent
+     * format in the output. Set to {@code -1} to allow any geometrically valid number of vertices
+     * (ie, any number greater than or equal to 3).
+     * @param vertexCount number of vertices required per facet or {@code -1} to allow any number
+     * @throws IllegalArgumentException if the argument would produce invalid geometries (ie, is
+     *      greater than -1 and less than 3)
+     */
     public void setFacetVertexCount(final int vertexCount) {
         if (vertexCount > -1 &&  vertexCount < 3) {
             throw new IllegalArgumentException("Facet vertex count must be less than 0 or greater than 2; was " +
                     vertexCount);
         }
 
-        this.facetVertexCount = vertexCount;
+        this.facetVertexCount = Math.max(-1, vertexCount);
     }
 
+    /** Get the string used to begin comment lines in the output.
+     * The default value is {@value #DEFAULT_COMMENT_TOKEN}
+     * @return the string used to begin comment lines in the output; may be null
+     */
     public String getCommentToken() {
         return commentToken;
     }
 
+    /** Set the string used to begin comment lines in the output. Set to null to disable the
+     * use of comments.
+     * @param commentToken comment token string
+     * @throws IllegalArgumentException if the argument is empty or begins with whitespace
+     */
     public void setCommentToken(final String commentToken) {
         if (commentToken != null) {
             if (commentToken.isEmpty()) {
@@ -99,6 +191,11 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         this.commentToken = commentToken;
     }
 
+    /** Write a comment to the output.
+     * @param comment comment string to write
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalStateException if the configured {@link #getCommentToken() comment token} is null
+     */
     public void writeComment(final String comment) throws IOException {
         if (commentToken == null) {
             throw new IllegalStateException("Cannot write comment: no comment token configured");
@@ -112,10 +209,20 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         }
     }
 
+    /** Write a blank line to the output.
+     * @throws IOException if an I/O error occurs
+     */
     public void writeBlankLine() throws IOException {
         writeNewLine();
     }
 
+    /** Write all boundaries in the argument to the output.
+     * @param src object providing the boundaries to write
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalArgumentException if any boundary has infinite size or a
+     *      {@link #getFacetVertexCount() facet vertex count} has been configured and the number of required
+     *      vertices does not match the number present in one of the boundaries
+     */
     public void write(final BoundarySource3D src) throws IOException {
         try (final Stream<PlaneConvexSubset> stream = src.boundaryStream()) {
             final Iterator<PlaneConvexSubset> it = stream.iterator();
@@ -125,6 +232,16 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         }
     }
 
+    /** Write the vertices defining the argument to the output. If the
+     * {@link #getFacetVertexCount() facet vertex count} has been set to {@code 3}, then the convex subset
+     * is converted to triangles before being written to the output. Otherwise, the convex subset vertices
+     * are written as-is.
+     * @param convexSubset convex subset to write
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalArgumentException if the argument has infinite size or a
+     *      {@link #getFacetVertexCount() facet vertex count} has been configured and the number of required
+     *      vertices does not match the number present in the argument
+     */
     public void write(final PlaneConvexSubset convexSubset) throws IOException {
         if (convexSubset.isInfinite()) {
             throw new IllegalArgumentException("Cannot write infinite convex subset");
@@ -142,6 +259,13 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         }
     }
 
+    /** Write the vertices in the argument to the output.
+     * @param facet facet containing the vertices to write
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalArgumentException if a {@link #getFacetVertexCount() facet vertex count}
+     *      has been configured and the number of required vertices does not match the number
+     *      present in the argument
+     */
     public void write(final FacetDefinition facet) throws IOException {
         write(facet.getVertices());
     }
@@ -191,8 +315,30 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         write(vertex.getZ());
     }
 
+    /** Construct a new instance configured to write CSV output to the given writer.
+     * The returned instance has the following characteristics:
+     * <ul>
+     *  <li>Vertex separator and vertex components separator are set to the "," string.</li>
+     *  <li>Comments are disabled (ie, comment token is set to null).</li>
+     *  <li>Facet vertex count is set to 3 to ensure a consistent number of columns.</li>
+     *  <li>The {@link java.text.DecimalFormat#setMinimumFractionDigits(int) minimum fraction digits}
+     *      for the instance's decimal format is set to 1 to ensure that all values are interpreted as
+     *      floating point numbers.</li>
+     * </ul>
+     * This configuration produces output similar to the following:
+     * <pre>
+     * 0.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0
+     * 0.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0
+     * </pre>
+     *
+     * @param writer writer to write output to
+     * @return a new facet definition writer configured to produce CSV output
+     */
     public static TextFacetDefinitionWriter csvFormat(final Writer writer) {
         final TextFacetDefinitionWriter fdWriter = new TextFacetDefinitionWriter(writer);
+
+        fdWriter.getDecimalFormat().setMinimumFractionDigits(1);
+
         fdWriter.setVertexComponentSeparator(CSV_SEPARATOR);
         fdWriter.setVertexSeparator(CSV_SEPARATOR);
         fdWriter.setFacetVertexCount(CSV_FACET_VERTEX_COUNT);

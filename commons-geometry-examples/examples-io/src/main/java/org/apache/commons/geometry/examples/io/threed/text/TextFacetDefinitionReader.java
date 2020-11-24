@@ -32,17 +32,19 @@ import org.apache.commons.geometry.examples.io.threed.facet.SimpleFacetDefinitio
  * text format. The format simply consists of sequences of decimal numbers
  * defining the vertices of each facet, with one facet defined per line.
  * Facet vertices are defined by listing their {@code x}, {@code y}, and {@code z}
- * components in that order. The format can be described visually as follows:
+ * components in that order. The format can be described as follows:
  * <pre>
  *      p1<sub>x</sub> p1<sub>y</sub> p1<sub>z</sub> p2<sub>x</sub> p2<sub>y</sub> p2<sub>z</sub> p3<sub>x</sub> p3<sub>y</sub> p3<sub>z</sub> ...
  * </pre>
- * At least 3 vertices are required for each facet but more can be specified
- * as long as all {@code x, y, z} components are provided for each vertex. The facet
- * normal is defined implicitly from the facet vertices using the right-hand rule.
+ * where the <em>p1</em> elements contain the coordinates of the first facet vertex,
+ * <em>p2</em> those of the second, and so on. At least 3 vertices are required for each
+ * facet but more can be specified as long as all {@code x, y, z} components are provided
+ * for each vertex. The facet normal is defined implicitly from the facet vertices using
+ * the right-hand rule.
  *
  * <p><strong>Delimiters</strong></p>
  * <p>Vertex coordinate values may be separated by any character that is
- * not an a digit, alphabetic, '-' (minus), or '+' (plus). The character does
+ * not a digit, alphabetic, '-' (minus), or '+' (plus). The character does
  * not need to be consistent between (or even within) lines and does not
  * need to be configured in the reader. This design provides configuration-free
  * support for common formats such as CSV as well as other formats designed
@@ -53,7 +55,6 @@ import org.apache.commons.geometry.examples.io.threed.facet.SimpleFacetDefinitio
  * property. Characters from the comment token through the end of the current line are
  * discarded. Setting the comment token to null or the empty string disables comment parsing.
  * The default comment token is {@value #DEFAULT_COMMENT_TOKEN}</p>
- *
  *
  * <p><strong>Examples</strong></p>
  * <p>The following examples demonstrate the definition of two facets,

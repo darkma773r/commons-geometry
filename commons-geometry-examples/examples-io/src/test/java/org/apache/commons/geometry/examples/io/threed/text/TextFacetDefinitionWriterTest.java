@@ -65,6 +65,15 @@ public class TextFacetDefinitionWriterTest {
     }
 
     @Test
+    public void testSetFacetVertexCount_normalizesToMinusOne() {
+        // act
+        fdWriter.setFacetVertexCount(-10);
+
+        // assert
+        Assert.assertEquals(-1, fdWriter.getFacetVertexCount());
+    }
+
+    @Test
     public void testSetFacetVertexCount_invalidArgs() {
         // arrange
         final String baseMsg = "Facet vertex count must be less than 0 or greater than 2; was ";
@@ -356,9 +365,9 @@ public class TextFacetDefinitionWriterTest {
 
         // assert
         Assert.assertEquals(
-                "0,0,0,0,0,-0.5901,0,-0.501,0\n" +
-                "0,0,0,1,0,0,1,1,0\n" +
-                "0,0,0,1,1,0,0,1,0\n", writer.toString());
+                "0.0,0.0,0.0,0.0,0.0,-0.5901,0.0,-0.501,0.0\n" +
+                "0.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0\n" +
+                "0.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0\n", writer.toString());
     }
 
     @Test
@@ -370,5 +379,24 @@ public class TextFacetDefinitionWriterTest {
         Assert.assertEquals(",", csvWriter.getVertexComponentSeparator());
         Assert.assertEquals(",", csvWriter.getVertexSeparator());
         Assert.assertNull(csvWriter.getCommentToken());
+    }
+
+    @Test
+    public void test() throws IOException {
+        fdWriter = TextFacetDefinitionWriter.csvFormat(writer);
+
+        ConvexPolygon3D p1 = Planes.convexPolygonFromVertices(Arrays.asList(
+                    Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0), Vector3D.of(0, 1, 0)
+                ), TEST_PRECISION);
+
+        ConvexPolygon3D p2 = Planes.convexPolygonFromVertices(Arrays.asList(
+                Vector3D.ZERO, Vector3D.of(0, 1, 0), Vector3D.of(0, 1, 1), Vector3D.of(0, 0, 1)
+            ), TEST_PRECISION);
+
+        BoundarySource3D src = BoundarySource3D.from(p1, p2);
+
+        fdWriter.write(src);
+
+        System.out.println(writer.toString());
     }
 }
