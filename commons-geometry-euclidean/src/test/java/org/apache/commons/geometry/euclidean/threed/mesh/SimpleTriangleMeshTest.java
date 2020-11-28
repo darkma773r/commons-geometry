@@ -635,6 +635,8 @@ public class SimpleTriangleMeshTest {
         // assert
         Assert.assertEquals(6, builder.getVertexCount());
         Assert.assertEquals(3, builder.getFaceCount());
+        Assert.assertEquals(p1, builder.getVertex(0));
+        Assert.assertEquals(p1, builder.getVertex(3));
 
         final SimpleTriangleMesh mesh = builder.build();
 

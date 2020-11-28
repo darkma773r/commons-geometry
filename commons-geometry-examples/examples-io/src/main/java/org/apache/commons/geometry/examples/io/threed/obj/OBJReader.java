@@ -132,7 +132,7 @@ public final class OBJReader {
             ++startIdx;
         }
 
-        if (startIdx >= line.length() || line.charAt(startIdx) == OBJConstants.COMMENT_START_CHAR) {
+        if (startIdx >= line.length() || line.charAt(startIdx) == OBJConstants.COMMENT_START.charAt(0)) {
             return; // skip
         }
 

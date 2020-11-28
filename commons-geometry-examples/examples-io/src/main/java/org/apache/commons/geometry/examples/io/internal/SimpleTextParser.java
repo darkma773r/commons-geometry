@@ -731,6 +731,26 @@ public class SimpleTextParser {
         return parseError(line, col, msg.toString(), cause);
     }
 
+    /** Get an exception indicating an error during parsing at the current token position.
+     * @param msg error message
+     * @return an exception indicating an error during parsing at the current token position
+     */
+    public IllegalStateException tokenError(final String msg) {
+        return tokenError(msg, null);
+    }
+
+    /** Get an exception indicating an error during parsing at the current token position.
+     * @param msg error message
+     * @param cause the cause of the error; may be null
+     * @return an exception indicating an error during parsing at the current token position
+     */
+    public IllegalStateException tokenError(final String msg, final Throwable cause) {
+        final int line = hasSetToken ? currentTokenLineNumber : lineNumber;
+        final int col = hasSetToken ? currentTokenColumnNumber : columnNumber;
+
+        return parseError(line, col, msg, cause);
+    }
+
     /** Return an exception indicating an error during parsing.
      * @param line line number of the error
      * @param col column number of the error

@@ -109,8 +109,8 @@ public final class OBJWriter implements AutoCloseable {
      * @throws IOException if an IO operation fails
      */
     public void writeComment(final String comment) throws IOException {
-        for (final String line : comment.split("\r?\n")) {
-            writer.write(OBJConstants.COMMENT_START_CHAR);
+        for (final String line : comment.split("\\R")) {
+            writer.write(OBJConstants.COMMENT_START);
             writer.write(SPACE);
             writer.write(line);
             writer.write(lineSeparator);

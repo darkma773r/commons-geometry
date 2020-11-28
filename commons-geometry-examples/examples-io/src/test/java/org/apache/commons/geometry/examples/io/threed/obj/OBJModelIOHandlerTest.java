@@ -73,7 +73,9 @@ public class OBJModelIOHandlerTest {
     @Test
     public void testRead_fromFile() throws Exception {
         // act
+        long start = System.currentTimeMillis();
         BoundarySource3D src = handler.read("obj", cubeMinusSphereFile(), TEST_PRECISION);
+        System.out.println("done in " + (System.currentTimeMillis() - start) + "ms");
 
         // assert
         TriangleMesh mesh = (TriangleMesh) src;

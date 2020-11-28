@@ -21,27 +21,34 @@ import java.nio.charset.StandardCharsets;
 
 /** Class containing constants for use with OBJ files.
  */
-final class OBJConstants {
-    /** Default OBJ charset. */
-    static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+public final class OBJConstants {
 
-    /** Character used to indicate the start of a comment line. */
-    static final char COMMENT_START_CHAR = '#';
+    /** Default OBJ charset. */
+    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
+    /** String used to indicate the start of a comment line. */
+    public static final String COMMENT_START = "#";
 
     /** Keyword used to indicate a vertex definition line. */
-    static final String VERTEX_KEYWORD = "v";
+    public static final String VERTEX_KEYWORD = "v";
+
+    /** Keyword used to indicate a vertex normal definition line. */
+    public static final String VERTEX_NORMAL_KEYWORD = "vn";
+
+    /** Keyword used to indicate a texture coordinate definition line. */
+    public static final String TEXTURE_COORDINATE_KEYWORD = "vt";
 
     /** Keyword used to indicate a face definition line. */
-    static final String FACE_KEYWORD = "f";
+    public static final String FACE_KEYWORD = "f";
 
     /** Keyword used to indicate a geometry group. */
-    static final String GROUP_KEYWORD = "g";
+    public static final String GROUP_KEYWORD = "g";
 
     /** Keyword used to associate a name with the following geometry. */
-    static final String OBJECT_KEYWORD = "o";
+    public static final String OBJECT_KEYWORD = "o";
 
     /** Character used to separate face vertex indices from texture and normal indices. */
-    static final char FACE_VALUE_SEP_CHAR = '/';
+    public static final char FACE_VALUE_SEP_CHAR = '/';
 
     /** Utility class; no instantiation. */
     private OBJConstants() {}

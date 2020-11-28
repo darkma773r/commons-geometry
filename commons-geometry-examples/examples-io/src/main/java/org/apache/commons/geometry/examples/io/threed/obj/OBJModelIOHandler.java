@@ -22,11 +22,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
+import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.examples.io.threed.AbstractModelIOHandler;
 import org.apache.commons.geometry.examples.io.threed.ModelIO;
@@ -35,9 +39,6 @@ import org.apache.commons.geometry.examples.io.threed.ModelIO;
  * implementation for the OBJ file format.
  */
 public class OBJModelIOHandler extends AbstractModelIOHandler {
-
-    /** Charset for use with OBJ files. */
-    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     /** {@inheritDoc} */
     @Override
@@ -49,9 +50,11 @@ public class OBJModelIOHandler extends AbstractModelIOHandler {
     @Override
     protected TriangleMesh readInternal(final String type, final InputStream in,
             final DoublePrecisionContext precision) throws IOException {
-        try (InputStreamReader reader = new InputStreamReader(in, DEFAULT_CHARSET)) {
-            final OBJReader objReader = new OBJReader();
-            return objReader.readTriangleMesh(reader, precision);
+        try (InputStreamReader reader = new InputStreamReader(in, OBJConstants.DEFAULT_CHARSET)) {
+//            final OBJReader objReader = new OBJReader();
+//            return objReader.readTriangleMesh(reader, precision);
+
+            return new OBJTriangleMeshReader(reader, precision).readTriangleMesh();
         }
     }
 
@@ -60,8 +63,61 @@ public class OBJModelIOHandler extends AbstractModelIOHandler {
     protected void writeInternal(final BoundarySource3D model, final String type, final OutputStream out)
             throws IOException {
         try (OBJWriter objWriter = new OBJWriter(new BufferedWriter(
-                new OutputStreamWriter(out, DEFAULT_CHARSET)))) {
+                new OutputStreamWriter(out, OBJConstants.DEFAULT_CHARSET)))) {
             objWriter.writeBoundaries(model);
+        }
+    }
+
+    private static final class OBJTriangleMeshReader {
+
+        private final OBJParser parser;
+
+        private final List<Vector3D> modelNormals = new ArrayList<>();
+
+        private final SimpleTriangleMesh.Builder meshBuilder;
+
+        OBJTriangleMeshReader(final Reader reader, final DoublePrecisionContext precision) {
+            parser = new OBJParser(reader);
+            meshBuilder = SimpleTriangleMesh.builder(precision);
+        }
+
+        public TriangleMesh readTriangleMesh() throws IOException {
+            String keyword;
+            while (parser.nextKeyword()) {
+                keyword = parser.getKeyword();
+
+                switch (keyword) {
+                    case OBJConstants.VERTEX_KEYWORD:
+                        meshBuilder.addVertex(parser.readVector());
+                        break;
+                    case OBJConstants.VERTEX_NORMAL_KEYWORD:
+                        modelNormals.add(parser.readVector());
+                        break;
+                    case OBJConstants.FACE_KEYWORD:
+                        final OBJParser.Face face = parser.readFace();
+                        final Vector3D normal = face.getDefinedCompositeNormal(modelNormals::get);
+
+                        addTriangles(face.getOrientedVertexAttributes(normal, meshBuilder::getVertex));
+                }
+            }
+
+            return meshBuilder.build();
+        }
+
+        private void addTriangles(final List<OBJParser.VertexAttributes> faceVertices) {
+
+            Iterator<OBJParser.VertexAttributes> it = faceVertices.iterator();
+
+            int p0 = it.next().getVertexIndex();
+            int p1 = it.next().getVertexIndex();
+            int p2;
+            while (it.hasNext()) {
+                p2 = it.next().getVertexIndex();
+
+                meshBuilder.addFace(p0, p1, p2);
+
+                p1 = p2;
+            }
         }
     }
 }
