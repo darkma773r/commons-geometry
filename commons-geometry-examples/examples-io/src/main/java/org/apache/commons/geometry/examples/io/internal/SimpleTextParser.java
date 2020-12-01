@@ -751,6 +751,23 @@ public class SimpleTextParser {
         return parseError(line, col, msg, cause);
     }
 
+    /** Return an exception indicating an error occurring at the current parser position.
+     * @param msg error message
+     * @return an exception indicating an error during parsing
+     */
+    public IllegalStateException parseError(final String msg) {
+        return parseError(msg, null);
+    }
+
+    /** Return an exception indicating an error occurring at the current parser position.
+     * @param msg error message
+     * @param cause the cause of the error; may be null
+     * @return an exception indicating an error during parsing
+     */
+    public IllegalStateException parseError(final String msg, final Throwable cause) {
+        return parseError(lineNumber, columnNumber, msg, null);
+    }
+
     /** Return an exception indicating an error during parsing.
      * @param line line number of the error
      * @param col column number of the error

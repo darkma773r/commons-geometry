@@ -263,12 +263,11 @@ public class OBJParser {
                 .append(" index ");
 
             if (available < 1) {
-                err.append("cannot be used here because no values of that type have been found");
+                err.append("cannot be used because no values of that type have been defined");
             } else {
-                err.append("must be ")
-                    .append(available > 1 ? "between 1 and " : "equal to ")
+                err.append("must evaluate to be within the range [1, ")
                     .append(available)
-                    .append(" (or an equivalent relative index) but was")
+                    .append("] but was ")
                     .append(objIndex);
             }
 

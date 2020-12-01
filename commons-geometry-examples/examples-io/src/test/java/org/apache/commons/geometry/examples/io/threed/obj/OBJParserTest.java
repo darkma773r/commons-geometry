@@ -18,6 +18,11 @@ package org.apache.commons.geometry.examples.io.threed.obj;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.IntFunction;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
@@ -45,17 +50,17 @@ public class OBJParserTest {
     public void testNextKeyword() throws IOException {
         // arrange
         final OBJParser p = parser(lines(
-                "# comment",
+                "#comment",
                 "",
-                "  ",
+                "  \t",
                 "o test",
                 "v",
-                " v 1 0 0 1",
+                "v 1 0 0 1",
                 "v 0 1 0",
                 " # comment",
-                "",
-                "g triangle",
-                "f 1 2 3",
+                " ",
+                " g triangle",
+                " f 1 2 3",
                 "",
                 "# end"
         ));
@@ -216,11 +221,13 @@ public class OBJParserTest {
                 "f -4//-2 -3//-1 -2//-2 -1//-1",
 
                 "f 1/4/1 2/3/2 3/2/1 4/1/2",
-                "f -4/-1/-2 -3/-2/-1 -2/-3/-2 -1/-4/-1"
+                "f -4/-1/-2 -3/-2/-1 -2/-3/-2 -1/-4/-1",
+
+                "f 1/4 2/3 3/2 4/1",
+                "f -4/-1 -3/-2 -2/-3 -1/-4"
         ));
 
-        while (p.nextKeyword() && !"f".equals(p.getKeyword())) {
-        }
+        nextFace(p);
 
         // act/assert
         assertFace(new int[][] {
@@ -230,7 +237,7 @@ public class OBJParserTest {
             { 3, -1, -1 },
         }, p.readFace());
 
-        p.nextKeyword();
+        nextFace(p);
 
         assertFace(new int[][] {
             { 0, -1, -1 },
@@ -239,7 +246,7 @@ public class OBJParserTest {
             { 3, -1, -1 },
         }, p.readFace());
 
-        p.nextKeyword();
+        nextFace(p);
 
         assertFace(new int[][] {
             { 0, -1, 0 },
@@ -248,7 +255,7 @@ public class OBJParserTest {
             { 3, -1, 1 },
         }, p.readFace());
 
-        p.nextKeyword();
+        nextFace(p);
 
         assertFace(new int[][] {
             { 0, -1, 0 },
@@ -257,7 +264,7 @@ public class OBJParserTest {
             { 3, -1, 1 },
         }, p.readFace());
 
-        p.nextKeyword();
+        nextFace(p);
 
         assertFace(new int[][] {
             { 0, 3, 0 },
@@ -266,7 +273,7 @@ public class OBJParserTest {
             { 3, 0, 1 },
         }, p.readFace());
 
-        p.nextKeyword();
+        nextFace(p);
 
         assertFace(new int[][] {
             { 0, 4, 0 },
@@ -274,18 +281,243 @@ public class OBJParserTest {
             { 2, 2, 0 },
             { 3, 1, 1 },
         }, p.readFace());
+
+        nextFace(p);
+
+        assertFace(new int[][] {
+            { 0, 3, -1 },
+            { 1, 2, -1 },
+            { 2, 1, -1 },
+            { 3, 0, -1 },
+        }, p.readFace());
+
+        nextFace(p);
+
+        assertFace(new int[][] {
+            { 0, 4, -1 },
+            { 1, 3, -1 },
+            { 2, 2, -1 },
+            { 3, 1, -1 },
+        }, p.readFace());
     }
 
     @Test
-    public void testParse_verticesOnly() throws IOException {
+    public void testReadFace_notEnoughVertices() throws IOException {
+        // arrange
+        final OBJParser p = parser(lines(
+                "# test content",
+                "v 0 0 0",
+                "v 1 0 0",
+                "v 1 1 0",
+                "f 1 2"
+        ));
+
+        // act/assert
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 5, column 6: " +
+            "face must contain at least 3 vertices but found only 2");
+    }
+
+    @Test
+    public void testReadFace_invalidVertexIndex() throws IOException {
+        // arrange
+        final OBJParser p = parser(lines(
+                "# test content",
+                "f 1 2 3",
+                "v 0 0 0",
+                "v 1 0 0",
+                "v 1 1 0",
+                "f 1 2 -4",
+                "f 1 0 3",
+                "f 4 2 3"
+        ));
+
+        // act/assert
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 2, column 3: " +
+            "vertex index cannot be used because no values of that type have been defined");
+
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 6, column 7: " +
+            "vertex index must evaluate to be within the range [1, 3] but was -4");
+
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 7, column 5: " +
+            "vertex index must evaluate to be within the range [1, 3] but was 0");
+
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 8, column 3: " +
+            "vertex index must evaluate to be within the range [1, 3] but was 4");
+    }
+
+    @Test
+    public void testReadFace_invalidTextureIndex() throws IOException {
+        // arrange
+        final OBJParser p = parser(lines(
+                "# test content",
+                "v 0 0 0",
+                "v 1 0 0",
+                "v 1 1 0",
+                "f 1/1 2/2 3/3",
+                "vt 1 2",
+                "vt 3 4",
+                "vt 5 6",
+                "f 1/1 2/2 3/-4",
+                "f 1/1 1/0 3/3",
+                "f 1/4 2/2 3/3"
+        ));
+
+        // act/assert
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 5, column 5: " +
+            "texture index cannot be used because no values of that type have been defined");
+
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 9, column 13: " +
+            "texture index must evaluate to be within the range [1, 3] but was -4");
+
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 10, column 9: " +
+            "texture index must evaluate to be within the range [1, 3] but was 0");
+
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 11, column 5: " +
+            "texture index must evaluate to be within the range [1, 3] but was 4");
+    }
+
+    @Test
+    public void testReadFace_invalidNormalIndex() throws IOException {
+        // arrange
+        final OBJParser p = parser(lines(
+                "# test content",
+                "v 0 0 0",
+                "v 1 0 0",
+                "v 1 1 0",
+                "f 1//1 2//2 3//3",
+                "vn 1 0 0",
+                "vn 0 1 0",
+                "vn 0 0 1",
+                "f 1//1 2//2 3//-4",
+                "f 1//1 1//0 3//3",
+                "f 1//4 2//2 3//3"
+        ));
+
+        // act/assert
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 5, column 6: " +
+            "normal index cannot be used because no values of that type have been defined");
+
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 9, column 16: " +
+            "normal index must evaluate to be within the range [1, 3] but was -4");
+
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 10, column 11: " +
+            "normal index must evaluate to be within the range [1, 3] but was 0");
+
+        nextFace(p);
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.readFace();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 11, column 6: " +
+            "normal index must evaluate to be within the range [1, 3] but was 4");
+    }
+
+    @Test
+    public void testParse() throws IOException {
         // arrange
         final OBJParser p = parser(lines(
                 "# test content",
                 "o test",
+                "",
                 "v 0 0 0",
                 "v 1 0 0",
+                "v 1 1 0",
                 "v 0 1 0",
-                "f 1 2 3"
+                "",
+                "vt 0 0",
+                "vt 1 0",
+                "vt 1 1",
+                "",
+                "vn 0 0 1",
+                "",
+                "f 1 2 4",
+                "f 1/1/1 2/2/1 3/3/1"
         ));
 
         // act/assert
@@ -299,18 +531,219 @@ public class OBJParserTest {
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.Unit.PLUS_X, p.readVector(), EPS);
 
         assertNextKeyword("v", p);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1, 1, 0), p.readVector(), EPS);
+
+        assertNextKeyword("v", p);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.Unit.PLUS_Y, p.readVector(), EPS);
+
+        assertNextKeyword("vt", p);
+        Assert.assertArrayEquals(new double[] { 0, 0 }, p.readDoubles(),  EPS);
+
+        assertNextKeyword("vt", p);
+        Assert.assertArrayEquals(new double[] { 1, 0 }, p.readDoubles(),  EPS);
+
+        assertNextKeyword("vt", p);
+        Assert.assertArrayEquals(new double[] { 1, 1 }, p.readDoubles(),  EPS);
+
+        assertNextKeyword("vn", p);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.Unit.PLUS_Z, p.readVector(), EPS);
 
         assertNextKeyword("f", p);
         assertFace(new int[][] {
             { 0, -1, -1 },
             { 1, -1, -1 },
-            { 2, -1, -1 },
+            { 3, -1, -1 },
         }, p.readFace());
 
-        Assert.assertEquals(3, p.getVertexCount());
-        Assert.assertEquals(0, p.getTextureCoordinateCount());
-        Assert.assertEquals(0, p.getVertexNormalCount());
+        assertNextKeyword("f", p);
+        assertFace(new int[][] {
+            { 0, 0, 0 },
+            { 1, 1, 0 },
+            { 2, 2, 0 },
+        }, p.readFace());
+
+        Assert.assertEquals(4, p.getVertexCount());
+        Assert.assertEquals(3, p.getTextureCoordinateCount());
+        Assert.assertEquals(1, p.getVertexNormalCount());
+    }
+
+    @Test
+    public void testFace_getDefinedCompositeNormal() throws IOException {
+        // arrange
+        final OBJParser p = parser(lines(
+                "v 0 0 0",
+                "v 1 0 0",
+                "v 1 1 0",
+                "v 0 1 0",
+                "",
+                "vn 0 0 1",
+                "vn 0 0 -1",
+                "vn 2 2 2",
+                "vn -2 2 2",
+                "",
+                "f 1 2 3 4",
+                "f 1//1 2 3",
+                "f 1//1 2//1 3//1 4//1",
+                "f 1//1 2//2 3//1 4//2",
+                "f 1//-2 2//-1 3//3 4//4"
+        ));
+
+        final List<Vector3D> normals = Arrays.asList(
+                Vector3D.Unit.PLUS_Z,
+                Vector3D.Unit.MINUS_Z,
+                Vector3D.of(1, 1, 1),
+                Vector3D.of(-1, 1, 1));
+        final IntFunction<Vector3D> normalFn = normals::get;
+
+        // act/assert
+        nextMatchingKeyword("f", p);
+        Assert.assertNull(p.readFace().getDefinedCompositeNormal(normalFn));
+
+        nextMatchingKeyword("f", p);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.Unit.PLUS_Z,
+                p.readFace().getDefinedCompositeNormal(normalFn), EPS);
+
+        nextMatchingKeyword("f", p);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.Unit.PLUS_Z,
+                p.readFace().getDefinedCompositeNormal(normalFn), EPS);
+
+        nextMatchingKeyword("f", p);
+        Assert.assertNull(p.readFace().getDefinedCompositeNormal(normalFn));
+
+        nextMatchingKeyword("f", p);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 1, 1).normalize(),
+                p.readFace().getDefinedCompositeNormal(normalFn), EPS);
+    }
+
+    @Test
+    public void testFace_computeNormalFromVertices() throws IOException {
+        // arrange
+        final OBJParser p = parser(lines(
+                "v 0 0 0",
+                "v 1 0 0",
+                "v 2 0 0",
+                "v 0 1 0",
+                "",
+                "vn 0 0 1",
+                "",
+                "f 1 2 4",
+                "f 1//1 2//1 3//1"
+        ));
+
+        final List<Vector3D> vertices = Arrays.asList(
+                Vector3D.ZERO,
+                Vector3D.Unit.PLUS_X,
+                Vector3D.of(2, 0, 0),
+                Vector3D.of(0, 1, 0));
+        final IntFunction<Vector3D> vertexFn = vertices::get;
+
+        // act/assert
+        nextMatchingKeyword("f", p);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.Unit.PLUS_Z,
+                p.readFace().computeNormalFromVertices(vertexFn), EPS);
+
+        nextMatchingKeyword("f", p);
+        Assert.assertNull(p.readFace().computeNormalFromVertices(vertexFn));
+    }
+
+    @Test
+    public void testFace_getOrientedVertexAttributes() throws IOException {
+        // arrange
+        final OBJParser p = parser(lines(
+                "v 0 0 0",
+                "v 1 0 0",
+                "v 0 1 0",
+                "f 1 2 3"
+        ));
+
+        final List<Vector3D> vertices = Arrays.asList(
+                Vector3D.ZERO,
+                Vector3D.Unit.PLUS_X,
+                Vector3D.Unit.PLUS_Y,
+                Vector3D.of(2, 0, 0));
+        final IntFunction<Vector3D> vertexFn = vertices::get;
+
+        nextMatchingKeyword("f", p);
+        final OBJParser.Face f = p.readFace();
+
+        final List<OBJParser.VertexAttributes> attrs = f.getVertexAttributes();
+
+        final List<OBJParser.VertexAttributes> reverseAttrs = new ArrayList<>(attrs);
+        Collections.reverse(reverseAttrs);
+
+        // act/assert
+        Assert.assertEquals(attrs, f.getOrientedVertexAttributes(null, vertexFn));
+
+        Assert.assertEquals(attrs, f.getOrientedVertexAttributes(Vector3D.Unit.PLUS_Z, vertexFn));
+        Assert.assertEquals(attrs, f.getOrientedVertexAttributes(Vector3D.of(1, 0, 0.1), vertexFn));
+        Assert.assertEquals(attrs, f.getOrientedVertexAttributes(Vector3D.Unit.PLUS_X, vertexFn));
+
+        Assert.assertEquals(reverseAttrs, f.getOrientedVertexAttributes(Vector3D.Unit.MINUS_Z, vertexFn));
+        Assert.assertEquals(reverseAttrs, f.getOrientedVertexAttributes(Vector3D.of(1, 0, -0.1), vertexFn));
+    }
+
+    @Test
+    public void testFace_getVertices() throws IOException {
+        // arrange
+        final OBJParser p = parser(lines(
+                "v 0 0 0",
+                "v 1 0 0",
+                "v 1 1 0",
+                "v 0 1 0",
+                "v 0 0 1",
+                "v 0 0 -1",
+                "",
+                "f 2 3 4"
+        ));
+
+        final List<Vector3D> vertices = Arrays.asList(
+                Vector3D.ZERO,
+                Vector3D.Unit.PLUS_X,
+                Vector3D.of(1, 1, 0),
+                Vector3D.Unit.PLUS_Y,
+                Vector3D.of(0, 0, 1),
+                Vector3D.of(0, 0, -1));
+        final IntFunction<Vector3D> vertexFn = vertices::get;
+
+        // act/assert
+        nextMatchingKeyword("f", p);
+        Assert.assertEquals(vertices.subList(1, 4), p.readFace().getVertices(vertexFn));
+    }
+
+    @Test
+    public void testFace_getOrientedVertices() throws IOException {
+        // arrange
+        final OBJParser p = parser(lines(
+                "v 0 0 0",
+                "v 1 0 0",
+                "v 0 1 0",
+                "v 0 0 -1",
+                "f 1 2 3"
+        ));
+
+        final List<Vector3D> vertices = Arrays.asList(
+                Vector3D.ZERO,
+                Vector3D.Unit.PLUS_X,
+                Vector3D.Unit.PLUS_Y,
+                Vector3D.of(0, 0, -1));
+        final IntFunction<Vector3D> vertexFn = vertices::get;
+
+        final List<Vector3D> faceVertices = vertices.subList(0, 3);
+        final List<Vector3D> reverseFaceVertices = new ArrayList<>(faceVertices);
+        Collections.reverse(reverseFaceVertices);
+
+        nextMatchingKeyword("f", p);
+        final OBJParser.Face f = p.readFace();
+
+        // act/assert
+        Assert.assertEquals(faceVertices, f.getOrientedVertices(null, vertexFn));
+
+        Assert.assertEquals(faceVertices, f.getOrientedVertices(Vector3D.Unit.PLUS_Z, vertexFn));
+        Assert.assertEquals(faceVertices, f.getOrientedVertices(Vector3D.of(1, 0, 0.1), vertexFn));
+        Assert.assertEquals(faceVertices, f.getOrientedVertices(Vector3D.Unit.PLUS_X, vertexFn));
+
+        Assert.assertEquals(reverseFaceVertices, f.getOrientedVertices(Vector3D.Unit.MINUS_Z, vertexFn));
+        Assert.assertEquals(reverseFaceVertices, f.getOrientedVertices(Vector3D.of(1, 0, -0.1), vertexFn));
     }
 
     private static OBJParser parser(final String content) {
@@ -327,6 +760,15 @@ public class OBJParserTest {
         }
 
         return sb.toString();
+    }
+
+    private static void nextFace(final OBJParser parser) throws IOException {
+        nextMatchingKeyword(OBJConstants.FACE_KEYWORD, parser);
+    }
+
+    private static void nextMatchingKeyword(final String keyword, final OBJParser parser) throws IOException {
+        while (parser.nextKeyword() && !keyword.equals(parser.getKeyword())) {
+        }
     }
 
     private static void assertNextKeyword(final String expected, final OBJParser parser) throws IOException {
