@@ -28,14 +28,14 @@ import org.apache.commons.geometry.examples.io.threed.facet.SimpleFacetDefinitio
 
 public class OBJFacetDefinitionReader implements FacetDefinitionReader {
 
-    private final OBJParser parser;
+    private final PolygonOBJParser parser;
 
     private final List<Vector3D> modelVertices = new ArrayList<>();
 
     private final List<Vector3D> modelNormals = new ArrayList<>();
 
     public OBJFacetDefinitionReader(final Reader reader) {
-        this.parser = new OBJParser(reader);
+        this.parser = new PolygonOBJParser(reader);
     }
 
     /** {@inheritDoc} */
@@ -53,7 +53,7 @@ public class OBJFacetDefinitionReader implements FacetDefinitionReader {
                     modelNormals.add(parser.readVector());
                     break;
                 case OBJConstants.FACE_KEYWORD:
-                    final OBJParser.Face face = parser.readFace();
+                    final PolygonOBJParser.Face face = parser.readFace();
 
                     final List<Vector3D> vertices = face.getVertices(modelVertices::get);
                     final Vector3D definedNormal = face.getDefinedCompositeNormal(modelNormals::get);

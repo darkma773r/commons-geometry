@@ -26,8 +26,11 @@ public final class OBJConstants {
     /** Default OBJ charset. */
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
-    /** String used to indicate the start of a comment line. */
-    public static final String COMMENT_START = "#";
+    /** Character used to indicate the start of a comment line. */
+    public static final char COMMENT_CHAR = '#';
+
+    /** Character placed before new line sequences to indicate a line continuation. */
+    public static final char LINE_CONTINUATION_CHAR = '\\';
 
     /** Keyword used to indicate a vertex definition line. */
     public static final String VERTEX_KEYWORD = "v";
@@ -41,14 +44,23 @@ public final class OBJConstants {
     /** Keyword used to indicate a face definition line. */
     public static final String FACE_KEYWORD = "f";
 
+    /** Character used to separate face vertex attribute indices. */
+    public static final char FACE_VERTEX_ATTRIBUTE_SEP_CHAR = '/';
+
     /** Keyword used to indicate a geometry group. */
     public static final String GROUP_KEYWORD = "g";
+
+    /** Keyword used to indicate a geometry group. */
+    public static final String SMOOTHING_GROUP_KEYWORD = "s";
 
     /** Keyword used to associate a name with the following geometry. */
     public static final String OBJECT_KEYWORD = "o";
 
-    /** Character used to separate face vertex indices from texture and normal indices. */
-    public static final char FACE_VALUE_SEP_CHAR = '/';
+    /** Keyword used to reference a material library file. */
+    public static final String MATERIAL_LIBRARY_KEYWORD = "mtllib";
+
+    /** Keyword used to apply a named material to subsequent geometry. */
+    public static final String USE_MATERIAL_KEYWORD = "usemtl";
 
     /** Utility class; no instantiation. */
     private OBJConstants() {}

@@ -30,26 +30,27 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class OBJParserTest {
+public class PolygonOBJParserTest {
 
     private static final double EPS = 1e-10;
 
     @Test
     public void testInitialState() {
         // act
-        final OBJParser p = parser("");
+        final PolygonOBJParser p = parser("");
 
         // assert
         Assert.assertNull(p.getKeyword());
         Assert.assertEquals(0, p.getVertexCount());
         Assert.assertEquals(0, p.getVertexNormalCount());
         Assert.assertEquals(0, p.getTextureCoordinateCount());
+        Assert.assertFalse(p.getFailOnNonPolygonKeywords());
     }
 
     @Test
     public void testNextKeyword() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "#comment",
                 "",
                 "  \t",
@@ -57,11 +58,13 @@ public class OBJParserTest {
                 "v",
                 "v 1 0 0 1",
                 "v 0 1 0",
-                " # comment",
+                "# comment",
                 " ",
-                " g triangle",
-                " f 1 2 3",
+                "g triangle-\\",
+                "group",
+                "f 1 2 3",
                 "",
+                "curv2",
                 "# end"
         ));
 
@@ -72,37 +75,154 @@ public class OBJParserTest {
         assertNextKeyword("v", p);
         assertNextKeyword("g", p);
         assertNextKeyword("f", p);
+        assertNextKeyword("curv2", p);
 
         assertNextKeyword(null, p);
     }
 
     @Test
+    public void testNextKeyword_polygonKeywordsOnly_valid() throws IOException {
+        // arrange
+        final PolygonOBJParser p = parser(lines(
+                "v",
+                "vn",
+                "vt",
+                "f",
+                "o",
+                "s",
+                "g",
+                "mtllib",
+                "usemtl"
+        ));
+        p.setFailOnNonPolygonKeywords(true);
+
+        // act/assert
+        assertNextKeyword("v", p);
+        assertNextKeyword("vn", p);
+        assertNextKeyword("vt", p);
+        assertNextKeyword("f", p);
+        assertNextKeyword("o", p);
+        assertNextKeyword("s", p);
+        assertNextKeyword("g", p);
+        assertNextKeyword("mtllib", p);
+        assertNextKeyword("usemtl", p);
+
+        assertNextKeyword(null, p);
+    }
+
+    @Test
+    public void testNextKeyword_polygonKeywordsOnly_invalid() throws IOException {
+        // arrange
+        final PolygonOBJParser p = parser(lines(
+                "",
+                "curv2 abc"
+        ));
+        p.setFailOnNonPolygonKeywords(true);
+
+        // act/assert
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.nextKeyword();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class,
+                "Parsing failed at line 2, column 1: expected keyword to be one of " +
+                "[f, g, mtllib, o, s, usemtl, v, vn, vt] but was [curv2]");
+    }
+
+    @Test
     public void testNextKeyword_emptyContent() throws IOException {
         // arrange
-        final OBJParser p = parser("");
+        final PolygonOBJParser p = parser("");
 
         // act/assert
         assertNextKeyword(null, p);
     }
 
     @Test
-    public void testReadLine() throws IOException {
+    public void testNextKeyword_unexpectedContent() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
+                    " f",
+                    "-- bad comment attempt"
+                ));
+
+        // act/assert
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.nextKeyword();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 1, column 2: " +
+            "non-blank lines must begin with an OBJ keyword or comment character");
+
+        GeometryTestUtils.assertThrows(() -> {
+            try {
+                p.nextKeyword();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+        }, IllegalStateException.class, "Parsing failed at line 2, column 1: " +
+            "expected OBJ keyword but found empty token followed by [-]");
+    }
+
+    @Test
+    public void testReadDataLine() throws IOException {
+        // arrange
+        final PolygonOBJParser p = parser(lines(
                 "  line\t",
-                ""
+                "",
+                " \\",
+                "a \\",
+                "b\\",
+                "cd\\",
+                ".\\"
         ));
 
-        // act
-        Assert.assertEquals("line", p.readLine());
-        Assert.assertEquals("", p.readLine());
-        Assert.assertNull(p.readLine());
+        // act/assert
+        Assert.assertEquals("  line\t", p.readDataLine());
+        Assert.assertEquals("", p.readDataLine());
+        Assert.assertEquals(" a bcd.", p.readDataLine());
+        Assert.assertNull(p.readDataLine());
+    }
+
+    @Test
+    public void testDiscardDataLine() throws IOException {
+        // arrange
+        final PolygonOBJParser p = parser(lines(
+                "  line\t",
+                "",
+                " \\",
+                "a \\",
+                "b\\",
+                "cd\\",
+                ".\\"
+        ));
+
+        // act/assert
+        p.discardDataLine();
+        Assert.assertEquals(2, p.getTextParser().getLineNumber());
+        Assert.assertEquals(1, p.getTextParser().getColumnNumber());
+
+        p.discardDataLine();
+        Assert.assertEquals(3, p.getTextParser().getLineNumber());
+        Assert.assertEquals(1, p.getTextParser().getColumnNumber());
+
+        p.discardDataLine();
+        Assert.assertEquals(8, p.getTextParser().getLineNumber());
+        Assert.assertEquals(1, p.getTextParser().getColumnNumber());
+
+        p.discardDataLine();
+        Assert.assertEquals(8, p.getTextParser().getLineNumber());
+        Assert.assertEquals(1, p.getTextParser().getColumnNumber());
     }
 
     @Test
     public void testReadVector() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "1.01 3e-02 123.999 extra"
         ));
 
@@ -113,7 +233,7 @@ public class OBJParserTest {
     @Test
     public void testReadVector_parseFailures() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "0.1 0.2 a",
                 "1",
                 ""
@@ -128,7 +248,7 @@ public class OBJParserTest {
             }
         }, IllegalStateException.class, "Parsing failed at line 1, column 9: expected double but found [a]");
 
-        p.readLine();
+        p.readDataLine();
 
         GeometryTestUtils.assertThrows(() -> {
             try {
@@ -142,7 +262,7 @@ public class OBJParserTest {
     @Test
     public void testReadDoubles() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "0.1 0.2 3e2 4e2 500.01",
                 "  12.001  ",
                 "  ",
@@ -155,15 +275,15 @@ public class OBJParserTest {
         }, p.readDoubles(), EPS);
         Assert.assertArrayEquals(new double[] { }, p.readDoubles(), EPS);
 
-        p.readLine();
+        p.readDataLine();
 
         Assert.assertArrayEquals(new double[] { 12.001 }, p.readDoubles(), EPS);
 
-        p.readLine();
+        p.readDataLine();
 
         Assert.assertArrayEquals(new double[] { }, p.readDoubles(), EPS);
 
-        p.readLine();
+        p.readDataLine();
 
         Assert.assertArrayEquals(new double[] { }, p.readDoubles(), EPS);
     }
@@ -171,7 +291,7 @@ public class OBJParserTest {
     @Test
     public void testReadDoubles_parseFailures() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "0.1 0.2 a",
                 "b"
         ));
@@ -185,7 +305,7 @@ public class OBJParserTest {
             }
         }, IllegalStateException.class, "Parsing failed at line 1, column 9: expected double but found [a]");
 
-        p.readLine();
+        p.readDataLine();
 
         GeometryTestUtils.assertThrows(() -> {
             try {
@@ -199,7 +319,7 @@ public class OBJParserTest {
     @Test
     public void testReadFace() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "# test content",
                 "o test",
                 "v 0 0 0",
@@ -304,7 +424,7 @@ public class OBJParserTest {
     @Test
     public void testReadFace_notEnoughVertices() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "# test content",
                 "v 0 0 0",
                 "v 1 0 0",
@@ -327,7 +447,7 @@ public class OBJParserTest {
     @Test
     public void testReadFace_invalidVertexIndex() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "# test content",
                 "f 1 2 3",
                 "v 0 0 0",
@@ -383,7 +503,7 @@ public class OBJParserTest {
     @Test
     public void testReadFace_invalidTextureIndex() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "# test content",
                 "v 0 0 0",
                 "v 1 0 0",
@@ -442,7 +562,7 @@ public class OBJParserTest {
     @Test
     public void testReadFace_invalidNormalIndex() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "# test content",
                 "v 0 0 0",
                 "v 1 0 0",
@@ -501,12 +621,19 @@ public class OBJParserTest {
     @Test
     public void testParse() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "# test content",
                 "o test",
+                "g test",
+                "s test",
+                "mtllib mylib.mtl",
+                "usemtl mymaterial",
+                "",
+                "\\", // line continuation
+                " \\", // line continuation
                 "",
                 "v 0 0 0",
-                "v 1 0 0",
+                "v 1\\", ".0 0 0", // line continuation
                 "v 1 1 0",
                 "v 0 1 0",
                 "",
@@ -517,12 +644,24 @@ public class OBJParserTest {
                 "vn 0 0 1",
                 "",
                 "f 1 2 4",
-                "f 1/1/1 2/2/1 3/3/1"
+                "f 1/1/1 2/2/1 3\\", "/3/1" // line continuation
         ));
 
         // act/assert
         assertNextKeyword("o", p);
-        Assert.assertEquals("test", p.readLine());
+        Assert.assertEquals("test", p.readDataLine());
+
+        assertNextKeyword("g", p);
+        Assert.assertEquals("test", p.readDataLine());
+
+        assertNextKeyword("s", p);
+        Assert.assertEquals("test", p.readDataLine());
+
+        assertNextKeyword("mtllib", p);
+        Assert.assertEquals("mylib.mtl", p.readDataLine());
+
+        assertNextKeyword("usemtl", p);
+        Assert.assertEquals("mymaterial", p.readDataLine());
 
         assertNextKeyword("v", p);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, p.readVector(), EPS);
@@ -570,7 +709,7 @@ public class OBJParserTest {
     @Test
     public void testFace_getDefinedCompositeNormal() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 1 1 0",
@@ -618,7 +757,7 @@ public class OBJParserTest {
     @Test
     public void testFace_computeNormalFromVertices() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 2 0 0",
@@ -649,7 +788,7 @@ public class OBJParserTest {
     @Test
     public void testFace_getOrientedVertexAttributes() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 0 1 0",
@@ -664,11 +803,11 @@ public class OBJParserTest {
         final IntFunction<Vector3D> vertexFn = vertices::get;
 
         nextMatchingKeyword("f", p);
-        final OBJParser.Face f = p.readFace();
+        final PolygonOBJParser.Face f = p.readFace();
 
-        final List<OBJParser.VertexAttributes> attrs = f.getVertexAttributes();
+        final List<PolygonOBJParser.VertexAttributes> attrs = f.getVertexAttributes();
 
-        final List<OBJParser.VertexAttributes> reverseAttrs = new ArrayList<>(attrs);
+        final List<PolygonOBJParser.VertexAttributes> reverseAttrs = new ArrayList<>(attrs);
         Collections.reverse(reverseAttrs);
 
         // act/assert
@@ -685,7 +824,7 @@ public class OBJParserTest {
     @Test
     public void testFace_getVertices() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 1 1 0",
@@ -713,7 +852,7 @@ public class OBJParserTest {
     @Test
     public void testFace_getOrientedVertices() throws IOException {
         // arrange
-        final OBJParser p = parser(lines(
+        final PolygonOBJParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 0 1 0",
@@ -733,7 +872,7 @@ public class OBJParserTest {
         Collections.reverse(reverseFaceVertices);
 
         nextMatchingKeyword("f", p);
-        final OBJParser.Face f = p.readFace();
+        final PolygonOBJParser.Face f = p.readFace();
 
         // act/assert
         Assert.assertEquals(faceVertices, f.getOrientedVertices(null, vertexFn));
@@ -746,8 +885,8 @@ public class OBJParserTest {
         Assert.assertEquals(reverseFaceVertices, f.getOrientedVertices(Vector3D.of(1, 0, -0.1), vertexFn));
     }
 
-    private static OBJParser parser(final String content) {
-        return new OBJParser(new StringReader(content));
+    private static PolygonOBJParser parser(final String content) {
+        return new PolygonOBJParser(new StringReader(content));
     }
 
     private static String lines(final String... lines) {
@@ -762,21 +901,21 @@ public class OBJParserTest {
         return sb.toString();
     }
 
-    private static void nextFace(final OBJParser parser) throws IOException {
+    private static void nextFace(final PolygonOBJParser parser) throws IOException {
         nextMatchingKeyword(OBJConstants.FACE_KEYWORD, parser);
     }
 
-    private static void nextMatchingKeyword(final String keyword, final OBJParser parser) throws IOException {
+    private static void nextMatchingKeyword(final String keyword, final PolygonOBJParser parser) throws IOException {
         while (parser.nextKeyword() && !keyword.equals(parser.getKeyword())) {
         }
     }
 
-    private static void assertNextKeyword(final String expected, final OBJParser parser) throws IOException {
+    private static void assertNextKeyword(final String expected, final PolygonOBJParser parser) throws IOException {
         Assert.assertEquals(expected != null, parser.nextKeyword());
         Assert.assertEquals(expected, parser.getKeyword());
     }
 
-    private static void assertFace(final int[][] vertexAttributes, final OBJParser.Face face) {
+    private static void assertFace(final int[][] vertexAttributes, final PolygonOBJParser.Face face) {
         Assert.assertEquals(vertexAttributes.length, face.getVertexAttributes().size());
 
         final int[] expectedVertexIndices = new int[vertexAttributes.length];
@@ -784,7 +923,7 @@ public class OBJParserTest {
         final int[] expectedNormalIndices = new int[vertexAttributes.length];
 
         // check the indices directly on the vertex attributes
-        OBJParser.VertexAttributes attrs;
+        PolygonOBJParser.VertexAttributes attrs;
         String msg;
         for (int i = 0; i < vertexAttributes.length; ++i) {
             attrs = face.getVertexAttributes().get(i);

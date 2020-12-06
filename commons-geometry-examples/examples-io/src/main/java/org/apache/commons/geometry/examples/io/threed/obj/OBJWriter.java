@@ -110,7 +110,7 @@ public final class OBJWriter implements AutoCloseable {
      */
     public void writeComment(final String comment) throws IOException {
         for (final String line : comment.split("\\R")) {
-            writer.write(OBJConstants.COMMENT_START);
+            writer.write(OBJConstants.COMMENT_CHAR);
             writer.write(SPACE);
             writer.write(line);
             writer.write(lineSeparator);

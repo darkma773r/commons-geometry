@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 
 /** Class providing basic text parsing capabilities. The goals of this class are to
@@ -42,6 +43,9 @@ public class SimpleTextParser {
 
     /** Initial token position number. */
     private static final int INITIAL_TOKEN_POS = -1;
+
+    /** Int consumer that does nothing. */
+    private static final IntConsumer NOOP_CONSUMER = ch -> {};
 
     /** Current line number; line numbers start counting at 1. */
     private int lineNumber = 1;
@@ -264,8 +268,8 @@ public class SimpleTextParser {
      * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if {@code len} is less than 0 or greater than the
      *      configured {@link #getMaxStringLength() maximum string length}
-     * @return this instance
      * @see #getCurrentToken()
+     * @see #consume(int, IntConsumer)
      */
     public SimpleTextParser next(final int len) throws IOException {
         validateRequestedStringLength(len);
@@ -277,11 +281,44 @@ public class SimpleTextParser {
         if (hasMoreCharacters()) {
             final StringBuilder sb = new StringBuilder(len);
 
-            for (int i = 0, ch = peekChar();
-                    i < len && ch != EOF;
-                    ++i, ch = peekChar()) {
-                sb.append((char) readChar());
-            }
+            consume(len, ch -> {
+                sb.append((char) ch);
+            });
+
+            token = sb.toString();
+        }
+
+        setToken(line, col, token);
+
+        return this;
+    }
+
+    /** Read a string containing at most {@code len} characters from the stream and
+     * set it as the current token. This is similar to {@link #next(int)} but with the exception
+     * that new line sequences beginning with {@code lineContinuationChar} are skipped.
+     * @param lineContinuationChar character used to indicate skipped new line sequences
+     * @param len the maximum length of the extracted string
+     * @return this instance
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalArgumentException if {@code len} is less than 0 or greater than the
+     *      configured {@link #getMaxStringLength() maximum string length}
+     * @see #getCurrentToken()
+     * @see #consumeWithLineContinuation(char, int, IntConsumer)
+     */
+    public SimpleTextParser nextWithLineContinuation(final char lineContinuationChar, final int len)
+            throws IOException {
+        validateRequestedStringLength(len);
+
+        final int line = getLineNumber();
+        final int col = getColumnNumber();
+
+        String token = null;
+        if (hasMoreCharacters()) {
+            final StringBuilder sb = new StringBuilder(len);
+
+            consumeWithLineContinuation(lineContinuationChar, len, ch -> {
+                sb.append((char) ch);
+            });
 
             token = sb.toString();
         }
@@ -302,6 +339,7 @@ public class SimpleTextParser {
      * @throws IllegalStateException if the length of the produced string exceeds the configured
      *      {@link #getMaxStringLength() maximum string length}
      * @see #getCurrentToken()
+     * @see #consume(IntPredicate, IntConsumer)
      */
     public SimpleTextParser next(final IntPredicate pred) throws IOException {
         final int line = getLineNumber();
@@ -311,13 +349,45 @@ public class SimpleTextParser {
         if (hasMoreCharacters()) {
             final StringBuilder sb = new StringBuilder();
 
-            for (int ch = peekChar();
-                    ch != EOF && pred.test(ch);
-                    ch = peekChar()) {
-                sb.append((char) readChar());
-
+            consume(pred, ch -> {
+                sb.append((char) ch);
                 validateStringLength(sb.length());
-            }
+            });
+
+            token = sb.toString();
+        }
+
+        setToken(line, col, token);
+
+        return this;
+    }
+
+    /** Read characters from the stream while the given predicate returns true and set the result
+     * as the current token. This is similar to {@link #next(IntPredicate)} but with the exception
+     * that new line sequences prefixed with {@code lineContinuationChar} are skipped.
+     * @param lineContinuationChar character used to indicate skipped new line sequences
+     * @param pred predicate function passed characters read from the input; reading continues
+     *      until the predicate returns false
+     * @return this instance
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalStateException if the length of the produced string exceeds the configured
+     *      {@link #getMaxStringLength() maximum string length}
+     * @see #getCurrentToken()
+     * @see #consume(IntPredicate, IntConsumer)
+     */
+    public SimpleTextParser nextWithLineContinuation(final char lineContinuationChar, final IntPredicate pred)
+            throws IOException {
+        final int line = getLineNumber();
+        final int col = getColumnNumber();
+
+        String token = null;
+        if (hasMoreCharacters()) {
+            final StringBuilder sb = new StringBuilder();
+
+            consumeWithLineContinuation(lineContinuationChar, pred, ch -> {
+                sb.append((char) ch);
+                validateStringLength(sb.length());
+            });
 
             token = sb.toString();
         }
@@ -366,13 +436,20 @@ public class SimpleTextParser {
      * @throws IOException if an I/O error occurs
      */
     public SimpleTextParser discard(final int len) throws IOException {
-        for (int i = 0, ch = peekChar();
-                i < len && ch != EOF;
-                ++i, ch = readChar()) {
-            // discard char
-        }
+        return consume(len, NOOP_CONSUMER);
+    }
 
-        return this;
+    /** Discard {@code len} number of characters from the character stream. The
+     * parser position is updated but the current token is not changed. Lines beginning
+     * with {@code lineContinuationChar} are skipped.
+     * @param lineContinuationChar character used to indicate skipped new line sequences
+     * @param len number of characters to discard
+     * @return this instance
+     * @throws IOException if an I/O error occurs
+     */
+    public SimpleTextParser discardWithLineContinuation(final char lineContinuationChar,
+            final int len) throws IOException {
+        return consumeWithLineContinuation(lineContinuationChar, len, NOOP_CONSUMER);
     }
 
     /** Discard characters from the stream while the given predicate returns true. The next call
@@ -384,13 +461,21 @@ public class SimpleTextParser {
      * @throws IOException if an I/O error occurs
      */
     public SimpleTextParser discard(final IntPredicate pred) throws IOException {
-        for (int ch = peekChar();
-                ch != EOF && pred.test(ch);
-                ch = peekChar()) {
-            readChar(); // discard this character
-        }
+        return consume(pred, NOOP_CONSUMER);
+    }
 
-        return this;
+    /** Discard characters from the stream while the given predicate returns true. New line sequences
+     * beginning with {@code lineContinuationChar} are skipped. The next call o {@link #readChar()}
+     * will return either a character that fails the predicate test or -1 if the end of the stream
+     * has been reached. The parser position is updated but the current token is not changed.
+     * @param lineContinuationChar character used to indicate skipped new line sequences
+     * @param pred predicate test for characters to discard
+     * @return this instance
+     * @throws IOException if an I/O error occurs
+     */
+    public SimpleTextParser discardWithLineContinuation(final char lineContinuationChar,
+            final IntPredicate pred) throws IOException {
+        return consumeWithLineContinuation(lineContinuationChar, pred, NOOP_CONSUMER);
     }
 
     /** Discard a sequence of whitespace characters from the character stream starting from the
@@ -447,6 +532,96 @@ public class SimpleTextParser {
         discard(SimpleTextParser::isNotNewLinePart);
 
         discardNewLineSequence();
+
+        return this;
+    }
+
+    /** Consume characters from the stream and pass them to {@code consumer} while the given predicate
+     * returns true. The operation ends when the predicate returns false or the end of the stream is
+     * reached.
+     * @param pred predicate test for characters to consume
+     * @param consumer object to be passed each consumed character
+     * @return this instance
+     * @throws IOException if an I/O error occurs
+     */
+    public SimpleTextParser consume(final IntPredicate pred, final IntConsumer consumer) throws IOException {
+        int ch;
+        while ((ch = peekChar()) != EOF && pred.test(ch)) {
+            consumer.accept(readChar());
+        }
+
+        return this;
+    }
+
+    /** Consume at most {@code len} characters from the stream, passing each to the given consumer.
+     * This method is similar to {@link #consume(int, IntConsumer)} with the exception that new line
+     * sequences prefixed with {@code lineContinuationChar} are skipped.
+     * @param lineContinuationChar character used to indicate skipped new line sequences
+     * @param len number of characters to consume
+     * @param consumer function to be passed each consumed character
+     * @return this instance
+     * @throws IOException if an I/O error occurs
+     */
+    public SimpleTextParser consumeWithLineContinuation(final char lineContinuationChar,
+            final int len, final IntConsumer consumer) throws IOException {
+        int i = -1;
+        int ch;
+        while (++i < len && (ch = readChar()) != EOF) {
+            if (ch == lineContinuationChar && isNewLinePart(peekChar())) {
+                --i; // don't count the continuation char toward the total length
+                discardNewLineSequence();
+            } else {
+                consumer.accept(ch);
+            }
+        }
+
+        return this;
+    }
+
+    /** Consume at most {@code len} characters from the stream, passing each to the given consumer.
+     * The operation continues until {@code len} number of characters have been read or the end of
+     * the stream has been reached.
+     * @param len number of characters to consume
+     * @param consumer object to be passed each consumed character
+     * @return this instance
+     * @throws IOException if an I/O error occurs
+     */
+    public SimpleTextParser consume(final int len, final IntConsumer consumer) throws IOException {
+        int ch;
+        for (int i = 0; i < len; ++i) {
+            ch = readChar();
+            if (ch != EOF) {
+                consumer.accept(ch);
+            } else {
+                break;
+            }
+        }
+
+        return this;
+    }
+
+    /** Consume characters from the stream and pass them to {@code consumer} while the given predicate
+     * returns true. This method is similar to {@link #consume(IntPredicate, IntConsumer)} with the
+     * exception that new lines sequences beginning with {@code lineContinuationChar} are skipped.
+     * @param lineContinuationChar character used to indicate skipped new line sequences
+     * @param pred predicate test for characters to consume
+     * @param consumer object to be passed each consumed character
+     * @return this instance
+     * @throws IOException if an I/O error occurs
+     */
+    public SimpleTextParser consumeWithLineContinuation(final char lineContinuationChar,
+            final IntPredicate pred, final IntConsumer consumer) throws IOException {
+        int ch;
+        while ((ch = peekChar()) != EOF) {
+            if (ch == lineContinuationChar && isNewLinePart(buffer.charAt(1))) {
+                readChar();
+                discardNewLineSequence();
+            } else if (pred.test(ch)) {
+                consumer.accept(readChar());
+            } else {
+                break;
+            }
+        }
 
         return this;
     }
@@ -765,7 +940,7 @@ public class SimpleTextParser {
      * @return an exception indicating an error during parsing
      */
     public IllegalStateException parseError(final String msg, final Throwable cause) {
-        return parseError(lineNumber, columnNumber, msg, null);
+        return parseError(lineNumber, columnNumber, msg, cause);
     }
 
     /** Return an exception indicating an error during parsing.

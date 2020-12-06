@@ -132,7 +132,7 @@ public final class OBJReader {
             ++startIdx;
         }
 
-        if (startIdx >= line.length() || line.charAt(startIdx) == OBJConstants.COMMENT_START.charAt(0)) {
+        if (startIdx >= line.length() || line.charAt(startIdx) == OBJConstants.COMMENT_CHAR) {
             return; // skip
         }
 
@@ -206,7 +206,7 @@ public final class OBJReader {
      * @return the face vertex index
      */
     private int parseFaceVertexIndex(final String str) {
-        final int sepIdx = str.indexOf(OBJConstants.FACE_VALUE_SEP_CHAR);
+        final int sepIdx = str.indexOf(OBJConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR);
         final String vertexIdxStr = sepIdx > -1 ?
                 str.substring(0, sepIdx) :
                 str;

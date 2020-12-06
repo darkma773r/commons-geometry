@@ -19,8 +19,11 @@ package org.apache.commons.geometry.examples.io.threed.obj;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
@@ -29,18 +32,29 @@ import org.apache.commons.geometry.euclidean.internal.Vectors;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.examples.io.internal.SimpleTextParser;
 
-/** Low-level parser class for the OBJ file format. This class provides access
- * to OBJ data structures but does not retain any of the parsed data. For example,
- * it is up to callers to store vertices as they are parsed for later reference.
- * This allows callers to determine what values are stored and in what format.
+/** Low-level parser class for reading 3D polygon (face) data in the OBJ file format.
+ * This class provides access to OBJ data structures but does not retain any of the
+ * parsed data. For example, it is up to callers to store vertices as they are parsed
+ * for later reference. This allows callers to determine what values are stored and in
+ * what format.
  */
-public class OBJParser {
+public class PolygonOBJParser extends AbstractOBJParser {
 
-    /** Text parser instance. */
-    private final SimpleTextParser parser;
+    /** Set containing OBJ keywords commonly used with files containing only polygon content. */
+    private static final Set<String> STANDARD_POLYGON_KEYWORDS =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+                        OBJConstants.VERTEX_KEYWORD,
+                        OBJConstants.VERTEX_NORMAL_KEYWORD,
+                        OBJConstants.TEXTURE_COORDINATE_KEYWORD,
+                        OBJConstants.FACE_KEYWORD,
 
-    /** Most recently encountered keyword. */
-    private String keyword;
+                        OBJConstants.OBJECT_KEYWORD,
+                        OBJConstants.GROUP_KEYWORD,
+                        OBJConstants.SMOOTHING_GROUP_KEYWORD,
+
+                        OBJConstants.MATERIAL_LIBRARY_KEYWORD,
+                        OBJConstants.USE_MATERIAL_KEYWORD
+                    )));
 
     /** Number of vertex keywords encountered in the file so far. */
     private int vertexCount;
@@ -51,28 +65,21 @@ public class OBJParser {
     /** Number of texture coordinate keywords encountered in the file so far. */
     private int textureCoordinateCount;
 
+    /** If true, parsing will fail when non-polygon keywords are encountered in the OBJ content. */
+    private boolean failOnNonPolygonKeywords = false;
+
     /** Construct a new instance for parsing OBJ content from the given reader.
      * @param reader reader to parser content from
      */
-    public OBJParser(final Reader reader) {
+    public PolygonOBJParser(final Reader reader) {
         this(new SimpleTextParser(reader));
     }
 
     /** Construct a new instance for parsing OBJ content from the given text parser.
      * @param parser text parser to read content from
      */
-    public OBJParser(final SimpleTextParser parser) {
-        this.parser = parser;
-    }
-
-    /** Get the keyword most recently parsed via the {@link #nextKeyword()} method.
-     * Null is returned parsing has not started or the end of the content has been
-     * reached.
-     * @return the current keyword or null if parsing has not started or the end
-     *      of the content has been reached
-     */
-    public String getKeyword() {
-        return keyword;
+    public PolygonOBJParser(final SimpleTextParser parser) {
+        super(parser);
     }
 
     /** Get the number of {@link OBJConstants#VERTEX_KEYWORD vertex keywords} parsed
@@ -99,91 +106,71 @@ public class OBJParser {
         return textureCoordinateCount;
     }
 
-    /** Advance the parser to the next keyword, returning true if a keyword has been found
-     * and false if the end of the content has been reached. Keywords consist of alphanumeric
-     * strings placed at the beginning of lines. No attempt is made to validate that the keyword
-     * is valid for the OBJ format. Comments and blank lines are ignored.
-     * @return true if a keyword has been found and false if the end of content has been reached
-     * @throws IOException if an I/O error occurs
+    /** Return true if the instance is configured to throw an exception when OBJ keywords not commonly
+     * used with files containing only polygon data are encountered. The default value is {@code false},
+     * meaning that no keyword validation is performed. When set to true, only the following keywords are
+     * accepted:
+     * <ul>
+     *  <li>{@code v}</li>
+     *  <li>{@code vn}</li>
+     *  <li>{@code vt}</li>
+     *  <li>{@code f}</li>
+     *  <li>{@code o}</li>
+     *  <li>{@code g}</li>
+     *  <li>{@code s}</li>
+     *  <li>{@code mtllib}</li>
+     *  <li>{@code usemtl}</li>
+     * </ul>
+     * @return true if the instance is configured to fail when a non-polygon keyword is encountered
      */
-    public boolean nextKeyword() throws IOException {
-        keyword = null;
-
-        // advance to the next line if not at the start of a line
-        if (parser.getColumnNumber() != 1) {
-            parser.discardLine();
-        }
-
-        // advance past comments and blank lines
-        while (parser.hasMoreCharacters() &&
-                (!parser.discardLineWhitespace().nextAlphanumeric().hasNonEmptyToken() ||
-                parser.tryMatch(OBJConstants.COMMENT_START))) {
-            parser.discardLine();
-        }
-
-        if (parser.hasMoreCharacters() && parser.hasNonEmptyToken()) {
-            keyword = parser.getCurrentToken();
-
-            // update counts for indexed elements
-            switch (keyword) {
-                case OBJConstants.VERTEX_KEYWORD:
-                    ++vertexCount;
-                    break;
-                case OBJConstants.VERTEX_NORMAL_KEYWORD:
-                    ++vertexNormalCount;
-                    break;
-                case OBJConstants.TEXTURE_COORDINATE_KEYWORD:
-                    ++textureCoordinateCount;
-                    break;
-            }
-        }
-
-        return keyword != null;
+    public boolean getFailOnNonPolygonKeywords() {
+        return failOnNonPolygonKeywords;
     }
 
-    /** Read the remaining content on the current line. Leading and trailing whitespace is removed.
-     * @return remaining content on the current line or null if the end of the content has
-     *      been reached
-     * @throws IOException if an I/O error occurs
+    /** Set the flag determining if the instance should fail when encountering keywords not commonly
+     * used with OBJ files containing only polygon data. If true, only the following keywords are accepted:
+     * <ul>
+     *  <li>{@code v}</li>
+     *  <li>{@code vn}</li>
+     *  <li>{@code vt}</li>
+     *  <li>{@code f}</li>
+     *  <li>{@code o}</li>
+     *  <li>{@code g}</li>
+     *  <li>{@code s}</li>
+     *  <li>{@code mtllib}</li>
+     *  <li>{@code usemtl}</li>
+     * </ul>
+     * If false, all keywords are accepted.
+     * @param failOnNonPolygonKeywords new flag value
      */
-    public String readLine() throws IOException{
-        String line = parser.nextLine().getCurrentToken();
-
-        return line != null ?
-                line.trim() :
-                null;
+    public void setFailOnNonPolygonKeywords(final boolean failOnNonPolygonKeywords) {
+        this.failOnNonPolygonKeywords = failOnNonPolygonKeywords;
     }
 
-    /** Read a whitespace-delimited 3D vector from the current line.
-     * @return vector vector read from the current line
-     * @throws IOException if an I/O error occurs
-     */
-    public Vector3D readVector() throws IOException {
-        final double x = nextDouble();
-        final double y = nextDouble();
-        final double z = nextDouble();
+    /** {@inheritDoc} */
+    @Override
+    protected void handleKeyword(final String keywordValue) {
+        if (failOnNonPolygonKeywords && !STANDARD_POLYGON_KEYWORDS.contains(keywordValue)) {
+            final String allowedKeywords = STANDARD_POLYGON_KEYWORDS.stream()
+                    .sorted()
+                    .collect(Collectors.joining(", "));
 
-        return Vector3D.of(x, y, z);
-    }
-
-    /** Read whitespace-delimited double values from the current line.
-     * @return double values read from the current line
-     * @throws IOException if an I/O error occurs
-     * @throws IllegalStateException if double values are not able to be parsed
-     */
-    public double[] readDoubles() throws IOException {
-        final List<Double> list = new ArrayList<>();
-
-        while (lineHasContent()) {
-            list.add(nextDouble());
+            throw getTextParser().tokenError("expected keyword to be one of [" + allowedKeywords +
+                    "] but was [" + keywordValue + "]");
         }
 
-        final double[] arr = new double[list.size()];
-        for (int i = 0; i < list.size(); ++i) {
-            arr[i] = list.get(i);
+        // update counts in order to validate face vertex attributes
+        switch (keywordValue) {
+            case OBJConstants.VERTEX_KEYWORD:
+                ++vertexCount;
+                break;
+            case OBJConstants.VERTEX_NORMAL_KEYWORD:
+                ++vertexNormalCount;
+                break;
+            case OBJConstants.TEXTURE_COORDINATE_KEYWORD:
+                ++textureCoordinateCount;
+                break;
         }
-
-        return arr;
     }
 
     /** Read an OBJ face definition from the current line.
@@ -194,16 +181,16 @@ public class OBJParser {
     public Face readFace() throws IOException {
         final List<VertexAttributes> vertices = new ArrayList<>();
 
-        while (lineHasContent()) {
+        while (nextDataLineContent()) {
             vertices.add(readFaceVertex());
         }
 
         if (vertices.size() < 3) {
-            throw parser.parseError(parser.getLineNumber(), parser.getColumnNumber(),
+            throw getTextParser().parseError(
                     "face must contain at least 3 vertices but found only " + vertices.size());
         }
 
-        parser.discardLine();
+        discardDataLine();
 
         return new Face(vertices);
     }
@@ -214,21 +201,23 @@ public class OBJParser {
      * @throws IllegalStateException if a vertex definition is not able to be parsed
      */
     private VertexAttributes readFaceVertex() throws IOException {
-        parser.discardLineWhitespace();
+        final SimpleTextParser parser = getTextParser();
+
+        discardDataLineWhitespace();
 
         final int vertexIndex = readNormalizedVertexAttributeIndex("vertex", vertexCount);
 
         int textureIndex = -1;
-        if (parser.peekChar() == OBJConstants.FACE_VALUE_SEP_CHAR) {
+        if (parser.peekChar() == OBJConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR) {
             parser.discard(1);
 
-            if (parser.peekChar() != OBJConstants.FACE_VALUE_SEP_CHAR) {
+            if (parser.peekChar() != OBJConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR) {
                 textureIndex = readNormalizedVertexAttributeIndex("texture", textureCoordinateCount);
             }
         }
 
         int normalIndex = -1;
-        if (parser.peekChar() == OBJConstants.FACE_VALUE_SEP_CHAR) {
+        if (parser.peekChar() == OBJConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR) {
             parser.discard(1);
 
             if (SimpleTextParser.isIntegerPart(parser.peekChar())) {
@@ -250,7 +239,10 @@ public class OBJParser {
      *      out of range for the number of parsed elements of the given type
      */
     private int readNormalizedVertexAttributeIndex(final String type, final int available) throws IOException {
-        final int objIndex = parser.next(SimpleTextParser::isIntegerPart)
+        final SimpleTextParser parser = getTextParser();
+
+        final int objIndex = parser
+                .nextWithLineContinuation(OBJConstants.LINE_CONTINUATION_CHAR, SimpleTextParser::isIntegerPart)
                 .getCurrentTokenAsInt();
 
         final int normalizedIndex = objIndex < 0 ?
@@ -275,26 +267,6 @@ public class OBJParser {
         }
 
         return normalizedIndex;
-    }
-
-    /** Get the next whitespace-delimited double on the current line.
-     * @return the next whitespace-delimited double on the current line
-     * @throws IOException if an I/O error occurs
-     * @throws IllegalStateException if a double value is not able to be parsed
-     */
-    private double nextDouble() throws IOException {
-        return parser.discardLineWhitespace()
-            .next(SimpleTextParser::isNotWhitespace)
-            .getCurrentTokenAsDouble();
-    }
-
-    /** Discard whitespace on the current line and return true if any more characters
-     * remain on the line.
-     * @return true if more non-whitespace characters remain on the current line
-     * @throws IOException if an I/O error occurs
-     */
-    private boolean lineHasContent() throws IOException {
-        return parser.discardLineWhitespace().hasMoreCharactersOnLine();
     }
 
     /** Class representing an OBJ face definition. Faces are defined with the format

@@ -387,6 +387,22 @@ public class SimpleTextParserTest {
     }
 
     @Test
+    public void testNextWithLineContinuation_lenArg() throws IOException {
+        // arrange
+        char cont = '\\';
+        SimpleTextParser p = parser("a\\bcdef\\\r\n\r ghi\\\n\\\n\\\rj");
+
+        // act/assert
+        assertToken(p.nextWithLineContinuation(cont, 0), "", 1, 1);
+        assertToken(p.nextWithLineContinuation(cont, 5), "a\\bcd", 1, 1);
+        assertToken(p.nextWithLineContinuation(cont, 3), "ef\r", 1, 6);
+        assertToken(p.nextWithLineContinuation(cont, 100), " ghij", 3, 1);
+
+        assertToken(p.nextWithLineContinuation(cont, 0), null, 6, 2);
+        assertToken(p.nextWithLineContinuation(cont, 100), null, 6, 2);
+    }
+
+    @Test
     public void testNext_lenArg_invalidArg() throws IOException {
         // arrange
         SimpleTextParser p = parser("abc");
@@ -448,6 +464,31 @@ public class SimpleTextParserTest {
                 throw new RuntimeException(e);
             }
         }, IllegalStateException.class, "String length exceeds maximum value of 4");
+    }
+
+    @Test
+    public void testNextWithLineContinuation_predicateArg() throws IOException {
+        // arrange
+        char cont = '|';
+        SimpleTextParser p = parser("|\na\n 0|\r\n|\r12\r\nd|ef");
+
+        // act/assert
+        assertToken(p.nextWithLineContinuation(cont, c -> false), "", 1, 1);
+
+        assertToken(p.nextWithLineContinuation(cont, Character::isAlphabetic), "a", 2, 1);
+        assertToken(p.nextWithLineContinuation(cont, Character::isAlphabetic), "", 2, 2);
+
+        assertToken(p.nextWithLineContinuation(cont, Character::isWhitespace), "\n ", 2, 2);
+        assertToken(p.nextWithLineContinuation(cont, Character::isWhitespace), "", 3, 2);
+
+        assertToken(p.nextWithLineContinuation(cont, Character::isDigit), "012", 3, 2);
+        assertToken(p.nextWithLineContinuation(cont, Character::isDigit), "", 5, 3);
+
+        assertToken(p.nextWithLineContinuation(cont, Character::isWhitespace), "\r\n", 5, 3);
+        assertToken(p.nextWithLineContinuation(cont, Character::isWhitespace), "", 6, 1);
+
+        assertToken(p.nextWithLineContinuation(cont, c -> true), "d|ef", 6, 1);
+        assertToken(p.nextWithLineContinuation(cont, c -> true), null, 6, 5);
     }
 
     @Test
@@ -523,6 +564,38 @@ public class SimpleTextParserTest {
     }
 
     @Test
+    public void testDiscardWithLineContinuation_lenArg() throws IOException {
+        // arrange
+        char cont = '|';
+        SimpleTextParser p = parser("\n|a|\r\n,b|\n|\r c\r\n12.3\rdef\n");
+
+        // act/assert
+        p.discardWithLineContinuation(cont, 0);
+        assertChar('\n', p.peekChar());
+        assertPosition(p, 1, 1);
+
+        p.discardWithLineContinuation(cont, 1);
+        assertChar('|', p.peekChar());
+        assertPosition(p, 2, 1);
+
+        p.discardWithLineContinuation(cont, 8);
+        assertChar('1', p.peekChar());
+        assertPosition(p, 6, 1);
+
+        p.discardWithLineContinuation(cont, 100);
+        assertChar(EOF, p.peekChar());
+        assertPosition(p, 8, 1);
+
+        p.discardWithLineContinuation(cont, 0);
+        assertChar(EOF, p.peekChar());
+        assertPosition(p, 8, 1);
+
+        p.discardWithLineContinuation(cont, 100);
+        assertChar(EOF, p.peekChar());
+        assertPosition(p, 8, 1);
+    }
+
+    @Test
     public void testDiscard_predicateArg() throws IOException {
         // arrange
         SimpleTextParser p = parser("\na,b c\r\n12.3\rdef\n");
@@ -555,6 +628,42 @@ public class SimpleTextParserTest {
         p.discard(c -> true);
         assertChar(EOF, p.peekChar());
         assertPosition(p, 5, 1);
+    }
+
+    @Test
+    public void testDiscardWithLineContinuation_predicateArg() throws IOException {
+        // arrange
+        char cont = '|';
+        SimpleTextParser p = parser("\na,|\r\nb |c\r\n1|\r|\n2.3\rdef\n");
+
+        // act/assert
+        p.discardWithLineContinuation(cont, c -> Character.isWhitespace(c));
+        assertChar('a', p.peekChar());
+        assertPosition(p, 2, 1);
+
+        p.discardWithLineContinuation(cont, c -> !Character.isWhitespace(c));
+        assertChar(' ', p.peekChar());
+        assertPosition(p, 3, 2);
+
+        p.discardWithLineContinuation(cont, c -> Character.isDigit(c)); // should not advance
+        assertChar(' ', p.peekChar());
+        assertPosition(p, 3, 2);
+
+        p.discardWithLineContinuation(cont, c -> Character.isWhitespace(c));
+        assertChar('|', p.peekChar());
+        assertPosition(p, 3, 3);
+
+        p.discardWithLineContinuation(cont, c -> c != 'd');
+        assertChar('d', p.peekChar());
+        assertPosition(p, 7, 1);
+
+        p.discardWithLineContinuation(cont, c -> true);
+        assertChar(EOF, p.peekChar());
+        assertPosition(p, 8, 1);
+
+        p.discardWithLineContinuation(cont, c -> true);
+        assertChar(EOF, p.peekChar());
+        assertPosition(p, 8, 1);
     }
 
     @Test
@@ -1140,7 +1249,79 @@ public class SimpleTextParserTest {
     }
 
     @Test
-    public void testParseError() {
+    public void testTokenError() throws IOException {
+        // arrange
+        SimpleTextParser p = parser("a\nbc");
+        p.nextLine();
+        p.next(1);
+        p.readChar();
+
+        // act/assert
+        IllegalStateException exc = p.tokenError("test message");
+
+        Assert.assertEquals("Parsing failed at line 2, column 1: test message", exc.getMessage());
+        Assert.assertNull(exc.getCause());
+    }
+
+    @Test
+    public void testTokenError_noTokenSet() throws IOException {
+        // arrange
+        SimpleTextParser p = parser("ab\nc");
+        p.readChar();
+
+        // act/assert
+        IllegalStateException exc = p.tokenError("test message");
+
+        Assert.assertEquals("Parsing failed at line 1, column 2: test message", exc.getMessage());
+        Assert.assertNull(exc.getCause());
+    }
+
+    @Test
+    public void testTokenError_withCause() throws IOException {
+        // arrange
+        SimpleTextParser p = parser("a\nbc");
+        p.nextLine();
+        p.next(1);
+        p.readChar();
+
+        Exception cause = new Exception("test");
+
+        // act/assert
+        IllegalStateException exc = p.tokenError("test message", cause);
+
+        Assert.assertEquals("Parsing failed at line 2, column 1: test message", exc.getMessage());
+        Assert.assertSame(cause, exc.getCause());
+    }
+
+    @Test
+    public void testParseError_currentLineCol() throws IOException {
+        // arrange
+        SimpleTextParser p = parser("a\nbc");
+        p.discard(ch -> ch != 'b');
+
+        // act
+        IllegalStateException exc = p.parseError("test message");
+
+        Assert.assertEquals("Parsing failed at line 2, column 1: test message", exc.getMessage());
+        Assert.assertNull(exc.getCause());
+    }
+
+    @Test
+    public void testParseError_currentLineCol_withCause() throws IOException {
+        // arrange
+        SimpleTextParser p = parser("abc");
+        p.readChar();
+        Exception cause = new Exception("test");
+
+        // act
+        IllegalStateException exc = p.parseError("test message", cause);
+
+        Assert.assertEquals("Parsing failed at line 1, column 2: test message", exc.getMessage());
+        Assert.assertSame(cause, exc.getCause());
+    }
+
+    @Test
+    public void testParseError_givenLineCol() {
         // arrange
         SimpleTextParser p = parser("abc");
 
@@ -1152,7 +1333,7 @@ public class SimpleTextParserTest {
     }
 
     @Test
-    public void testParseError_withCause() {
+    public void testParseError_givenLineCol_withCause() {
         // arrange
         SimpleTextParser p = parser("abc");
         Exception cause = new Exception("test");

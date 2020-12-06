@@ -70,14 +70,14 @@ public class OBJModelIOHandler extends AbstractModelIOHandler {
 
     private static final class OBJTriangleMeshReader {
 
-        private final OBJParser parser;
+        private final PolygonOBJParser parser;
 
         private final List<Vector3D> modelNormals = new ArrayList<>();
 
         private final SimpleTriangleMesh.Builder meshBuilder;
 
         OBJTriangleMeshReader(final Reader reader, final DoublePrecisionContext precision) {
-            parser = new OBJParser(reader);
+            parser = new PolygonOBJParser(reader);
             meshBuilder = SimpleTriangleMesh.builder(precision);
         }
 
@@ -94,7 +94,7 @@ public class OBJModelIOHandler extends AbstractModelIOHandler {
                         modelNormals.add(parser.readVector());
                         break;
                     case OBJConstants.FACE_KEYWORD:
-                        final OBJParser.Face face = parser.readFace();
+                        final PolygonOBJParser.Face face = parser.readFace();
                         final Vector3D normal = face.getDefinedCompositeNormal(modelNormals::get);
 
                         addTriangles(face.getOrientedVertexAttributes(normal, meshBuilder::getVertex));
@@ -104,9 +104,9 @@ public class OBJModelIOHandler extends AbstractModelIOHandler {
             return meshBuilder.build();
         }
 
-        private void addTriangles(final List<OBJParser.VertexAttributes> faceVertices) {
+        private void addTriangles(final List<PolygonOBJParser.VertexAttributes> faceVertices) {
 
-            Iterator<OBJParser.VertexAttributes> it = faceVertices.iterator();
+            Iterator<PolygonOBJParser.VertexAttributes> it = faceVertices.iterator();
 
             int p0 = it.next().getVertexIndex();
             int p1 = it.next().getVertexIndex();
