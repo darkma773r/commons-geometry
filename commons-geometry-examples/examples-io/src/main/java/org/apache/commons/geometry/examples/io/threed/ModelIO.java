@@ -16,9 +16,10 @@
  */
 package org.apache.commons.geometry.examples.io.threed;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
@@ -44,10 +45,11 @@ public final class ModelIO {
     public static final String TXT = "txt";
 
     /** String representing the CSV file format as described by
-     * {@link {@link org.apache.commons.geometry.examples.io.threed.text.TextFacetDefinitionWriter#csvFormat(java.io.Writer) TextFacetDefinitionWriter}.
-     * When used to represent 3D geometry information, the coordinates of the vertices of the facets are listed in order,
-     * with one facet defined per row. This is similar to the {@link #TXT} format with the exception that facets
-     * are are converted to triangles before writing so that all rows have the same number of columns.
+     * {@link org.apache.commons.geometry.examples.io.threed.text.TextFacetDefinitionWriter#csvFormat(java.io.Writer)
+     * TextFacetDefinitionWriter}. When used to represent 3D geometry information, the coordinates of the vertices of
+     * the facets are listed in order, with one facet defined per row. This is similar to the {@link #TXT} format
+     * with the exception that facets are are converted to triangles before writing so that all rows have the same
+     * number of columns.
      */
     public static final String CSV = "csv";
 
@@ -57,98 +59,29 @@ public final class ModelIO {
     /** Utility class; no instantiation. */
     private ModelIO() {}
 
-    /** Get the {@link ModelIOHandlerRegistry} singleton instance.
-     * @return the {@link ModelIOHandlerRegistry} singleton instance
+    /** Get the default {@link ModelIOHandlerRegistry} singleton instance.
+     * @return the default {@link ModelIOHandlerRegistry} singleton instance
      */
-    public static ModelIOHandlerRegistry getModelIOHandlerRegistry() {
+    public static ModelIOHandlerRegistry getDefaultRegistry() {
         return HANDLER_REGISTRY;
     }
 
-    /** Read a 3D model from the given file, using the file extension as the model type. The call is delegated
-     * to the {@link ModelIOHandlerRegistry} singleton.
-     * @param in file to read
-     * @param precision precision context to use in model construction
-     * @return a 3D model represented as a boundary source
-     * @throws java.io.UncheckedIOException if an IO operation fails
-     * @throws IllegalArgumentException if the file does not have a file extension or the
-     *      file extension does not indicate a supported model type
-     * @see #getModelIOHandlerRegistry()
-     * @see ModelIOHandlerRegistry#read(File, DoublePrecisionContext)
-     */
-    public static BoundarySource3D read(final File in, final DoublePrecisionContext precision) {
-        return HANDLER_REGISTRY.read(in, precision);
+    public static BoundarySource3D read(final Path path, final DoublePrecisionContext precision)
+            throws IOException {
+        return HANDLER_REGISTRY.read(path, precision);
     }
 
-    /** Read a 3D model of the given type from the file. The call is delegated to the {@link ModelIOHandlerRegistry}
-     * singleton.
-     * @param type model input type
-     * @param in input file
-     * @param precision precision context to use in model construction
-     * @return a 3D model represented as a boundary source
-     * @throws java.io.UncheckedIOException if an IO operation fails
-     * @throws IllegalArgumentException if the model input type is not supported
-     * @see #getModelIOHandlerRegistry()
-     * @see ModelIOHandler#read(String, File, DoublePrecisionContext)
-     */
-    public static BoundarySource3D read(final String type, final File in, final DoublePrecisionContext precision) {
-        return HANDLER_REGISTRY.read(type, in, precision);
+    public static BoundarySource3D read(final String formatName, final InputStream in,
+            final DoublePrecisionContext precision) throws IOException {
+        return HANDLER_REGISTRY.read(formatName, in, precision);
     }
 
-    /** Read a 3D model of the given type from the input stream. The call is delegated to the
-     * {@link ModelIOHandlerRegistry} singleton.
-     * @param type model input type
-     * @param in input stream to read from
-     * @param precision precision context to use in model construction
-     * @return a 3D model represented as a boundary source
-     * @throws java.io.UncheckedIOException if an IO operation fails
-     * @throws IllegalArgumentException if the model input type is not supported
-     * @see #getModelIOHandlerRegistry()
-     * @see ModelIOHandler#read(String, InputStream, DoublePrecisionContext)
-     */
-    public static BoundarySource3D read(final String type, final InputStream in,
-            final DoublePrecisionContext precision) {
-        return HANDLER_REGISTRY.read(type, in, precision);
+    public static void write(final BoundarySource3D model, final Path path) throws IOException {
+        HANDLER_REGISTRY.write(model, path);
     }
 
-    /** Write the model to the file. The file type is determined by the file extension of the target file.
-     * The call is delegated to the {@link ModelIOHandlerRegistry} singleton.
-     * @param model model to write
-     * @param out output file
-     * @throws java.io.UncheckedIOException if an IO operation fails
-     * @throws IllegalArgumentException if the file does not have a file extension or the
-     *      file extension does not indicate a supported model type
-     * @see #getModelIOHandlerRegistry()
-     * @see ModelIOHandlerRegistry#write(BoundarySource3D, File)
-     */
-    public static void write(final BoundarySource3D model, final File out) {
-        HANDLER_REGISTRY.write(model, out);
-    }
-
-    /** Write the model to the file using the specified file type. The call is delegated to the
-     * {@link ModelIOHandlerRegistry} singleton.
-     * @param model model to write
-     * @param type model file type
-     * @param out output file
-     * @throws java.io.UncheckedIOException if an IO operation fails
-     * @throws IllegalArgumentException if the file type is not supported
-     * @see #getModelIOHandlerRegistry()
-     * @see ModelIOHandler#write(BoundarySource3D, String, File)
-     */
-    public static void write(final BoundarySource3D model, final String type, final File out) {
-        HANDLER_REGISTRY.write(model, type, out);
-    }
-
-    /** Write the model to the output stream using the specific file type. The call is delegated to the
-     * {@link ModelIOHandlerRegistry} singleton.
-     * @param model model to write
-     * @param type model file type
-     * @param out output stream
-     * @throws java.io.UncheckedIOException if an IO operation fails
-     * @throws IllegalArgumentException if the file type is not supported
-     * @see #getModelIOHandlerRegistry()
-     * @see ModelIOHandler#write(BoundarySource3D, String, OutputStream)
-     */
-    public static void write(final BoundarySource3D model, final String type, final OutputStream out) {
-        HANDLER_REGISTRY.write(model, type, out);
+    public static void write(final BoundarySource3D model, final String formatName, final OutputStream out)
+            throws IOException {
+        HANDLER_REGISTRY.write(model, formatName, out);
     }
 }

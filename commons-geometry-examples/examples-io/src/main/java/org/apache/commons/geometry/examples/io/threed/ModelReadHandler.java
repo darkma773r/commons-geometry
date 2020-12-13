@@ -14,19 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.examples.io.threed.facet;
+package org.apache.commons.geometry.examples.io.threed;
 
 import java.io.IOException;
+import java.io.InputStream;
 
-/** Interface for reading facet definitions from an input source.
+import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
+import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
+import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
+
+/** Interface for reading 3D models stored in a specific file format.
  */
-public interface FacetDefinitionReader extends AutoCloseable {
+public interface ModelReadHandler {
 
-    /** Read and return the next facet definition or null if no
-     * more facets are available.
-     * @return the next facet definition or null if no more facets
-     *      are available
-     * @throws IOException if an I/O error occurs
-     */
-    FacetDefinition readFacet() throws IOException;
+    FacetDefinitionReader facetDefinitionReader(InputStream in) throws IOException;
+
+    BoundarySource3D read(InputStream in, DoublePrecisionContext precision) throws IOException;
 }

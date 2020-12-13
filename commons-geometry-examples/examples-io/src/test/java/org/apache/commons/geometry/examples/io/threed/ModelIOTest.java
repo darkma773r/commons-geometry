@@ -16,11 +16,11 @@
  */
 package org.apache.commons.geometry.examples.io.threed;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,32 +49,21 @@ public class ModelIOTest {
     @Test
     public void testGetHandler() {
         // act
-        ModelIOHandlerRegistry registry = ModelIO.getModelIOHandlerRegistry();
+        ModelIOHandlerRegistry registry = ModelIO.getDefaultRegistry();
 
         // assert
-        Assert.assertTrue(registry instanceof DefaultModelIOHandlerRegistry);
-        Assert.assertSame(registry, ModelIO.getModelIOHandlerRegistry());
+        Assert.assertTrue(registry instanceof ModelIOHandlerRegistry);
+        Assert.assertSame(registry, ModelIO.getDefaultRegistry());
     }
 
     @Test
     public void testWriteRead_typeFromFileExtension() throws IOException {
         // act/assert
         checkWriteRead(model -> {
-            File file = new File(tempFolder.getRoot(), "model.obj");
+            Path path = tempFolder.getRoot().toPath().resolve("model.obj");
 
-            ModelIO.write(model, file);
-            return ModelIO.read(file, TEST_PRECISION);
-        });
-    }
-
-    @Test
-    public void testWriteRead_typeAndFile() throws IOException {
-        // act/assert
-        checkWriteRead(model -> {
-            File file = new File(tempFolder.getRoot(), "objmodel");
-
-            ModelIO.write(model, "OBJ", file);
-            return ModelIO.read("obj", file, TEST_PRECISION);
+            ModelIO.write(model, path);
+            return ModelIO.read(path, TEST_PRECISION);
         });
     }
 
@@ -82,13 +71,13 @@ public class ModelIOTest {
     public void testWriteRead_typeAndStream() throws IOException {
         // act/assert
         checkWriteRead(model -> {
-            File file = new File(tempFolder.getRoot(), "objmodel");
+            Path path = tempFolder.getRoot().toPath().resolve("objmodel");
 
-            try (OutputStream out = Files.newOutputStream(file.toPath())) {
+            try (OutputStream out = Files.newOutputStream(path)) {
                 ModelIO.write(model, "OBJ", out);
             }
 
-            try (InputStream in = Files.newInputStream(file.toPath())) {
+            try (InputStream in = Files.newInputStream(path)) {
                 return ModelIO.read("OBJ", in, TEST_PRECISION);
             }
         });

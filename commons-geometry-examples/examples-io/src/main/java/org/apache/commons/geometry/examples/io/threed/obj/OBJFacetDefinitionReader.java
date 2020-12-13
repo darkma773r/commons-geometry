@@ -28,6 +28,8 @@ import org.apache.commons.geometry.examples.io.threed.facet.SimpleFacetDefinitio
 
 public class OBJFacetDefinitionReader implements FacetDefinitionReader {
 
+    private final Reader reader;
+
     private final PolygonOBJParser parser;
 
     private final List<Vector3D> modelVertices = new ArrayList<>();
@@ -35,6 +37,7 @@ public class OBJFacetDefinitionReader implements FacetDefinitionReader {
     private final List<Vector3D> modelNormals = new ArrayList<>();
 
     public OBJFacetDefinitionReader(final Reader reader) {
+        this.reader = reader;
         this.parser = new PolygonOBJParser(reader);
     }
 
@@ -63,5 +66,11 @@ public class OBJFacetDefinitionReader implements FacetDefinitionReader {
         }
 
         return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void close() throws Exception {
+        reader.close();
     }
 }

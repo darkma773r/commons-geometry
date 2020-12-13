@@ -19,9 +19,16 @@ package org.apache.commons.geometry.examples.io.threed;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
+import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
+import org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D;
+import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
+import org.apache.commons.geometry.euclidean.threed.Triangle3D;
+import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
+import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
 
 /** Interface for classes that handle reading and writing of 3D model files types.
  * For convenience and better compatibility with streams and functional programming,
@@ -37,6 +44,50 @@ public interface ModelIOHandler {
      */
     boolean handlesType(String type);
 
+    FacetDefinitionReader newFacetDefinitionReader(File in);
+
+    FacetDefinitionReader newFacetDefinitionReader(URL in);
+
+    FacetDefinitionReader newFacetDefinitionReader(String type, File in);
+
+    FacetDefinitionReader newFacetDefinitionReader(String type, URL in);
+
+    FacetDefinitionReader newFacetDefinitionReader(String type, InputStream in);
+
+    Stream<FacetDefinition> facets(File in);
+
+    Stream<FacetDefinition> facets(URL in);
+
+    Stream<FacetDefinition> facets(String type, File in);
+
+    Stream<FacetDefinition> facets(String type, URL in);
+
+    Stream<FacetDefinition> facets(String type, InputStream in);
+
+    Stream<ConvexPolygon3D> boundaries(File in, DoublePrecisionContext precision);
+
+    Stream<ConvexPolygon3D> boundaries(URL in, DoublePrecisionContext precision);
+
+    Stream<ConvexPolygon3D> boundaries(String type, File in, DoublePrecisionContext precision);
+
+    Stream<ConvexPolygon3D> boundaries(String type, URL in, DoublePrecisionContext precision);
+
+    Stream<ConvexPolygon3D> boundaries(String type, InputStream in, DoublePrecisionContext precision);
+
+    Stream<Triangle3D> triangles(File in, DoublePrecisionContext precision);
+
+    Stream<Triangle3D> triangles(URL in, DoublePrecisionContext precision);
+
+    Stream<Triangle3D> triangles(String type, File in, DoublePrecisionContext precision);
+
+    Stream<Triangle3D> triangles(String type, URL in, DoublePrecisionContext precision);
+
+    Stream<Triangle3D> triangles(String type, InputStream in, DoublePrecisionContext precision);
+
+    BoundarySource3D read(File in, DoublePrecisionContext precision);
+
+    BoundarySource3D read(URL in, DoublePrecisionContext precision);
+
     /** Read a 3D model represented as a {@link BoundarySource3D} from the given file.
      * @param type the model file type
      * @param in file to read
@@ -46,6 +97,16 @@ public interface ModelIOHandler {
      * @throws IllegalArgumentException if the file type is not supported
      */
     BoundarySource3D read(String type, File in, DoublePrecisionContext precision);
+
+    /** Read a 3D model represented as a {@link BoundarySource3D} from the given URL.
+     * @param type the model file type
+     * @param in url to read from
+     * @param precision precision context to use in model construction
+     * @return a 3D model represented as a boundary source
+     * @throws java.io.UncheckedIOException if an IO operation fails
+     * @throws IllegalArgumentException if the file type is not supported
+     */
+    BoundarySource3D read(String type, URL in, DoublePrecisionContext precision);
 
     /** Read a 3D model represented as a {@link BoundarySource3D} from the given input stream.
      * The input stream is closed before method return.
@@ -58,6 +119,8 @@ public interface ModelIOHandler {
      */
     BoundarySource3D read(String type, InputStream in, DoublePrecisionContext precision);
 
+    void write(BoundarySource3D model, File out);
+
     /** Write the model to the file using the specified file type.
      * @param model model to write
      * @param type the model file type
@@ -68,7 +131,6 @@ public interface ModelIOHandler {
     void write(BoundarySource3D model, String type, File out);
 
     /** Write the model to the given output stream, using the specified model type.
-     * The output stream is closed before method return.
      * @param model model to write
      * @param type the model file type
      * @param out output stream
@@ -76,4 +138,16 @@ public interface ModelIOHandler {
      * @throws IllegalArgumentException if the file type is not supported
      */
     void write(BoundarySource3D model, String type, OutputStream out);
+
+    void writeFacets(Stream<? extends FacetDefinition> facets, File out);
+
+    void writeFacets(Stream<? extends FacetDefinition> facets, String type, File out);
+
+    void writeFacets(Stream<? extends FacetDefinition> facets, String type, OutputStream  out);
+
+    void writeBoundaries(Stream<? extends PlaneConvexSubset> boundaries, File out);
+
+    void writeBoundaries(Stream<? extends PlaneConvexSubset> boundaries, String type, File out);
+
+    void writeBoundaries(Stream<? extends PlaneConvexSubset> boundaries, String type, OutputStream  out);
 }

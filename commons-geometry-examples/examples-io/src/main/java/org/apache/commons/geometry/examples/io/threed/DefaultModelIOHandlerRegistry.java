@@ -16,9 +16,8 @@
  */
 package org.apache.commons.geometry.examples.io.threed;
 
-import java.util.Arrays;
-
-import org.apache.commons.geometry.examples.io.threed.obj.OBJModelIOHandler;
+import org.apache.commons.geometry.examples.io.threed.obj.OBJModelReadHandler;
+import org.apache.commons.geometry.examples.io.threed.obj.OBJModelWriteHandler;
 
 /** {@link ModelIOHandlerRegistry} subclass that registers known handlers on
  * instantiation.
@@ -28,8 +27,8 @@ public class DefaultModelIOHandlerRegistry extends ModelIOHandlerRegistry {
     /** Construct a new instance and register known handlers.
      */
     public DefaultModelIOHandlerRegistry() {
-        setHandlers(Arrays.asList(
-                new OBJModelIOHandler()
-            ));
+        // obj
+        registerReadHandler(ModelIO.OBJ, new OBJModelReadHandler());
+        registerWriteHandler(ModelIO.OBJ, new OBJModelWriteHandler());
     }
 }
