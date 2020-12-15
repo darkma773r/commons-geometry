@@ -16,11 +16,8 @@
  */
 package org.apache.commons.geometry.examples.io.threed.obj;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.file.Files;
-import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -29,79 +26,23 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.Mesh;
+import org.apache.commons.geometry.examples.io.internal.AbstractTextFormatWriter;
 
 /** Class for writing OBJ files containing 3D mesh data.
  */
-public final class OBJWriter implements AutoCloseable {
+public final class OBJWriter extends AbstractTextFormatWriter implements AutoCloseable {
 
     /** Space character. */
     private static final char SPACE = ' ';
 
-    /** The default maximum number of fraction digits in formatted numbers. */
-    private static final int DEFAULT_MAXIMUM_FRACTION_DIGITS = 6;
-
-    /** The default line separator value. This is not directly specified by the OBJ format
-     * but the value used here matches that
-     * <a href="https://docs.blender.org/manual/en/2.80/addons/io_scene_obj.html">used by Blender</a>.
-     */
-    private static final String DEFAULT_LINE_SEPARATOR = "\n";
-
-    /** Underlying writer instance. */
-    private Writer writer;
-
-    /** Line separator string. */
-    private String lineSeparator = DEFAULT_LINE_SEPARATOR;
-
-    /** Decimal formatter. */
-    private DecimalFormat decimalFormat;
-
     /** Number of vertices written to the output. */
     private int vertexCount = 0;
-
-    /** Create a new instance for writing to the given file.
-     * @param file file to write to
-     * @throws IOException if an IO operation fails
-     */
-    public OBJWriter(final File file) throws IOException {
-        this(Files.newBufferedWriter(file.toPath(), OBJConstants.DEFAULT_CHARSET));
-    }
 
     /** Create a new instance that writes output with the given writer.
      * @param writer writer used to write output
      */
     public OBJWriter(final Writer writer) {
-        this.writer = writer;
-
-        this.decimalFormat = new DecimalFormat();
-        this.decimalFormat.setMaximumFractionDigits(DEFAULT_MAXIMUM_FRACTION_DIGITS);
-    }
-
-    /** Get the current line separator. This value defaults to {@value #DEFAULT_LINE_SEPARATOR}.
-     * @return the current line separator
-     */
-    public String getLineSeparator() {
-        return lineSeparator;
-    }
-
-    /** Set the line separator.
-     * @param lineSeparator the line separator to use
-     */
-    public void setLineSeparator(final String lineSeparator) {
-        this.lineSeparator = lineSeparator;
-    }
-
-    /** Get the {@link DecimalFormat} instance used to format floating point output.
-     * @return the decimal format instance
-     */
-    public DecimalFormat getDecimalFormat() {
-        return decimalFormat;
-    }
-
-    /** Set the {@link DecimalFormat} instance used to format floatin point output.
-     * @param decimalFormat decimal format instance
-     */
-    public void setDecimalFormat(final DecimalFormat decimalFormat) {
-        this.decimalFormat = decimalFormat;
+        super(writer);
     }
 
     /** Write an OBJ comment with the given value.
@@ -110,10 +51,10 @@ public final class OBJWriter implements AutoCloseable {
      */
     public void writeComment(final String comment) throws IOException {
         for (final String line : comment.split("\\R")) {
-            writer.write(OBJConstants.COMMENT_CHAR);
-            writer.write(SPACE);
-            writer.write(line);
-            writer.write(lineSeparator);
+            write(OBJConstants.COMMENT_CHAR);
+            write(SPACE);
+            write(line);
+            writeNewLine();
         }
     }
 
@@ -124,10 +65,10 @@ public final class OBJWriter implements AutoCloseable {
      * @throws IOException if an IO operation fails
      */
     public void writeObjectName(final String objectName) throws IOException {
-        writer.write(OBJConstants.OBJECT_KEYWORD);
-        writer.write(SPACE);
-        writer.write(objectName);
-        writer.write(lineSeparator);
+        write(OBJConstants.OBJECT_KEYWORD);
+        write(SPACE);
+        write(objectName);
+        writeNewLine();
     }
 
     /** Write a group name to the output. This is metadata for the file and
@@ -137,10 +78,10 @@ public final class OBJWriter implements AutoCloseable {
      * @throws IOException if an IO operation fails
      */
     public void writeGroupName(final String groupName) throws IOException {
-        writer.write(OBJConstants.GROUP_KEYWORD);
-        writer.write(SPACE);
-        writer.write(groupName);
-        writer.write(lineSeparator);
+        write(OBJConstants.GROUP_KEYWORD);
+        write(SPACE);
+        write(groupName);
+        writeNewLine();
     }
 
     /** Write a vertex to the output. The OBJ 1-based index of the vertex is returned. This
@@ -151,21 +92,20 @@ public final class OBJWriter implements AutoCloseable {
      * @throws IOException if an IO operation fails
      */
     public int writeVertex(final Vector3D vertex) throws IOException {
-        writer.write(OBJConstants.VERTEX_KEYWORD);
-        writer.write(SPACE);
-        writer.write(decimalFormat.format(vertex.getX()));
-        writer.write(SPACE);
-        writer.write(decimalFormat.format(vertex.getY()));
-        writer.write(SPACE);
-        writer.write(decimalFormat.format(vertex.getZ()));
-        writer.write(lineSeparator);
+        write(OBJConstants.VERTEX_KEYWORD);
+        write(SPACE);
+        write(vertex.getX());
+        write(SPACE);
+        write(vertex.getY());
+        write(SPACE);
+        write(vertex.getZ());
+        writeNewLine();
 
         return ++vertexCount;
     }
 
-    /** Write a face with the given vertex indices, specified in the OBJ 1-based
-     * convention. Callers are responsible for ensuring that the indices are valid.
-     * @param vertexIndices vertex indices for the face, in the 1-based OBJ convention
+    /** Write a face with the given 0-based vertex indices.
+     * @param vertexIndices 0-based vertex indices for the face
      * @throws IOException if an IO operation fails
      */
     public void writeFace(final int... vertexIndices) throws IOException {
@@ -183,7 +123,7 @@ public final class OBJWriter implements AutoCloseable {
         if (boundarySource instanceof Mesh) {
             writeMesh((Mesh<?>) boundarySource);
         } else {
-            try (Stream<PlaneConvexSubset> stream = boundarySource.boundaryStream()) {
+            try (final Stream<PlaneConvexSubset> stream = boundarySource.boundaryStream()) {
                 writeBoundaries(stream.iterator());
             }
         }
@@ -221,7 +161,7 @@ public final class OBJWriter implements AutoCloseable {
      * @throws IOException if an IO operation fails
      */
     public void writeMesh(final Mesh<?> mesh) throws IOException {
-        final int vertexOffset = vertexCount + 1;
+        final int vertexOffset = vertexCount;
 
         for (final Vector3D vertex : mesh.vertices()) {
             writeVertex(vertex);
@@ -232,10 +172,10 @@ public final class OBJWriter implements AutoCloseable {
         }
     }
 
-    /** Write a face with the given vertex offset value and indices. The offset is added to each
+    /** Write a face with the given vertex offset value and 0-based indices. The offset is added to each
      * index before being written.
      * @param vertexOffset vertex offset value
-     * @param vertexIndices vertex indices for the face
+     * @param vertexIndices 0-based vertex indices for the face
      * @throws IOException if an IO operation fails
      */
     private void writeFaceWithVertexOffset(final int vertexOffset, final int... vertexIndices)
@@ -244,22 +184,13 @@ public final class OBJWriter implements AutoCloseable {
             throw new IllegalArgumentException("Face must have more than 3 vertices; found " + vertexIndices.length);
         }
 
-        writer.write(OBJConstants.FACE_KEYWORD);
+        write(OBJConstants.FACE_KEYWORD);
 
         for (final int vertexIndex : vertexIndices) {
-            writer.write(SPACE);
-            writer.write(String.valueOf(vertexIndex + vertexOffset));
+            write(SPACE);
+            write(vertexIndex + vertexOffset + 1); // convert to OBJ 1-based convention
         }
 
-        writer.write(lineSeparator);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void close() throws IOException {
-        if (writer != null) {
-            writer.close();
-        }
-        writer = null;
+        writeNewLine();
     }
 }

@@ -37,6 +37,7 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
+import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
 
@@ -122,7 +123,7 @@ public class ModelIOHandlerRegistry {
      *      file format
      */
     public BoundarySource3D read(final Path path, final DoublePrecisionContext precision) throws IOException {
-        return read(toURL(path), precision);
+        return read(toUrl(path), precision);
     }
 
     /** Return a {@link BoundarySource3D} containing the boundary information from the given 3D model file URL.
@@ -157,8 +158,29 @@ public class ModelIOHandlerRegistry {
         return reader.read(in, precision);
     }
 
+    public TriangleMesh readTriangleMesh(final Path path, final DoublePrecisionContext precision)
+            throws IOException {
+        return readTriangleMesh(toUrl(path), precision);
+    }
+
+    public TriangleMesh readTriangleMesh(final URL url, final DoublePrecisionContext precision)
+            throws IOException {
+        final String fileExt = getFileExtension(url);
+        final ModelReadHandler reader = requireReadHandler(fileExt);
+
+        try (InputStream in = url.openStream()) {
+            return reader.readTriangleMesh(in, precision);
+        }
+    }
+
+    public TriangleMesh readTriangleMesh(final String formatName, final InputStream in,
+            final DoublePrecisionContext precision) throws IOException {
+        final ModelReadHandler reader = requireReadHandler(formatName);
+        return reader.readTriangleMesh(in, precision);
+    }
+
     public Stream<FacetDefinition> facets(final Path path) throws IOException {
-        return facets(toURL(path));
+        return facets(toUrl(path));
     }
 
     public Stream<FacetDefinition> facets(final URL url) throws IOException {
@@ -190,7 +212,7 @@ public class ModelIOHandlerRegistry {
 
     public Stream<ConvexPolygon3D> boundaries(final Path path, final DoublePrecisionContext precision)
             throws IOException {
-        return boundaries(toURL(path), precision);
+        return boundaries(toUrl(path), precision);
     }
 
     public Stream<ConvexPolygon3D> boundaries(final URL url, final DoublePrecisionContext precision)
@@ -333,7 +355,7 @@ public class ModelIOHandlerRegistry {
      * @throws NullPointerException if path is null
      * @throws IOException if the conversion fails
      */
-    private static URL toURL(final Path path) throws IOException {
+    private static URL toUrl(final Path path) throws IOException {
         Objects.requireNonNull(path, "Path cannot be null");
         return path.toAbsolutePath().toUri().toURL();
     }

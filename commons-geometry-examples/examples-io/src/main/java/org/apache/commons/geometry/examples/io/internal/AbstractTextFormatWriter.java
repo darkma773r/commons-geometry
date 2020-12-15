@@ -23,7 +23,7 @@ import java.text.DecimalFormat;
 /** Base type for classes that write text-based geometry file formats. This class provides
  * a number of common configuration options and utility methods.
  */
-public abstract class AbstractTextFormatWriter {
+public abstract class AbstractTextFormatWriter implements AutoCloseable {
 
     /** The default maximum number of fraction digits in formatted numbers. */
     private static final int DEFAULT_MAXIMUM_FRACTION_DIGITS = 6;
@@ -76,6 +76,12 @@ public abstract class AbstractTextFormatWriter {
      */
     public void setDecimalFormat(final DecimalFormat decimalFormat) {
         this.decimalFormat = decimalFormat;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void close() throws IOException {
+        writer.close();
     }
 
     /** Get the underlying writer instance.

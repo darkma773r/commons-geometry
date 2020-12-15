@@ -78,6 +78,9 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
     /** Default comment token string. */
     public static final String DEFAULT_COMMENT_TOKEN = "#";
 
+    /** Reader for accessing the character stream. */
+    private final Reader reader;
+
     /** Parser used to parse text content. */
     private final SimpleTextParser parser;
 
@@ -103,6 +106,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
      * @param commentToken comment token string
      */
     public TextFacetDefinitionReader(final Reader reader, final String commentToken) {
+        this.reader = reader;
         this.parser = new SimpleTextParser(reader);
 
         setCommentToken(commentToken);
@@ -152,6 +156,12 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
             }
         }
         return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void close() throws Exception {
+        reader.close();
     }
 
     /** Internal method to read a facet definition starting from the current parser

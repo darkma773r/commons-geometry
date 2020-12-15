@@ -21,6 +21,7 @@ import java.io.InputStream;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
+import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
 
 /** Interface for reading 3D models stored in a specific file format.
@@ -30,4 +31,6 @@ public interface ModelReadHandler {
     FacetDefinitionReader facetDefinitionReader(InputStream in) throws IOException;
 
     BoundarySource3D read(InputStream in, DoublePrecisionContext precision) throws IOException;
+
+    TriangleMesh readTriangleMesh(InputStream in, DoublePrecisionContext precision) throws IOException;
 }

@@ -14,55 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.examples.io.threed.obj;
+package org.apache.commons.geometry.examples.io.threed.text;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
-import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.examples.io.threed.ModelWriteHandler;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 
-public class OBJModelWriteHandler implements ModelWriteHandler {
-
-    private static final char SPACE = ' ';
+public class TextModelWriteHandler implements ModelWriteHandler {
 
     /** {@inheritDoc} */
     @Override
     public void write(final BoundarySource3D model, final OutputStream out) throws IOException {
-        final OBJWriter writer = createWriter(out);
-        writer.writeBoundaries(model);
+        // TODO Auto-generated method stub
+
     }
 
     /** {@inheritDoc} */
     @Override
     public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
             throws IOException {
-        final OBJWriter writer = createWriter(out);
-        final Iterator<? extends FacetDefinition> it = facets.iterator();
+        // TODO Auto-generated method stub
 
-        Map<String, Integer> vertexIndexMap = new HashMap<>();
-
-        FacetDefinition facet;
-        String key;
-        while (it.hasNext()) {
-            facet = it.next();
-
-            for (final Vector3D vertex : facet.getVertices()) {
-                key = getVertexKey(vertex, writer);
-
-                // TODO
-            }
-        }
     }
 
     /** {@inheritDoc} */
@@ -71,22 +48,5 @@ public class OBJModelWriteHandler implements ModelWriteHandler {
             throws IOException {
         // TODO Auto-generated method stub
 
-    }
-
-    private String getVertexKey(final Vector3D vertex, final OBJWriter writer) {
-        final DecimalFormat df = writer.getDecimalFormat();
-
-        final StringBuilder sb = new StringBuilder();
-        sb.append(df.format(vertex.getX()))
-            .append(' ')
-            .append(df.format(vertex.getY()))
-            .append(' ')
-            .append(df.format(vertex.getZ()));
-
-        return sb.toString();
-    }
-
-    private OBJWriter createWriter(final OutputStream out) throws IOException {
-        return new OBJWriter(new BufferedWriter(new OutputStreamWriter(out, OBJConstants.DEFAULT_CHARSET)));
     }
 }

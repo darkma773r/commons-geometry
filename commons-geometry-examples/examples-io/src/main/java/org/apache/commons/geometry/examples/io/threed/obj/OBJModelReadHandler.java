@@ -21,25 +21,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
-import org.apache.commons.geometry.examples.io.threed.ModelReadHandler;
+import org.apache.commons.geometry.examples.io.threed.AbstractModelReadHandler;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
 
-public class OBJModelReadHandler implements ModelReadHandler {
+public class OBJModelReadHandler extends AbstractModelReadHandler {
 
     /** {@inheritDoc} */
     @Override
     public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(in, OBJConstants.DEFAULT_CHARSET));
         return new OBJFacetDefinitionReader(reader);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public BoundarySource3D read(final InputStream in, final DoublePrecisionContext precision)
-            throws IOException {
-        // TODO Auto-generated method stub
-        return null;
     }
 }

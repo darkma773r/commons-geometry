@@ -16,6 +16,7 @@
  */
 package org.apache.commons.geometry.examples.io.threed;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,10 +32,9 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class ModelIOTest {
 
@@ -43,24 +43,24 @@ public class ModelIOTest {
     private static final DoublePrecisionContext TEST_PRECISION =
             new EpsilonDoublePrecisionContext(TEST_EPS);
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    @TempDir
+    protected File tempFolder;
 
     @Test
     public void testGetHandler() {
         // act
-        ModelIOHandlerRegistry registry = ModelIO.getDefaultRegistry();
+        final ModelIOHandlerRegistry registry = ModelIO.getDefaultRegistry();
 
         // assert
-        Assert.assertTrue(registry instanceof ModelIOHandlerRegistry);
-        Assert.assertSame(registry, ModelIO.getDefaultRegistry());
+        Assertions.assertTrue(registry instanceof DefaultModelIOHandlerRegistry);
+        Assertions.assertSame(registry, ModelIO.getDefaultRegistry());
     }
 
     @Test
     public void testWriteRead_typeFromFileExtension() throws IOException {
         // act/assert
         checkWriteRead(model -> {
-            Path path = tempFolder.getRoot().toPath().resolve("model.obj");
+            Path path = tempFolder.toPath().resolve("model.obj");
 
             ModelIO.write(model, path);
             return ModelIO.read(path, TEST_PRECISION);
@@ -71,7 +71,7 @@ public class ModelIOTest {
     public void testWriteRead_typeAndStream() throws IOException {
         // act/assert
         checkWriteRead(model -> {
-            Path path = tempFolder.getRoot().toPath().resolve("objmodel");
+            Path path = tempFolder.toPath().resolve("objmodel");
 
             try (OutputStream out = Files.newOutputStream(path)) {
                 ModelIO.write(model, "OBJ", out);
@@ -88,20 +88,20 @@ public class ModelIOTest {
         BoundarySource3D apply(BoundarySource3D model) throws IOException;
     }
 
-    private void checkWriteRead(ModelIOFunction fn) throws IOException {
+    private void checkWriteRead(final ModelIOFunction fn) throws IOException {
         // arrange
-        BoundarySource3D model = BoundarySource3D.from(
+        final BoundarySource3D model = BoundarySource3D.from(
                 Planes.triangleFromVertices(Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(0, 1, 0), TEST_PRECISION)
             );
 
         // act
-        BoundarySource3D result = fn.apply(model);
+        final BoundarySource3D result = fn.apply(model);
 
         // assert
-        List<Triangle3D> tris = result.triangleStream().collect(Collectors.toList());
-        Assert.assertEquals(1, tris.size());
+        final List<Triangle3D> tris = result.triangleStream().collect(Collectors.toList());
+        Assertions.assertEquals(1, tris.size());
 
-        Triangle3D tri = tris.get(0);
+        final Triangle3D tri = tris.get(0);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tri.getPoint1(), TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1, 0, 0), tri.getPoint2(), TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 1, 0), tri.getPoint3(), TEST_EPS);

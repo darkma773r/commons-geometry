@@ -28,6 +28,8 @@ import org.apache.commons.geometry.examples.io.threed.facet.SimpleFacetDefinitio
 
 class AsciiSTLFacetDefinitionReader implements FacetDefinitionReader {
 
+    private Reader reader;
+
     private SimpleTextParser parser;
 
     private boolean skipSolidKeyword = false;
@@ -43,6 +45,7 @@ class AsciiSTLFacetDefinitionReader implements FacetDefinitionReader {
     }
 
     AsciiSTLFacetDefinitionReader(final Reader reader, final boolean skipSolidKeyword) {
+        this.reader = reader;
         this.parser = new SimpleTextParser(reader);
         this.skipSolidKeyword = skipSolidKeyword;
     }
@@ -73,6 +76,12 @@ class AsciiSTLFacetDefinitionReader implements FacetDefinitionReader {
         }
 
         return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void close() throws Exception {
+        reader.close();
     }
 
     private FacetDefinition readFacetInternal() throws IOException {

@@ -19,8 +19,6 @@ package org.apache.commons.geometry.examples.io.threed.ply;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.geometry.examples.io.threed.ply.PLYConstants;
-
 class PLYHeader {
 
     private final PLYConstants.Format format;

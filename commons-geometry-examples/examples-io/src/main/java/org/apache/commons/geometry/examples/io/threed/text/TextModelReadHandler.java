@@ -14,18 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.examples.io.threed.stl;
+package org.apache.commons.geometry.examples.io.threed.text;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
+import org.apache.commons.geometry.examples.io.threed.AbstractModelReadHandler;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
 
-public class STLReader implements FacetDefinitionReader {
+public class TextModelReadHandler extends AbstractModelReadHandler {
 
+    /** Charset for use with txt and csv files. */
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
+    /** {@inheritDoc} */
     @Override
-    public FacetDefinition readFacet() throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+    public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(in, DEFAULT_CHARSET));
+        return new TextFacetDefinitionReader(reader);
     }
+
 }
