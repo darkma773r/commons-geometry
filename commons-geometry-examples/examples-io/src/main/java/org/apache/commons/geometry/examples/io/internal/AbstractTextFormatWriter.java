@@ -107,6 +107,14 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
         write(String.valueOf(n));
     }
 
+    /** Write a char value.
+     * @param c character to write
+     * @throws IOException if an I/O error occurs
+     */
+    protected void write(final char c) throws IOException {
+        writer.write(c);
+    }
+
     /** Write a string.
      * @param str string to write
      * @throws IOException if an I/O error occurs

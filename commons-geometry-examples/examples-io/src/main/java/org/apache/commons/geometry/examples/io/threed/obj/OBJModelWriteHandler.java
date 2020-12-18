@@ -16,25 +16,19 @@
  */
 package org.apache.commons.geometry.examples.io.threed.obj;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.text.DecimalFormat;
-import java.util.HashMap;
+import java.io.Writer;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
-import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.examples.io.internal.IOUtils;
 import org.apache.commons.geometry.examples.io.threed.ModelWriteHandler;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 
 public class OBJModelWriteHandler implements ModelWriteHandler {
-
-    private static final char SPACE = ' ';
 
     /** {@inheritDoc} */
     @Override
@@ -48,45 +42,33 @@ public class OBJModelWriteHandler implements ModelWriteHandler {
     public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
             throws IOException {
         final OBJWriter writer = createWriter(out);
+        final OBJWriter.MeshBuffer meshBuffer = writer.createMeshBuffer();
+
         final Iterator<? extends FacetDefinition> it = facets.iterator();
-
-        Map<String, Integer> vertexIndexMap = new HashMap<>();
-
-        FacetDefinition facet;
-        String key;
         while (it.hasNext()) {
-            facet = it.next();
-
-            for (final Vector3D vertex : facet.getVertices()) {
-                key = getVertexKey(vertex, writer);
-
-                // TODO
-            }
+            meshBuffer.add(it.next());
         }
+
+        meshBuffer.flush();
     }
 
     /** {@inheritDoc} */
     @Override
     public void writeBoundaries(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
             throws IOException {
-        // TODO Auto-generated method stub
+        final OBJWriter writer = createWriter(out);
+        final OBJWriter.MeshBuffer meshBuffer = writer.createMeshBuffer();
 
-    }
+        final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
+        while (it.hasNext()) {
+            meshBuffer.add(it.next());
+        }
 
-    private String getVertexKey(final Vector3D vertex, final OBJWriter writer) {
-        final DecimalFormat df = writer.getDecimalFormat();
-
-        final StringBuilder sb = new StringBuilder();
-        sb.append(df.format(vertex.getX()))
-            .append(' ')
-            .append(df.format(vertex.getY()))
-            .append(' ')
-            .append(df.format(vertex.getZ()));
-
-        return sb.toString();
+        meshBuffer.flush();
     }
 
     private OBJWriter createWriter(final OutputStream out) throws IOException {
-        return new OBJWriter(new BufferedWriter(new OutputStreamWriter(out, OBJConstants.DEFAULT_CHARSET)));
+        final Writer writer = IOUtils.createCloseShieldWriter(out, OBJConstants.DEFAULT_CHARSET);
+        return new OBJWriter(writer);
     }
 }

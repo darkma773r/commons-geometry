@@ -26,43 +26,25 @@ import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
 import org.apache.commons.geometry.examples.io.threed.facet.SimpleFacetDefinition;
 
-public class OBJFacetDefinitionReader implements FacetDefinitionReader {
+public class OBJFacetDefinitionReader extends AbstractOBJReader implements FacetDefinitionReader {
 
-    private final Reader reader;
+    private final List<Vector3D> vertices = new ArrayList<>();
 
-    private final PolygonOBJParser parser;
-
-    private final List<Vector3D> modelVertices = new ArrayList<>();
-
-    private final List<Vector3D> modelNormals = new ArrayList<>();
+    private final List<Vector3D> normals = new ArrayList<>();
 
     public OBJFacetDefinitionReader(final Reader reader) {
-        this.reader = reader;
-        this.parser = new PolygonOBJParser(reader);
+        super(reader);
     }
 
     /** {@inheritDoc} */
     @Override
     public FacetDefinition readFacet() throws IOException {
-        String keyword;
-        while (parser.nextKeyword()) {
-            keyword = parser.getKeyword();
+        final PolygonOBJParser.Face face = readFace();
+        if (face != null) {
+            final List<Vector3D> faceVertices = face.getVertices(vertices::get);
+            final Vector3D definedNormal = face.getDefinedCompositeNormal(normals::get);
 
-            switch (keyword) {
-                case OBJConstants.VERTEX_KEYWORD:
-                    modelVertices.add(parser.readVector());
-                    break;
-                case OBJConstants.VERTEX_NORMAL_KEYWORD:
-                    modelNormals.add(parser.readVector());
-                    break;
-                case OBJConstants.FACE_KEYWORD:
-                    final PolygonOBJParser.Face face = parser.readFace();
-
-                    final List<Vector3D> vertices = face.getVertices(modelVertices::get);
-                    final Vector3D definedNormal = face.getDefinedCompositeNormal(modelNormals::get);
-
-                    return new SimpleFacetDefinition(vertices, definedNormal);
-            }
+            return new SimpleFacetDefinition(faceVertices, definedNormal);
         }
 
         return null;
@@ -70,7 +52,13 @@ public class OBJFacetDefinitionReader implements FacetDefinitionReader {
 
     /** {@inheritDoc} */
     @Override
-    public void close() throws Exception {
-        reader.close();
+    protected void handleVertex(final Vector3D vertex) {
+        vertices.add(vertex);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected void handleNormal(final Vector3D normal) {
+        normals.add(normal);
     }
 }

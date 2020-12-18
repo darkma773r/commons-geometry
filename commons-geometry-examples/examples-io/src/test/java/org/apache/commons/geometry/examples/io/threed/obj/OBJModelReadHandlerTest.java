@@ -16,11 +16,14 @@
  */
 package org.apache.commons.geometry.examples.io.threed.obj;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
@@ -33,8 +36,7 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class OBJReaderTest {
-
+public class OBJModelReadHandlerTest {
     private static final double TEST_EPS = 1e-10;
 
     private static final DoublePrecisionContext TEST_PRECISION =
@@ -46,12 +48,12 @@ public class OBJReaderTest {
 
     private static final int CUBE_MINUS_SPHERE_FACES = 728;
 
-    private OBJReader reader = new OBJReader();
+    private OBJModelReadHandler handler = new OBJModelReadHandler();
 
     @Test
-    public void testReadMesh_emptyInput() throws Exception {
+    public void testReadTriangleMesh_emptyInput() throws Exception {
         // act
-        final TriangleMesh mesh = reader.readTriangleMesh(new StringReader(""), TEST_PRECISION);
+        final TriangleMesh mesh = handler.readTriangleMesh(createInput(""), TEST_PRECISION);
 
         // assert
         Assertions.assertEquals(0, mesh.getVertexCount());
@@ -59,20 +61,20 @@ public class OBJReaderTest {
     }
 
     @Test
-    public void testReadMesh_mixedVertexIndexTypesAndWhitespace() throws Exception {
+    public void testReadTriangleMesh_mixedVertexIndexTypesAndWhitespace() throws Exception {
         // arrange
         final String input =
             "#some comments  \n\r\n \n" +
-            " # some other comments\n" +
+            "# some other comments\n" +
             "v 0.0 0.0 0.0\n" +
             "v 1e-1 0 0 \r\n" +
-            " v 0 1 0\n" +
-            "\tv\t0 0 1\r\n" +
+            "v 0 1 0\n" +
+            "v\t0 0 1\r\n" +
             "f 1 2 3\n" +
-            " f    -1   -2\t-3";
+            "f    -1   -2\t-3";
 
         // act
-        final TriangleMesh mesh = reader.readTriangleMesh(new StringReader(input), TEST_PRECISION);
+        final TriangleMesh mesh = handler.readTriangleMesh(createInput(input), TEST_PRECISION);
 
         // assert
         Assertions.assertEquals(4, mesh.getVertexCount());
@@ -90,7 +92,7 @@ public class OBJReaderTest {
     }
 
     @Test
-    public void testReadMesh_multipleFaceIndices_usesTriangleFan() throws Exception {
+    public void testReadTriangleMesh_multipleFaceIndices_usesTriangleFan() throws Exception {
         // arrange
         final String input =
             "v 0 0 0\n" +
@@ -101,7 +103,7 @@ public class OBJReaderTest {
             "f 1 2 3 -2 -1\n";
 
         // act
-        final TriangleMesh mesh = reader.readTriangleMesh(new StringReader(input), TEST_PRECISION);
+        final TriangleMesh mesh = handler.readTriangleMesh(createInput(input), TEST_PRECISION);
 
         // assert
         Assertions.assertEquals(5, mesh.getVertexCount());
@@ -124,18 +126,19 @@ public class OBJReaderTest {
     }
 
     @Test
-    public void testReadMesh_ignoresUnsupportedContent() throws Exception {
+    public void testReadMesh_ignoresNonGeometricContent() throws Exception {
         // arrange
         final String input =
             "mtllib abc.mtl\n" +
-            "nope\n" +
+            "usemtl mine\n" +
+            "o test\n" +
             "v 0 0 0\n" +
             "v 1 0 0\n" +
             "v 0 1 0\n" +
-            "f 1/10/20 2//40 3//\n";
+            "f 1 2 3\n";
 
         // act
-        final TriangleMesh mesh = reader.readTriangleMesh(new StringReader(input), TEST_PRECISION);
+        final TriangleMesh mesh = handler.readTriangleMesh(createInput(input), TEST_PRECISION);
 
         // assert
         Assertions.assertEquals(3, mesh.getVertexCount());
@@ -165,19 +168,19 @@ public class OBJReaderTest {
         // act/assert
         GeometryTestUtils.assertThrows(() -> {
             try {
-                reader.readTriangleMesh(new StringReader(badNumber), TEST_PRECISION);
+                handler.readTriangleMesh(createInput(badNumber), TEST_PRECISION);
             } catch (final IOException exc) {
                 throw new UncheckedIOException(exc);
             }
-        }, NumberFormatException.class);
+        }, IllegalStateException.class, "Parsing failed at line 1, column 3: expected double but found [abc]");
 
         GeometryTestUtils.assertThrows(() -> {
             try {
-                reader.readTriangleMesh(new StringReader(notEnoughVertices), TEST_PRECISION);
+                handler.readTriangleMesh(createInput(notEnoughVertices), TEST_PRECISION);
             } catch (final IOException exc) {
                 throw new UncheckedIOException(exc);
             }
-        }, IllegalArgumentException.class, "Invalid vertex definition: at least 3 fields required but found only 2");
+        }, IllegalStateException.class, "Parsing failed at line 1, column 6: expected double but found end of line");
     }
 
     @Test
@@ -198,29 +201,33 @@ public class OBJReaderTest {
         // act/assert
         GeometryTestUtils.assertThrows(() -> {
             try {
-                reader.readTriangleMesh(new StringReader(badNumber), TEST_PRECISION);
+                handler.readTriangleMesh(createInput(badNumber), TEST_PRECISION);
             } catch (final IOException exc) {
                 throw new UncheckedIOException(exc);
             }
-        }, NumberFormatException.class);
+        }, IllegalStateException.class, "Parsing failed at line 4, column 5: expected integer but found empty token followed by [a]");
 
         GeometryTestUtils.assertThrows(() -> {
             try {
-                reader.readTriangleMesh(new StringReader(notEnoughIndices), TEST_PRECISION);
+                handler.readTriangleMesh(createInput(notEnoughIndices), TEST_PRECISION);
             } catch (final IOException exc) {
                 throw new UncheckedIOException(exc);
             }
-        }, IllegalArgumentException.class, "Invalid face definition: at least 3 fields required but found only 2");
+        }, IllegalStateException.class, "Parsing failed at line 4, column 6: face must contain at least 3 vertices but found only 2");
     }
 
     @Test
-    public void testReadMesh_cubeMinusSphereFile() throws Exception {
+    public void testReadMesh_cubeMinusSphere() throws Exception {
         // arrange
         final URL url = getClass().getResource(CUBE_MINUS_SPHERE_MODEL);
         final File file = new File(url.toURI());
 
         // act
-        final TriangleMesh mesh = reader.readTriangleMesh(file, TEST_PRECISION);
+        final TriangleMesh mesh;
+        try (InputStream in = Files.newInputStream(file.toPath()))
+        {
+            mesh = handler.readTriangleMesh(in, TEST_PRECISION);
+        }
 
         // assert
         Assertions.assertEquals(CUBE_MINUS_SPHERE_VERTICES, mesh.getVertexCount());
@@ -236,16 +243,7 @@ public class OBJReaderTest {
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), TEST_EPS);
     }
 
-    @Test
-    public void testReadMesh_cubeMinusSphereUrl() throws IOException {
-        // arrange
-        final URL url = getClass().getResource(CUBE_MINUS_SPHERE_MODEL);
-
-        // act
-        final TriangleMesh mesh = reader.readTriangleMesh(url, TEST_PRECISION);
-
-        // assert
-        Assertions.assertEquals(CUBE_MINUS_SPHERE_VERTICES, mesh.getVertexCount());
-        Assertions.assertEquals(CUBE_MINUS_SPHERE_FACES, mesh.getFaceCount());
+    private static ByteArrayInputStream createInput(final String str) {
+        return new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -20,7 +20,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 
+import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
+import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
+import org.apache.commons.geometry.examples.io.internal.IOUtils;
 import org.apache.commons.geometry.examples.io.threed.AbstractModelReadHandler;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
 
@@ -29,7 +33,17 @@ public class OBJModelReadHandler extends AbstractModelReadHandler {
     /** {@inheritDoc} */
     @Override
     public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(in, OBJConstants.DEFAULT_CHARSET));
+        final Reader reader = new BufferedReader(new InputStreamReader(in, OBJConstants.DEFAULT_CHARSET));
         return new OBJFacetDefinitionReader(reader);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public TriangleMesh readTriangleMesh(final InputStream in, final DoublePrecisionContext precision)
+            throws IOException {
+        final Reader reader = IOUtils.createCloseShieldReader(in, OBJConstants.DEFAULT_CHARSET);
+        try (OBJTriangleMeshReader meshReader = new OBJTriangleMeshReader(reader, precision)) {
+            return meshReader.readTriangleMesh();
+        }
     }
 }

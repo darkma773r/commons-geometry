@@ -169,8 +169,8 @@ public class OBJWriterTest {
         }
 
         // assert
-        Assertions.assertEquals(1, index1);
-        Assertions.assertEquals(2, index2);
+        Assertions.assertEquals(0, index1);
+        Assertions.assertEquals(1, index2);
         Assertions.assertEquals(
             "v 1.1 2.1 3\n" +
             "v 0.1 10 12\n", writer.getBuffer().toString());
@@ -188,8 +188,8 @@ public class OBJWriterTest {
             meshWriter.writeVertex(Vector3D.of(1, 1, 0));
             meshWriter.writeVertex(Vector3D.of(0, 1, 0));
 
-            meshWriter.writeFace(1, 2, 3);
-            meshWriter.writeFace(1, 2, 3, -1);
+            meshWriter.writeFace(0, 1, 2);
+            meshWriter.writeFace(0, 1, 2, 3);
         }
 
         // assert
@@ -199,7 +199,7 @@ public class OBJWriterTest {
             "v 1 1 0\n" +
             "v 0 1 0\n" +
             "f 1 2 3\n" +
-            "f 1 2 3 -1\n", writer.getBuffer().toString());
+            "f 1 2 3 4\n", writer.getBuffer().toString());
     }
 
     @Test
@@ -287,11 +287,9 @@ public class OBJWriterTest {
             "v 0 0 0\n" +
             "v 1 0 0\n" +
             "v 0 1 0\n" +
-            "f 1 2 3\n" +
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
             "v 0 0 1\n" +
-            "f 4 5 6\n", writer.getBuffer().toString());
+            "f 1 2 3\n" +
+            "f 1 2 4\n", writer.getBuffer().toString());
     }
 
     @Test
@@ -328,8 +326,8 @@ public class OBJWriterTest {
 
         // act
         final Path out = Files.createTempFile("objTest", ".obj");
-        try (OBJWriter writer = new OBJWriter(out.toFile())) {
-            writer.writeComment("A test obj file\nWritten by " + OBJReaderTest.class.getName());
+        try (OBJWriter writer = new OBJWriter(Files.newBufferedWriter(out))) {
+            writer.writeComment("A test obj file\nWritten by " + OBJWriterTest.class.getName());
 
             writer.writeBoundaries(mesh);
         } finally {
@@ -349,8 +347,8 @@ public class OBJWriterTest {
 
         // act
         final Path out = Files.createTempFile("objTest", ".obj");
-        try (OBJWriter writer = new OBJWriter(out.toFile())) {
-            writer.writeComment("A test obj file\nWritten by " + OBJReaderTest.class.getName());
+        try (OBJWriter writer = new OBJWriter(Files.newBufferedWriter(out))) {
+            writer.writeComment("A test obj file\nWritten by " + OBJWriterTest.class.getName());
 
             writer.writeBoundaries(result);
         } finally {
