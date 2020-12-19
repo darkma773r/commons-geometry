@@ -54,7 +54,7 @@ public class AffineTransformMatrix2DTest {
     @Test
     public void testOf_invalidDimensions() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> AffineTransformMatrix2D.of(1, 2),
+        GeometryTestUtils.assertThrowsWithMessage(() -> AffineTransformMatrix2D.of(1, 2),
                 IllegalArgumentException.class, "Dimension mismatch: 2 != 6");
     }
 
@@ -128,9 +128,7 @@ public class AffineTransformMatrix2DTest {
     @Test
     public void testFrom_invalidFunction() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            AffineTransformMatrix2D.from(v -> v.multiply(0));
-        }, IllegalArgumentException.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> AffineTransformMatrix2D.from(v -> v.multiply(0)));
     }
 
     @Test
@@ -719,10 +717,8 @@ public class AffineTransformMatrix2DTest {
     @Test
     public void testApplyDirection_illegalNorm() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> AffineTransformMatrix2D.createScale(1, 0).applyDirection(Vector2D.Unit.PLUS_Y),
-                IllegalArgumentException.class);
-        GeometryTestUtils.assertThrows(() -> AffineTransformMatrix2D.createScale(2).applyDirection(Vector2D.ZERO),
-                IllegalArgumentException.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> AffineTransformMatrix2D.createScale(1, 0).applyDirection(Vector2D.Unit.PLUS_Y));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> AffineTransformMatrix2D.createScale(2).applyDirection(Vector2D.ZERO));
     }
 
     @Test
@@ -1002,43 +998,43 @@ public class AffineTransformMatrix2DTest {
     @Test
     public void testInverse_nonInvertible() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix2D.of(
                     0, 0, 0,
                     0, 0, 0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; matrix determinant is 0.0");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix2D.of(
                     1, 0, 0,
                     0, Double.NaN, 0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; matrix determinant is NaN");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix2D.of(
                     1, 0, 0,
                     0, Double.NEGATIVE_INFINITY, 0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; matrix determinant is -Infinity");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix2D.of(
                     Double.POSITIVE_INFINITY, 0, 0,
                     0, 1, 0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; matrix determinant is Infinity");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix2D.of(
                     1, 0, Double.NaN,
                     0, 1, 0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; invalid matrix element: NaN");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix2D.of(
                     1, 0, Double.POSITIVE_INFINITY,
                     0, 1, 0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; invalid matrix element: Infinity");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix2D.of(
                     1, 0, Double.NEGATIVE_INFINITY,
                     0, 1, 0).inverse();
@@ -1130,9 +1126,7 @@ public class AffineTransformMatrix2DTest {
     @Test
     public void testNormalTransform_nonInvertible() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            AffineTransformMatrix2D.createScale(0).normalTransform();
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> AffineTransformMatrix2D.createScale(0).normalTransform());
     }
 
     @Test

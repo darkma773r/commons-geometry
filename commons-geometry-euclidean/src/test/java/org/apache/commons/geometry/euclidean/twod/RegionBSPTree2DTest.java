@@ -244,19 +244,19 @@ public class RegionBSPTree2DTest {
         final String msg = "Cannot insert partitions after boundaries have been inserted";
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.insertPartition(partition);
         }, IllegalStateException.class, msg);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.insertPartition(partition.span());
         }, IllegalStateException.class, msg);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.insertAxisAlignedPartitions(Vector2D.ZERO, TEST_PRECISION);
         }, IllegalStateException.class, msg);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.insertAxisAlignedGrid(Bounds2D.from(Vector2D.ZERO, Vector2D.of(1, 1)), 1, TEST_PRECISION);
         }, IllegalStateException.class, msg);
     }
@@ -388,9 +388,7 @@ public class RegionBSPTree2DTest {
         tree.insert(Lines.segmentFromPoints(Vector2D.ZERO, Vector2D.Unit.PLUS_X, TEST_PRECISION));
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            tree.getBoundaryPaths().add(LinePath.builder(null).build());
-        }, UnsupportedOperationException.class);
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> tree.getBoundaryPaths().add(LinePath.builder(null).build()));
     }
 
     @Test
@@ -1080,6 +1078,26 @@ public class RegionBSPTree2DTest {
         Assertions.assertTrue(RegionBSPTree2D.from(Collections.emptyList()).isEmpty());
         Assertions.assertTrue(RegionBSPTree2D.from(Collections.emptyList(), true).isFull());
         Assertions.assertTrue(RegionBSPTree2D.from(Collections.emptyList(), false).isEmpty());
+    }
+
+    @Test
+    public void testToList() {
+        // arrange
+        final RegionBSPTree2D tree = Parallelogram.axisAligned(Vector2D.ZERO, Vector2D.of(1, 1), TEST_PRECISION).toTree();
+
+        // act
+        final BoundaryList2D list = tree.toList();
+
+        // assert
+        Assertions.assertEquals(4, list.toList().count());
+        Assertions.assertEquals(1, list.toTree().getSize(), TEST_EPS);
+    }
+
+    @Test
+    public void testToList_fullAndEmpty() {
+        // act/assert
+        Assertions.assertEquals(0, RegionBSPTree2D.full().toList().count());
+        Assertions.assertEquals(0, RegionBSPTree2D.empty().toList().count());
     }
 
     @Test

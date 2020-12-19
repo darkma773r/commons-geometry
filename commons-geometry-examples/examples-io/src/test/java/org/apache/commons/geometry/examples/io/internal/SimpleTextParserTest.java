@@ -46,7 +46,7 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abc");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.setMaxStringLength(-1);
         }, IllegalArgumentException.class, "Maximum string length cannot be less than zero; was -1");
     }
@@ -233,43 +233,43 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abc\n1.1.1a");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsDouble();
         }, IllegalStateException.class,"No token has been read from the character stream");
 
         p.next(SimpleTextParser::isNotNewLinePart);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsDouble();
         }, IllegalStateException.class,
                 "Parsing failed at line 1, column 1: expected double but found [abc]");
 
         p.nextAlphanumeric();
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsDouble();
         }, IllegalStateException.class,
                 "Parsing failed at line 1, column 4: expected double but found end of line");
 
         p.discardLine()
             .next(c -> c != 'a');
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsDouble();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 1: expected double but found [1.1.1]");
 
         p.next(Character::isDigit);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsDouble();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 6: expected double but found empty token followed by [a]");
 
         p.nextLine();
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsDouble();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 6: expected double but found [a]");
 
         p.nextLine();
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsDouble();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 7: expected double but found end of content");
@@ -313,43 +313,43 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abc\n1.1.1a");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsInt();
         }, IllegalStateException.class,"No token has been read from the character stream");
 
         p.next(SimpleTextParser::isNotNewLinePart);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsInt();
         }, IllegalStateException.class,
                 "Parsing failed at line 1, column 1: expected integer but found [abc]");
 
         p.nextAlphanumeric();
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsInt();
         }, IllegalStateException.class,
                 "Parsing failed at line 1, column 4: expected integer but found end of line");
 
         p.discardLine()
             .next(c -> c != 'a');
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsInt();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 1: expected integer but found [1.1.1]");
 
         p.next(Character::isDigit);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsInt();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 6: expected integer but found empty token followed by [a]");
 
         p.nextLine();
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsInt();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 6: expected integer but found [a]");
 
         p.nextLine();
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsInt();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 7: expected integer but found end of content");
@@ -409,20 +409,12 @@ public class SimpleTextParserTest {
         p.setMaxStringLength(2);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.next(-1);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.next(-1);
         }, IllegalArgumentException.class, "Requested string length cannot be negative; was -1");
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.next(3);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.next(3);
         }, IllegalArgumentException.class, "Requested string length of 3 exceeds maximum value of 2");
     }
 
@@ -457,12 +449,8 @@ public class SimpleTextParserTest {
         p.setMaxStringLength(4);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.next(c -> !Character.isWhitespace(c));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.next(c -> !Character.isWhitespace(c));
         }, IllegalStateException.class, "String length exceeds maximum value of 4");
     }
 
@@ -824,20 +812,12 @@ public class SimpleTextParserTest {
         p.setMaxStringLength(4);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.peek(-1);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.peek(-1);
         }, IllegalArgumentException.class, "Requested string length cannot be negative; was -1");
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.peek(6);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.peek(6);
         }, IllegalArgumentException.class, "Requested string length of 6 exceeds maximum value of 4");
     }
 
@@ -873,12 +853,8 @@ public class SimpleTextParserTest {
         p.setMaxStringLength(4);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.peek(SimpleTextParser::isNotWhitespace);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.peek(SimpleTextParser::isNotWhitespace);
         }, IllegalStateException.class, "String length exceeds maximum value of 4");
     }
 
@@ -900,20 +876,20 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abcdef");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.match("empty");
         }, IllegalStateException.class, "No token has been read from the character stream");
 
         p.next(1);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.match("b");
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected [b] but found [a]");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.match("A");
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected [A] but found [a]");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.match(null);
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected [null] but found [a]");
     }
@@ -936,16 +912,16 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abcdef");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.matchIgnoreCase("empty");
         }, IllegalStateException.class, "No token has been read from the character stream");
 
         p.next(1);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.matchIgnoreCase("b");
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected [b] but found [a]");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.match(null);
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected [null] but found [a]");
     }
@@ -977,7 +953,7 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abcdef");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.tryMatch("empty");
         }, IllegalStateException.class, "No token has been read from the character stream");
     }
@@ -1008,7 +984,7 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abcdef");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.tryMatchIgnoreCase("empty");
         }, IllegalStateException.class, "No token has been read from the character stream");
     }
@@ -1040,24 +1016,24 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abc");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.choose("X");
         }, IllegalStateException.class, "No token has been read from the character stream");
 
         p.next(1);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.choose("X");
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected one of [X] but found [a]");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.choose("X", "Y", "Z");
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected one of [X, Y, Z] but found [a]");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.choose("A");
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected one of [A] but found [a]");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.choose();
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected one of [] but found [a]");
     }
@@ -1089,20 +1065,20 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abc");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.chooseIgnoreCase("X");
         }, IllegalStateException.class, "No token has been read from the character stream");
 
         p.next(1);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.chooseIgnoreCase("X");
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected one of [X] but found [a]");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.chooseIgnoreCase("X", "Y", "Z");
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected one of [X, Y, Z] but found [a]");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.chooseIgnoreCase();
         }, IllegalStateException.class, "Parsing failed at line 1, column 1: expected one of [] but found [a]");
     }
@@ -1138,7 +1114,7 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abcdef");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.tryChoose("X");
         }, IllegalStateException.class, "No token has been read from the character stream");
     }
@@ -1174,7 +1150,7 @@ public class SimpleTextParserTest {
         SimpleTextParser p = parser("abcdef");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.tryChooseIgnoreCase("X");
         }, IllegalStateException.class, "No token has been read from the character stream");
     }

@@ -59,24 +59,13 @@ public class EmbeddingPlaneTest {
         // act/assert
 
         // identical vectors
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.fromPointAndPlaneVectors(pt, Vector3D.of(0, 0, 1), Vector3D.of(0, 0, 1), TEST_PRECISION);
-        }, IllegalArgumentException.class);
-
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Planes.fromPointAndPlaneVectors(pt, Vector3D.of(0, 0, 1), Vector3D.of(0, 0, 1), TEST_PRECISION));
         // zero vector
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.fromPointAndPlaneVectors(pt, Vector3D.of(0, 0, 1), Vector3D.ZERO, TEST_PRECISION);
-        }, IllegalArgumentException.class);
-
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Planes.fromPointAndPlaneVectors(pt, Vector3D.of(0, 0, 1), Vector3D.ZERO, TEST_PRECISION));
         // collinear vectors
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.fromPointAndPlaneVectors(pt, Vector3D.of(0, 0, 1), Vector3D.of(0, 0, 2), TEST_PRECISION);
-        }, IllegalArgumentException.class);
-
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Planes.fromPointAndPlaneVectors(pt, Vector3D.of(0, 0, 1), Vector3D.of(0, 0, 2), TEST_PRECISION));
         // collinear vectors - reversed
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.fromPointAndPlaneVectors(pt, Vector3D.of(0, 0, 1), Vector3D.of(0, 0, -2), TEST_PRECISION);
-        }, IllegalArgumentException.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Planes.fromPointAndPlaneVectors(pt, Vector3D.of(0, 0, 1), Vector3D.of(0, 0, -2), TEST_PRECISION));
     }
 
     @Test

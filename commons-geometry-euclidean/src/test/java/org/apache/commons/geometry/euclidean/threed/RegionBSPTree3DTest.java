@@ -253,19 +253,19 @@ public class RegionBSPTree3DTest {
         final String msg = "Cannot insert partitions after boundaries have been inserted";
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.insertPartition(partition);
         }, IllegalStateException.class, msg);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.insertPartition(partition.span());
         }, IllegalStateException.class, msg);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.insertAxisAlignedPartitions(Vector3D.ZERO, TEST_PRECISION);
         }, IllegalStateException.class, msg);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.insertAxisAlignedGrid(Bounds3D.from(Vector3D.ZERO, Vector3D.of(1, 1, 1)), 1, TEST_PRECISION);
         }, IllegalStateException.class, msg);
     }
@@ -432,9 +432,7 @@ public class RegionBSPTree3DTest {
         tree.getRoot().insertCut(Planes.fromNormal(Vector3D.Unit.PLUS_Z, TEST_PRECISION));
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            tree.toTriangleMesh(TEST_PRECISION);
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> tree.toTriangleMesh(TEST_PRECISION));
     }
 
     @Test
@@ -459,6 +457,27 @@ public class RegionBSPTree3DTest {
         final RegionBSPTree3D halfFull = RegionBSPTree3D.empty();
         halfFull.getRoot().insertCut(Planes.fromPointAndNormal(Vector3D.ZERO, Vector3D.Unit.PLUS_Z, TEST_PRECISION));
         Assertions.assertNull(halfFull.getBounds());
+    }
+
+    @Test
+    public void testToList() {
+        // arrange
+        final RegionBSPTree3D tree = Parallelepiped.axisAligned(
+                Vector3D.ZERO, Vector3D.of(1, 3, 3), TEST_PRECISION).toTree();
+
+        // act
+        final BoundaryList3D list = tree.toList();
+
+        // assert
+        Assertions.assertEquals(6, list.count());
+        Assertions.assertEquals(9, list.toTree().getSize());
+    }
+
+    @Test
+    public void testToList_fullAndEmpty() {
+        // act/assert
+        Assertions.assertEquals(0, RegionBSPTree3D.full().toList().count());
+        Assertions.assertEquals(0, RegionBSPTree3D.empty().toList().count());
     }
 
     @Test

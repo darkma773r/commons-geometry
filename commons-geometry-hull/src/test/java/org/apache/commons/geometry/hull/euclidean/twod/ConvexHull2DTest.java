@@ -159,9 +159,8 @@ public class ConvexHull2DTest {
 
         // assert
         Assertions.assertNotSame(vertices, hullVertices);
-        GeometryTestUtils.assertThrows(() -> {
-            hullVertices.add(Vector2D.Unit.PLUS_Y);
-        }, UnsupportedOperationException.class);
+
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> hullVertices.add(Vector2D.Unit.PLUS_Y));
     }
 
     @Test

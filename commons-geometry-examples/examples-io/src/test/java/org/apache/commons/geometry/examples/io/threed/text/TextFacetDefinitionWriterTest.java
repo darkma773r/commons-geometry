@@ -79,15 +79,15 @@ public class TextFacetDefinitionWriterTest {
         final String baseMsg = "Facet vertex count must be less than 0 or greater than 2; was ";
 
         // act
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             fdWriter.setFacetVertexCount(0);
         }, IllegalArgumentException.class, baseMsg + "0");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             fdWriter.setFacetVertexCount(1);
         }, IllegalArgumentException.class, baseMsg + "1");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             fdWriter.setFacetVertexCount(2);
         }, IllegalArgumentException.class, baseMsg + "2");
     }
@@ -95,15 +95,15 @@ public class TextFacetDefinitionWriterTest {
     @Test
     public void testSetCommentToken_invalidArgs() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             fdWriter.setCommentToken("");
         }, IllegalArgumentException.class, "Comment token cannot be empty");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             fdWriter.setCommentToken(" ");
         }, IllegalArgumentException.class, "Comment token cannot begin with whitespace");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             fdWriter.setCommentToken("\n \t");
         }, IllegalArgumentException.class, "Comment token cannot begin with whitespace");
     }
@@ -133,12 +133,8 @@ public class TextFacetDefinitionWriterTest {
         fdWriter.setCommentToken(null);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                fdWriter.writeComment("comment");
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            fdWriter.writeComment("comment");
         }, IllegalStateException.class, "Cannot write comment: no comment token configured");
     }
 
@@ -181,20 +177,12 @@ public class TextFacetDefinitionWriterTest {
                 Vector3D.Unit.MINUS_X, Vector3D.Unit.MINUS_Y);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                fdWriter.write(notEnough);
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            fdWriter.write(notEnough);
         }, IllegalArgumentException.class, "At least 3 vertices are required per facet; found 2");
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                fdWriter.write(tooMany);
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            fdWriter.write(tooMany);
         }, IllegalArgumentException.class, "Writer requires 4 vertices per facet; found 5");
     }
 
@@ -225,12 +213,8 @@ public class TextFacetDefinitionWriterTest {
                 Vector3D.Unit.MINUS_X, Vector3D.Unit.MINUS_Y));
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                fdWriter.write(tooMany);
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            fdWriter.write(tooMany);
         }, IllegalArgumentException.class, "Writer requires 4 vertices per facet; found 5");
     }
 
@@ -278,12 +262,8 @@ public class TextFacetDefinitionWriterTest {
         final PlaneConvexSubset inf = Planes.fromNormal(Vector3D.Unit.PLUS_X, TEST_PRECISION).span();
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                fdWriter.write(inf);
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            fdWriter.write(inf);
         }, IllegalArgumentException.class, "Cannot write infinite convex subset");
     }
 

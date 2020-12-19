@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.SplitLocation;
@@ -480,13 +479,8 @@ public class ConvexArea2STest {
     @Test
     public void testFromVertices_invalidArguments() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            ConvexArea2S.fromVertices(Collections.singletonList(Point2S.PLUS_I), TEST_PRECISION);
-        }, IllegalStateException.class);
-
-        GeometryTestUtils.assertThrows(() -> {
-            ConvexArea2S.fromVertices(Arrays.asList(Point2S.PLUS_I, Point2S.of(1e-16, PlaneAngleRadians.PI_OVER_TWO)), TEST_PRECISION);
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> ConvexArea2S.fromVertices(Collections.singletonList(Point2S.PLUS_I), TEST_PRECISION));
+        Assertions.assertThrows(IllegalStateException.class, () -> ConvexArea2S.fromVertices(Arrays.asList(Point2S.PLUS_I, Point2S.of(1e-16, PlaneAngleRadians.PI_OVER_TWO)), TEST_PRECISION));
     }
 
     @Test
@@ -794,6 +788,35 @@ public class ConvexArea2STest {
 
         Assertions.assertNull(split.getMinus());
         Assertions.assertSame(area, split.getPlus());
+    }
+
+    @Test
+    public void testToList_full() {
+        // arrange
+        final ConvexArea2S area = ConvexArea2S.full();
+
+        // act
+        final BoundaryList2S list = area.toList();
+
+        // assert
+        Assertions.assertEquals(0, list.count());
+    }
+
+    @Test
+    public void testToList() {
+        // arrange
+        final ConvexArea2S area = ConvexArea2S.fromVertexLoop(Arrays.asList(
+                    Point2S.of(0.1, 0.1), Point2S.of(-0.4, 1),
+                    Point2S.of(0.15, 1.5), Point2S.of(0.3, 1.2),
+                    Point2S.of(0.1, 0.1)
+                ), TEST_PRECISION);
+
+        // act
+        final BoundaryList2S list = area.toList();
+
+        // assert
+        Assertions.assertEquals(4, list.count());
+        Assertions.assertEquals(area.getSize(), list.toTree().getSize(), TEST_EPS);
     }
 
     @Test

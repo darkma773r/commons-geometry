@@ -115,11 +115,11 @@ public class ConvexVolumeTest {
                 );
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             half.triangleStream().collect(Collectors.toList());
         }, IllegalStateException.class, pattern);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             quadrant.triangleStream().collect(Collectors.toList());
         }, IllegalStateException.class, pattern);
     }
@@ -176,6 +176,39 @@ public class ConvexVolumeTest {
         // assert
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0.5, 0, -1), bounds.getMin(), TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1.5, 2, 3), bounds.getMax(), TEST_EPS);
+    }
+
+    @Test
+    public void testToList_full() {
+        // arrange
+        final ConvexVolume volume = ConvexVolume.full();
+
+        // act
+        final BoundaryList3D list = volume.toList();
+
+        // assert
+        Assertions.assertEquals(0, list.count());
+    }
+
+    @Test
+    public void testToList() {
+        // arrange
+        final ConvexVolume volume = ConvexVolume.fromBounds(
+                    Planes.fromPointAndNormal(Vector3D.ZERO, Vector3D.Unit.MINUS_X, TEST_PRECISION),
+                    Planes.fromPointAndNormal(Vector3D.ZERO, Vector3D.Unit.MINUS_Y, TEST_PRECISION),
+                    Planes.fromPointAndNormal(Vector3D.ZERO, Vector3D.Unit.MINUS_Z, TEST_PRECISION),
+
+                    Planes.fromPointAndNormal(Vector3D.of(1, 1, 1), Vector3D.Unit.PLUS_X, TEST_PRECISION),
+                    Planes.fromPointAndNormal(Vector3D.of(1, 1, 1), Vector3D.Unit.PLUS_Y, TEST_PRECISION),
+                    Planes.fromPointAndNormal(Vector3D.of(1, 1, 1), Vector3D.Unit.PLUS_Z, TEST_PRECISION)
+                );
+
+        // act
+        final BoundaryList3D list = volume.toList();
+
+        // assert
+        Assertions.assertEquals(6, list.count());
+        Assertions.assertEquals(1, list.toTree().getSize(), TEST_EPS);
     }
 
     @Test

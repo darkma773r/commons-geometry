@@ -76,7 +76,7 @@ public class VertexListConvexPolygon3DTest {
     @Test
     public void testCtor_validatesVertexListSize() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             new VertexListConvexPolygon3D(XY_PLANE_Z1, Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_X));
         }, IllegalArgumentException.class, "Convex polygon requires at least 3 points; found 2");
     }
@@ -88,9 +88,7 @@ public class VertexListConvexPolygon3DTest {
         final VertexListConvexPolygon3D p = new VertexListConvexPolygon3D(XY_PLANE_Z1, vertices);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            p.getVertices().add(Vector3D.of(-1, 0, 1));
-        }, UnsupportedOperationException.class);
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> p.getVertices().add(Vector3D.of(-1, 0, 1)));
     }
 
     @Test

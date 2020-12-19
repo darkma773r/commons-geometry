@@ -26,8 +26,6 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 public class IteratorTransformTest {
 
     @Test
@@ -50,7 +48,7 @@ public class IteratorTransformTest {
 
         // act/assert
         Assertions.assertFalse(it.hasNext());
-        assertThrows(NoSuchElementException.class, it::next);
+        Assertions.assertThrows(NoSuchElementException.class, it::next);
     }
 
     private static <T> List<T> toList(final Iterator<T> it) {

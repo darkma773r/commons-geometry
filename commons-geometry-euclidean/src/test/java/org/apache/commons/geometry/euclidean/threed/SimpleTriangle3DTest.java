@@ -86,9 +86,7 @@ public class SimpleTriangle3DTest {
                 Vector3D.of(0, 0, 1), Vector3D.of(1, 0, 1), Vector3D.of(0, 1, 1));
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            tri.getVertices().add(Vector3D.of(-1, 0, 1));
-        }, UnsupportedOperationException.class);
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> tri.getVertices().add(Vector3D.of(-1, 0, 1)));
     }
 
     @Test

@@ -22,7 +22,6 @@ import java.io.StringReader;
 import java.util.Random;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.apache.commons.geometry.examples.io.internal.CharReadBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,15 +30,15 @@ public class CharReadBufferTest {
     @Test
     public void testCtor() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             new CharReadBuffer(null, 1, 1);
         }, NullPointerException.class, "Reader cannot be null");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             new CharReadBuffer(reader("a"), 0, 1);
         }, IllegalArgumentException.class, "Initial buffer capacity must be greater than 0; was 0");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             new CharReadBuffer(reader("a"), 1, 0);
         }, IllegalArgumentException.class, "Min read value must be greater than 0; was 0");
     }
@@ -116,12 +115,8 @@ public class CharReadBufferTest {
         CharReadBuffer buf = new CharReadBuffer(reader(str), 3);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                buf.charAt(-1);
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            buf.charAt(-1);
         }, IllegalArgumentException.class, "Character index cannot be negative; was -1");
     }
 
@@ -162,22 +157,12 @@ public class CharReadBufferTest {
         String msg = "Requested string length cannot be negative; was -1";
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                buf.peekString(-1);
-            }
-            catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            buf.peekString(-1);
         }, IllegalArgumentException.class, msg);
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                buf.readString(-1);
-            }
-            catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            buf.readString(-1);
         }, IllegalArgumentException.class, msg);
     }
 
@@ -213,13 +198,8 @@ public class CharReadBufferTest {
         CharReadBuffer buf = new CharReadBuffer(reader("a"));
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                buf.skip(-1);
-            }
-            catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            buf.skip(-1);
         }, IllegalArgumentException.class, "Character skip count cannot be negative; was -1");
     }
 

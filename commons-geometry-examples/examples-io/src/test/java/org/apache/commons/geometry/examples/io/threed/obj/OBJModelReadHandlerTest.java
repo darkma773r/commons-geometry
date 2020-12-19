@@ -18,9 +18,7 @@ package org.apache.commons.geometry.examples.io.threed.obj;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -166,20 +164,12 @@ public class OBJModelReadHandlerTest {
             "f 1 2 3\n";
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                handler.readTriangleMesh(createInput(badNumber), TEST_PRECISION);
-            } catch (final IOException exc) {
-                throw new UncheckedIOException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            handler.readTriangleMesh(createInput(badNumber), TEST_PRECISION);
         }, IllegalStateException.class, "Parsing failed at line 1, column 3: expected double but found [abc]");
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                handler.readTriangleMesh(createInput(notEnoughVertices), TEST_PRECISION);
-            } catch (final IOException exc) {
-                throw new UncheckedIOException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            handler.readTriangleMesh(createInput(notEnoughVertices), TEST_PRECISION);
         }, IllegalStateException.class, "Parsing failed at line 1, column 6: expected double but found end of line");
     }
 
@@ -199,20 +189,12 @@ public class OBJModelReadHandlerTest {
             "f 1 2\n";
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                handler.readTriangleMesh(createInput(badNumber), TEST_PRECISION);
-            } catch (final IOException exc) {
-                throw new UncheckedIOException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            handler.readTriangleMesh(createInput(badNumber), TEST_PRECISION);
         }, IllegalStateException.class, "Parsing failed at line 4, column 5: expected integer but found empty token followed by [a]");
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                handler.readTriangleMesh(createInput(notEnoughIndices), TEST_PRECISION);
-            } catch (final IOException exc) {
-                throw new UncheckedIOException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            handler.readTriangleMesh(createInput(notEnoughIndices), TEST_PRECISION);
         }, IllegalStateException.class, "Parsing failed at line 4, column 6: face must contain at least 3 vertices but found only 2");
     }
 

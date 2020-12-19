@@ -23,8 +23,6 @@ import org.apache.commons.numbers.angle.PlaneAngleRadians;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 public class PolarCoordinatesTest {
 
     private static final double EPS = 1e-10;
@@ -351,7 +349,7 @@ public class PolarCoordinatesTest {
     @Test
     public void testParse_failure() {
         // act/assert
-        assertThrows(IllegalArgumentException.class, () -> PolarCoordinates.parse("abc"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> PolarCoordinates.parse("abc"));
     }
 
     @Test

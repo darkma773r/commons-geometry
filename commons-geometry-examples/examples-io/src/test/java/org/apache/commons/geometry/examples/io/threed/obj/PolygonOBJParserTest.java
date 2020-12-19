@@ -120,12 +120,8 @@ public class PolygonOBJParserTest {
         p.setFailOnNonPolygonKeywords(true);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.nextKeyword();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.nextKeyword();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 1: expected keyword to be one of " +
                 "[f, g, mtllib, o, s, usemtl, v, vn, vt] but was [curv2]");
@@ -149,21 +145,13 @@ public class PolygonOBJParserTest {
                 ));
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.nextKeyword();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.nextKeyword();
         }, IllegalStateException.class, "Parsing failed at line 1, column 2: " +
             "non-blank lines must begin with an OBJ keyword or comment character");
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.nextKeyword();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.nextKeyword();
         }, IllegalStateException.class, "Parsing failed at line 2, column 1: " +
             "expected OBJ keyword but found empty token followed by [-]");
     }
@@ -240,22 +228,14 @@ public class PolygonOBJParserTest {
         ));
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readVector();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readVector();
         }, IllegalStateException.class, "Parsing failed at line 1, column 9: expected double but found [a]");
 
         p.readDataLine();
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readVector();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readVector();
         }, IllegalStateException.class, "Parsing failed at line 2, column 2: expected double but found end of line");
     }
 
@@ -297,22 +277,14 @@ public class PolygonOBJParserTest {
         ));
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readDoubles();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readDoubles();
         }, IllegalStateException.class, "Parsing failed at line 1, column 9: expected double but found [a]");
 
         p.readDataLine();
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readDoubles();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readDoubles();
         }, IllegalStateException.class, "Parsing failed at line 2, column 1: expected double but found [b]");
     }
 
@@ -434,12 +406,8 @@ public class PolygonOBJParserTest {
 
         // act/assert
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 5, column 6: " +
             "face must contain at least 3 vertices but found only 2");
     }
@@ -460,42 +428,26 @@ public class PolygonOBJParserTest {
 
         // act/assert
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 2, column 3: " +
             "vertex index cannot be used because no values of that type have been defined");
 
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 6, column 7: " +
             "vertex index must evaluate to be within the range [1, 3] but was -4");
 
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 7, column 5: " +
             "vertex index must evaluate to be within the range [1, 3] but was 0");
 
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 8, column 3: " +
             "vertex index must evaluate to be within the range [1, 3] but was 4");
     }
@@ -519,42 +471,26 @@ public class PolygonOBJParserTest {
 
         // act/assert
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 5, column 5: " +
             "texture index cannot be used because no values of that type have been defined");
 
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 9, column 13: " +
             "texture index must evaluate to be within the range [1, 3] but was -4");
 
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 10, column 9: " +
             "texture index must evaluate to be within the range [1, 3] but was 0");
 
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 11, column 5: " +
             "texture index must evaluate to be within the range [1, 3] but was 4");
     }
@@ -578,42 +514,26 @@ public class PolygonOBJParserTest {
 
         // act/assert
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 5, column 6: " +
             "normal index cannot be used because no values of that type have been defined");
 
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 9, column 16: " +
             "normal index must evaluate to be within the range [1, 3] but was -4");
 
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 10, column 11: " +
             "normal index must evaluate to be within the range [1, 3] but was 0");
 
         nextFace(p);
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                p.readFace();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            p.readFace();
         }, IllegalStateException.class, "Parsing failed at line 11, column 6: " +
             "normal index must evaluate to be within the range [1, 3] but was 4");
     }

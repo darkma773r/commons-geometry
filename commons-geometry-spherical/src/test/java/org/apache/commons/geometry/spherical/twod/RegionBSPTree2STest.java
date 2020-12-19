@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.SplitLocation;
@@ -227,6 +226,27 @@ public class RegionBSPTree2STest {
     }
 
     @Test
+    public void testToList_fullAndEmpty() {
+        // act/assert
+        Assertions.assertEquals(0, RegionBSPTree2S.full().toList().count());
+        Assertions.assertEquals(0, RegionBSPTree2S.empty().toList().count());
+    }
+
+    @Test
+    public void testToList() {
+        // arrange
+        final RegionBSPTree2S tree = RegionBSPTree2S.empty();
+        insertPositiveQuadrant(tree);
+
+        // act
+        final BoundaryList2S list = tree.toList();
+
+        // assert
+        Assertions.assertEquals(3, list.count());
+        Assertions.assertEquals(0.5 * Math.PI, list.toTree().getSize(), TEST_EPS);
+    }
+
+    @Test
     public void testToTree_returnsSameInstance() {
         // arrange
         final RegionBSPTree2S tree = RegionBSPTree2S.empty();
@@ -272,9 +292,7 @@ public class RegionBSPTree2STest {
         tree.insert(EQUATOR.span());
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            tree.getBoundaryPaths().add(GreatArcPath.empty());
-        }, UnsupportedOperationException.class);
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> tree.getBoundaryPaths().add(GreatArcPath.empty()));
     }
 
     @Test

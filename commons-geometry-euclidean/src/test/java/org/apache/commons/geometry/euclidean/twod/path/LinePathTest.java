@@ -282,17 +282,9 @@ public class LinePathTest {
         final LineConvexSubset d = Lines.fromPointAndAngle(Vector2D.of(1, 0), PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION).span();
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            LinePath.from(a, b);
-        }, IllegalStateException.class);
-
-        GeometryTestUtils.assertThrows(() -> {
-            LinePath.from(c, b);
-        }, IllegalStateException.class);
-
-        GeometryTestUtils.assertThrows(() -> {
-            LinePath.from(a, d);
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> LinePath.from(a, b));
+        Assertions.assertThrows(IllegalStateException.class, () -> LinePath.from(c, b));
+        Assertions.assertThrows(IllegalStateException.class, () -> LinePath.from(a, d));
     }
 
     @Test
@@ -317,9 +309,7 @@ public class LinePathTest {
     @Test
     public void testFromVertices_singleVertex_failsToCreatePath() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            LinePath.fromVertices(Collections.singletonList(Vector2D.ZERO), TEST_PRECISION);
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> LinePath.fromVertices(Collections.singletonList(Vector2D.ZERO), TEST_PRECISION));
     }
 
     @Test
@@ -428,9 +418,7 @@ public class LinePathTest {
     @Test
     public void testFromVertexLoop_singleVertex_failsToCreatePath() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            LinePath.fromVertexLoop(Collections.singletonList(Vector2D.ZERO), TEST_PRECISION);
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> LinePath.fromVertexLoop(Collections.singletonList(Vector2D.ZERO), TEST_PRECISION));
     }
 
     @Test
@@ -526,9 +514,7 @@ public class LinePathTest {
         Assertions.assertNotSame(inputSegments, path.getElements());
         Assertions.assertEquals(1, path.getElements().size());
 
-        GeometryTestUtils.assertThrows(() -> {
-            path.getElements().add(a);
-        }, UnsupportedOperationException.class);
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> path.getElements().add(a));
     }
 
     @Test
@@ -1052,13 +1038,8 @@ public class LinePathTest {
         builder.append(a);
 
         // act
-        GeometryTestUtils.assertThrows(() -> {
-            builder.append(a);
-        }, IllegalStateException.class);
-
-        GeometryTestUtils.assertThrows(() -> {
-            builder.prepend(a);
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> builder.append(a));
+        Assertions.assertThrows(IllegalStateException.class, () -> builder.prepend(a));
     }
 
     @Test
@@ -1098,11 +1079,11 @@ public class LinePathTest {
         final String msg = "Unable to create line segment: no vertex precision specified";
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.append(p);
         }, IllegalStateException.class, msg);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             builder.prepend(p);
         }, IllegalStateException.class, msg);
     }
@@ -1116,13 +1097,8 @@ public class LinePathTest {
         builder.append(Lines.fromPointAndAngle(Vector2D.ZERO, 0.0, TEST_PRECISION).span());
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            builder.append(p);
-        }, IllegalStateException.class);
-
-        GeometryTestUtils.assertThrows(() -> {
-            builder.prepend(p);
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> builder.prepend(p));
+        Assertions.assertThrows(IllegalStateException.class, () -> builder.prepend(p));
     }
 
     @Test
@@ -1289,7 +1265,7 @@ public class LinePathTest {
             .append(Vector2D.of(1, 1));
 
         // act/assert
-        GeometryTestUtils.assertThrows(builder::close, IllegalStateException.class,
+        GeometryTestUtils.assertThrowsWithMessage(builder::close, IllegalStateException.class,
                 "Unable to close line path: line path is infinite");
     }
 
@@ -1305,7 +1281,7 @@ public class LinePathTest {
                 .rayFrom(0));
 
         // act/assert
-        GeometryTestUtils.assertThrows(builder::close, IllegalStateException.class,
+        GeometryTestUtils.assertThrowsWithMessage(builder::close, IllegalStateException.class,
                 "Unable to close line path: line path is infinite");
     }
 

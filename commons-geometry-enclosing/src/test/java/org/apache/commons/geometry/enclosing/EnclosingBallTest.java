@@ -27,8 +27,6 @@ import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 public class EnclosingBallTest {
 
     private static final double TEST_EPS = 1e-10;
@@ -81,7 +79,7 @@ public class EnclosingBallTest {
         final EnclosingBall<Vector2D> ball = new EnclosingBall<>(Vector2D.of(1, 1), 4, support);
 
         // act/assert
-        assertThrows(UnsupportedOperationException.class, () ->  ball.getSupport().add(Vector2D.Unit.PLUS_X));
+        Assertions.assertThrows(UnsupportedOperationException.class, () ->  ball.getSupport().add(Vector2D.Unit.PLUS_X));
     }
 
     @Test

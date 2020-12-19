@@ -43,7 +43,7 @@ public class AffineTransformMatrix1DTest {
     @Test
     public void testOf_invalidDimensions() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> AffineTransformMatrix1D.of(1),
+        GeometryTestUtils.assertThrowsWithMessage(() -> AffineTransformMatrix1D.of(1),
                 IllegalArgumentException.class, "Dimension mismatch: 1 != 2");
     }
 
@@ -63,9 +63,7 @@ public class AffineTransformMatrix1DTest {
     @Test
     public void testFrom_invalidFunction() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            AffineTransformMatrix1D.from(v -> v.multiply(0));
-        }, IllegalArgumentException.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> AffineTransformMatrix1D.from(v -> v.multiply(0)));
     }
 
     @Test
@@ -426,10 +424,8 @@ public class AffineTransformMatrix1DTest {
     @Test
     public void testApplyDirection_illegalNorm() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> AffineTransformMatrix1D.createScale(0).applyDirection(Vector1D.Unit.PLUS),
-                IllegalArgumentException.class);
-        GeometryTestUtils.assertThrows(() -> AffineTransformMatrix1D.createScale(2).applyDirection(Vector1D.ZERO),
-                IllegalArgumentException.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> AffineTransformMatrix1D.createScale(0).applyDirection(Vector1D.Unit.PLUS));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> AffineTransformMatrix1D.createScale(2).applyDirection(Vector1D.ZERO));
     }
 
     @Test
@@ -593,9 +589,7 @@ public class AffineTransformMatrix1DTest {
     @Test
     public void testNormalTransform_nonInvertible() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            AffineTransformMatrix1D.createScale(0).normalTransform();
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> AffineTransformMatrix1D.createScale(0).normalTransform());
     }
 
     @Test
@@ -676,31 +670,31 @@ public class AffineTransformMatrix1DTest {
     @Test
     public void testInverse_nonInvertible() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix1D.of(0, 0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; matrix determinant is 0.0");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix1D.of(Double.NaN, 0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; matrix determinant is NaN");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix1D.of(Double.NEGATIVE_INFINITY, 0.0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; matrix determinant is -Infinity");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix1D.of(Double.POSITIVE_INFINITY, 0).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; matrix determinant is Infinity");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix1D.of(1, Double.NaN).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; invalid matrix element: NaN");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix1D.of(1, Double.NEGATIVE_INFINITY).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; invalid matrix element: -Infinity");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             AffineTransformMatrix1D.of(1, Double.POSITIVE_INFINITY).inverse();
         }, IllegalStateException.class, "Matrix is not invertible; invalid matrix element: Infinity");
     }

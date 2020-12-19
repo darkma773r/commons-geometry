@@ -72,10 +72,8 @@ public class CircleTest {
     @Test
     public void testFrom_illegalCenter() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> Circle.from(Vector2D.of(Double.POSITIVE_INFINITY, 1), 1, TEST_PRECISION),
-                IllegalArgumentException.class);
-        GeometryTestUtils.assertThrows(() -> Circle.from(Vector2D.of(Double.NaN, 1), 1, TEST_PRECISION),
-                IllegalArgumentException.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Circle.from(Vector2D.of(Double.POSITIVE_INFINITY, 1), 1, TEST_PRECISION));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Circle.from(Vector2D.of(Double.NaN, 1), 1, TEST_PRECISION));
     }
 
     @Test
@@ -84,17 +82,11 @@ public class CircleTest {
         final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-2);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> Circle.from(Vector2D.ZERO, -1, TEST_PRECISION),
-                IllegalArgumentException.class);
-        GeometryTestUtils.assertThrows(() -> Circle.from(Vector2D.ZERO, 0, TEST_PRECISION),
-                IllegalArgumentException.class);
-        GeometryTestUtils.assertThrows(() -> Circle.from(Vector2D.ZERO, Double.POSITIVE_INFINITY, TEST_PRECISION),
-                IllegalArgumentException.class);
-        GeometryTestUtils.assertThrows(() -> Circle.from(Vector2D.ZERO, Double.NaN, TEST_PRECISION),
-                IllegalArgumentException.class);
-
-        GeometryTestUtils.assertThrows(() -> Circle.from(Vector2D.ZERO, 1e-3, precision),
-                IllegalArgumentException.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Circle.from(Vector2D.ZERO, -1, TEST_PRECISION));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Circle.from(Vector2D.ZERO, 0, TEST_PRECISION));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Circle.from(Vector2D.ZERO, Double.POSITIVE_INFINITY, TEST_PRECISION));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Circle.from(Vector2D.ZERO, Double.NaN, TEST_PRECISION));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Circle.from(Vector2D.ZERO, 1e-3, precision));
     }
 
     @Test
@@ -382,10 +374,10 @@ public class CircleTest {
         final String baseMsg = "Circle approximation segment number must be greater than or equal to 3; was ";
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             c.toTree(2);
         }, IllegalArgumentException.class, baseMsg + "2");
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             c.toTree(-1);
         }, IllegalArgumentException.class, baseMsg + "-1");
     }

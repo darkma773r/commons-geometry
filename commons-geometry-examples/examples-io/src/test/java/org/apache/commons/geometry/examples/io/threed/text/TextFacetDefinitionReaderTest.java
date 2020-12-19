@@ -60,11 +60,11 @@ public class TextFacetDefinitionReaderTest {
         String baseMsg = "Comment token cannot contain whitespace; was [";
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             reader.setCommentToken(" ");
         }, IllegalArgumentException.class, baseMsg + " ]");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             reader.setCommentToken("a\tb");
         }, IllegalArgumentException.class, baseMsg + "a\tb]");
     }
@@ -249,12 +249,8 @@ public class TextFacetDefinitionReaderTest {
         reader.setCommentToken("");
 
         // act
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                reader.readFacet();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            reader.readFacet();
         }, IllegalStateException.class,
                 "Parsing failed at line 1, column 1: expected double but found empty token followed by [#]");
     }
@@ -266,12 +262,8 @@ public class TextFacetDefinitionReaderTest {
         reader.setCommentToken(null);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                reader.readFacet();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            reader.readFacet();
         }, IllegalStateException.class,
                 "Parsing failed at line 1, column 1: expected double but found empty token followed by [#]");
     }
@@ -282,12 +274,8 @@ public class TextFacetDefinitionReaderTest {
         TextFacetDefinitionReader reader = facetReader("1 abc 3 ; 4 5 6 ; 7 8 9");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                reader.readFacet();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            reader.readFacet();
         }, IllegalStateException.class,
                 "Parsing failed at line 1, column 3: expected double but found [abc]");
     }
@@ -302,39 +290,23 @@ public class TextFacetDefinitionReaderTest {
                 "1 2 3 ; 4 5 6;\n");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                reader.readFacet();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            reader.readFacet();
         }, IllegalStateException.class,
                 "Parsing failed at line 1, column 2: expected double but found end of line");
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                reader.readFacet();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            reader.readFacet();
         }, IllegalStateException.class,
                 "Parsing failed at line 2, column 4: expected double but found end of line");
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                reader.readFacet();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            reader.readFacet();
         }, IllegalStateException.class,
                 "Parsing failed at line 3, column 6: expected double but found end of line");
 
-        GeometryTestUtils.assertThrows(() -> {
-            try {
-                reader.readFacet();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            reader.readFacet();
         }, IllegalStateException.class,
                 "Parsing failed at line 4, column 15: expected double but found end of line");
     }

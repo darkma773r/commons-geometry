@@ -229,13 +229,8 @@ public class EmbeddedTreeLineSubsetTest {
         final EmbeddedTreeLineSubset subset = new EmbeddedTreeLineSubset(line);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            subset.add(Lines.subsetFromInterval(otherLine, 0, 1));
-        }, IllegalArgumentException.class);
-
-        GeometryTestUtils.assertThrows(() -> {
-            subset.add(new EmbeddedTreeLineSubset(otherLine));
-        }, IllegalArgumentException.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> subset.add(Lines.subsetFromInterval(otherLine, 0, 1)));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> subset.add(new EmbeddedTreeLineSubset(otherLine)));
     }
 
     @Test
