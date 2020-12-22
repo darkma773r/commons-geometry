@@ -14,23 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.examples.io.threed;
+package org.apache.commons.geometry.examples.io.threed.text;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
-import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
-import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
+public class CsvTextModelWriteHandler extends TextModelWriteHandler {
 
-/** Interface for reading 3D models stored in a specific file format.
- */
-public interface ModelReadHandler {
-
-    FacetDefinitionReader facetDefinitionReader(InputStream in) throws IOException;
-
-    BoundarySource3D read(InputStream in, DoublePrecisionContext precision) throws IOException;
-
-    TriangleMesh readTriangleMesh(InputStream in, DoublePrecisionContext precision) throws IOException;
+    /** {@inheritDoc} */
+    @Override
+    protected TextFacetDefinitionWriter createWriter(final OutputStream out) {
+        return null;
+    }
 }

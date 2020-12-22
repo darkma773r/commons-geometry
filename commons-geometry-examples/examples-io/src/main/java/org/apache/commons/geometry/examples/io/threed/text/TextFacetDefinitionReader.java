@@ -160,7 +160,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** {@inheritDoc} */
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         reader.close();
     }
 

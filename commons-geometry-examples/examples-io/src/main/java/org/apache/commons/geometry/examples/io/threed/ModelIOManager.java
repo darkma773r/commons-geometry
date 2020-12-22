@@ -41,13 +41,31 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
 
-public class ModelIOHandlerRegistry {
+public class ModelIOManager {
+
+    public interface ReadHandler {
+
+        FacetDefinitionReader facetDefinitionReader(InputStream in) throws IOException;
+
+        BoundarySource3D read(InputStream in, DoublePrecisionContext precision) throws IOException;
+
+        TriangleMesh readTriangleMesh(InputStream in, DoublePrecisionContext precision) throws IOException;
+    }
+
+    public interface WriteHandler {
+
+        void write(BoundarySource3D model, OutputStream out) throws IOException;
+
+        void writeFacets(Stream<? extends FacetDefinition> facets, OutputStream out) throws IOException;
+
+        void writeBoundaries(Stream<? extends PlaneConvexSubset> boundaries, OutputStream out) throws IOException;
+    }
 
     /** Map of file formats to readers. */
-    private final Map<String, ModelReadHandler> readers = new HashMap<>();
+    private final Map<String, ReadHandler> readers = new HashMap<>();
 
     /** Map of file formats to writers. */
-    private final Map<String, ModelWriteHandler> writers = new HashMap<>();
+    private final Map<String, WriteHandler> writers = new HashMap<>();
 
     /** Return true if this instance supports reading input in the given 3D
      * model file format.
@@ -71,7 +89,7 @@ public class ModelIOHandlerRegistry {
      * @param formatName 3D model file format
      * @return read handler for the given file format name or null if not found
      */
-    public ModelReadHandler getReadHandler(final String formatName) {
+    public ReadHandler getReadHandler(final String formatName) {
         final String normalizedFormat = normalizeFormat(formatName);
         synchronized (readers) {
             return readers.get(normalizedFormat);
@@ -82,14 +100,14 @@ public class ModelIOHandlerRegistry {
      * @param formatName 3D model file format
      * @return write handler for the given file format name or null if not found
      */
-    public ModelWriteHandler getWriteHandler(final String formatName) {
+    public WriteHandler getWriteHandler(final String formatName) {
         final String normalizedFormat = normalizeFormat(formatName);
         synchronized (writers) {
             return writers.get(normalizedFormat);
         }
     }
 
-    public void registerReadHandler(final String formatName, final ModelReadHandler readHandler) {
+    public void registerReadHandler(final String formatName, final ReadHandler readHandler) {
         final String normalizedFormat = normalizeFormat(formatName);
         Objects.requireNonNull(readHandler, "Read handler cannot be null");
 
@@ -98,7 +116,7 @@ public class ModelIOHandlerRegistry {
         }
     }
 
-    public void registerWriteHandler(final String formatName, final ModelWriteHandler readHandler) {
+    public void registerWriteHandler(final String formatName, final WriteHandler readHandler) {
         final String normalizedFormat = normalizeFormat(formatName);
         Objects.requireNonNull(readHandler, "Write handler cannot be null");
 
@@ -109,7 +127,7 @@ public class ModelIOHandlerRegistry {
 
     public FacetDefinitionReader facetDefinitionReader(final String formatName, final InputStream in)
             throws IOException {
-        final ModelReadHandler reader = requireReadHandler(formatName);
+        final ReadHandler reader = requireReadHandler(formatName);
         return reader.facetDefinitionReader(in);
     }
 
@@ -137,7 +155,7 @@ public class ModelIOHandlerRegistry {
      */
     public BoundarySource3D read(final URL url, final DoublePrecisionContext precision) throws IOException {
         final String fileExt = getFileExtension(url);
-        final ModelReadHandler reader = requireReadHandler(fileExt);
+        final ReadHandler reader = requireReadHandler(fileExt);
 
         try (InputStream in = url.openStream()) {
             return reader.read(in, precision);
@@ -154,7 +172,7 @@ public class ModelIOHandlerRegistry {
      */
     public BoundarySource3D read(final String formatName, final InputStream in,
             final DoublePrecisionContext precision) throws IOException {
-        final ModelReadHandler reader = requireReadHandler(formatName);
+        final ReadHandler reader = requireReadHandler(formatName);
         return reader.read(in, precision);
     }
 
@@ -166,7 +184,7 @@ public class ModelIOHandlerRegistry {
     public TriangleMesh readTriangleMesh(final URL url, final DoublePrecisionContext precision)
             throws IOException {
         final String fileExt = getFileExtension(url);
-        final ModelReadHandler reader = requireReadHandler(fileExt);
+        final ReadHandler reader = requireReadHandler(fileExt);
 
         try (InputStream in = url.openStream()) {
             return reader.readTriangleMesh(in, precision);
@@ -175,7 +193,7 @@ public class ModelIOHandlerRegistry {
 
     public TriangleMesh readTriangleMesh(final String formatName, final InputStream in,
             final DoublePrecisionContext precision) throws IOException {
-        final ModelReadHandler reader = requireReadHandler(formatName);
+        final ReadHandler reader = requireReadHandler(formatName);
         return reader.readTriangleMesh(in, precision);
     }
 
@@ -185,7 +203,7 @@ public class ModelIOHandlerRegistry {
 
     public Stream<FacetDefinition> facets(final URL url) throws IOException {
         final String fileExt = getFileExtension(url);
-        final ModelReadHandler reader = requireReadHandler(fileExt);
+        final ReadHandler reader = requireReadHandler(fileExt);
 
         InputStream in = null;
         try {
@@ -206,7 +224,7 @@ public class ModelIOHandlerRegistry {
     }
 
     public Stream<FacetDefinition> facets(final String formatName, final InputStream in) throws IOException {
-        final ModelReadHandler reader = requireReadHandler(formatName);
+        final ReadHandler reader = requireReadHandler(formatName);
         return createFacetStream(reader, in);
     }
 
@@ -229,7 +247,7 @@ public class ModelIOHandlerRegistry {
 
     public void write(final BoundarySource3D model, final Path path) throws IOException {
         final String fileExt = getFileExtension(path);
-        final ModelWriteHandler writer = requireWriteHandler(fileExt);
+        final WriteHandler writer = requireWriteHandler(fileExt);
 
         try (OutputStream out = Files.newOutputStream(path)) {
             writer.write(model, out);
@@ -238,14 +256,14 @@ public class ModelIOHandlerRegistry {
 
     public void write(final BoundarySource3D model, final String formatName, final OutputStream out)
             throws IOException {
-        final ModelWriteHandler writer = getWriteHandler(formatName);
+        final WriteHandler writer = getWriteHandler(formatName);
         writer.write(model, out);
     }
 
     public void writeFacets(final Stream<? extends FacetDefinition> facets, final Path path)
             throws IOException {
         final String fileExt = getFileExtension(path);
-        final ModelWriteHandler writer = requireWriteHandler(fileExt);
+        final WriteHandler writer = requireWriteHandler(fileExt);
 
         try (OutputStream out = Files.newOutputStream(path)) {
             writer.writeFacets(facets, out);
@@ -254,14 +272,14 @@ public class ModelIOHandlerRegistry {
 
     public void writeFacets(final Stream<? extends FacetDefinition> facets, final String formatName,
             final OutputStream out) throws IOException {
-        final ModelWriteHandler writer = requireWriteHandler(formatName);
+        final WriteHandler writer = requireWriteHandler(formatName);
         writer.writeFacets(facets, out);
     }
 
     public void writeBoundaries(final Stream<? extends PlaneConvexSubset> boundaries, final Path path)
             throws IOException {
         final String fileExt = getFileExtension(path);
-        final ModelWriteHandler writer = requireWriteHandler(fileExt);
+        final WriteHandler writer = requireWriteHandler(fileExt);
 
         try (OutputStream out = Files.newOutputStream(path)) {
             writer.writeBoundaries(boundaries, out);
@@ -270,27 +288,27 @@ public class ModelIOHandlerRegistry {
 
     public void writeBoundaries(final Stream<? extends PlaneConvexSubset> boundaries, final String formatName,
             final OutputStream out) throws IOException {
-        final ModelWriteHandler writer = requireWriteHandler(formatName);
+        final WriteHandler writer = requireWriteHandler(formatName);
         writer.writeBoundaries(boundaries, out);
     }
 
-    private ModelReadHandler requireReadHandler(final String formatName) {
-        final ModelReadHandler reader = getReadHandler(formatName);
+    private ReadHandler requireReadHandler(final String formatName) {
+        final ReadHandler reader = getReadHandler(formatName);
         if (reader == null) {
             throw new IllegalArgumentException("No read handler configured for format \"" + formatName + "\"");
         }
         return reader;
     }
 
-    private ModelWriteHandler requireWriteHandler(final String formatName) {
-        final ModelWriteHandler writer = getWriteHandler(formatName);
+    private WriteHandler requireWriteHandler(final String formatName) {
+        final WriteHandler writer = getWriteHandler(formatName);
         if (writer == null) {
             throw new IllegalArgumentException("No write handler configured for format \"" + formatName + "\"");
         }
         return writer;
     }
 
-    private Stream<FacetDefinition> createFacetStream(final ModelReadHandler reader, final InputStream in)
+    private Stream<FacetDefinition> createFacetStream(final ReadHandler reader, final InputStream in)
             throws IOException {
         final FacetDefinitionReader fdReader = reader.facetDefinitionReader(in);
         final FacetDefinitionReaderIterator it = new FacetDefinitionReaderIterator(fdReader);

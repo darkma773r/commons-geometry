@@ -53,35 +53,35 @@ public final class ModelIO {
      */
     public static final String CSV = "csv";
 
-    /** Singleton handler registry. */
-    private static final ModelIOHandlerRegistry HANDLER_REGISTRY = new DefaultModelIOHandlerRegistry();
+    /** Singleton manager. */
+    private static final ModelIOManager DEFAULT_MANAGER = new DefaultModelIOManager();
 
     /** Utility class; no instantiation. */
     private ModelIO() {}
 
-    /** Get the default {@link ModelIOHandlerRegistry} singleton instance.
-     * @return the default {@link ModelIOHandlerRegistry} singleton instance
+    /** Get the default {@link ModelIOManager} singleton instance.
+     * @return the default {@link ModelIOManager} singleton instance
      */
-    public static ModelIOHandlerRegistry getDefaultRegistry() {
-        return HANDLER_REGISTRY;
+    public static ModelIOManager getDefaultManager() {
+        return DEFAULT_MANAGER;
     }
 
     public static BoundarySource3D read(final Path path, final DoublePrecisionContext precision)
             throws IOException {
-        return HANDLER_REGISTRY.read(path, precision);
+        return DEFAULT_MANAGER.read(path, precision);
     }
 
     public static BoundarySource3D read(final String formatName, final InputStream in,
             final DoublePrecisionContext precision) throws IOException {
-        return HANDLER_REGISTRY.read(formatName, in, precision);
+        return DEFAULT_MANAGER.read(formatName, in, precision);
     }
 
     public static void write(final BoundarySource3D model, final Path path) throws IOException {
-        HANDLER_REGISTRY.write(model, path);
+        DEFAULT_MANAGER.write(model, path);
     }
 
     public static void write(final BoundarySource3D model, final String formatName, final OutputStream out)
             throws IOException {
-        HANDLER_REGISTRY.write(model, formatName, out);
+        DEFAULT_MANAGER.write(model, formatName, out);
     }
 }

@@ -14,21 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.examples.io.threed;
+package org.apache.commons.geometry.examples.io.threed.text;
 
-import org.apache.commons.geometry.examples.io.threed.obj.OBJModelReadHandler;
-import org.apache.commons.geometry.examples.io.threed.obj.OBJModelWriteHandler;
+public class TextModelWriteHandlerTest {
 
-/** {@link ModelIOHandlerRegistry} subclass that registers known handlers on
- * instantiation.
- */
-public class DefaultModelIOHandlerRegistry extends ModelIOHandlerRegistry {
-
-    /** Construct a new instance and register known handlers.
-     */
-    public DefaultModelIOHandlerRegistry() {
-        // obj
-        registerReadHandler(ModelIO.OBJ, new OBJModelReadHandler());
-        registerWriteHandler(ModelIO.OBJ, new OBJModelWriteHandler());
-    }
 }

@@ -30,7 +30,7 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
 
-public abstract class AbstractModelReadHandler implements ModelReadHandler {
+public abstract class AbstractModelReadHandler implements ModelIOManager.ReadHandler {
 
     /** {@inheritDoc} */
     @Override

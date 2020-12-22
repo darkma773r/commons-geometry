@@ -14,23 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.examples.io.threed;
+package org.apache.commons.geometry.examples.io.threed.test;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.stream.Stream;
+import java.io.InputStream;
 
-import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
-import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
-import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
+public class CloseCountInputStream extends FilterInputStream {
 
-/** Interface for writing 3D models in a specific file format.
- */
-public interface ModelWriteHandler {
+    private int closeCount;
 
-    void write(BoundarySource3D model, OutputStream out) throws IOException;
+    public CloseCountInputStream(final InputStream in) {
+        super(in);
+    }
 
-    void writeFacets(Stream<? extends FacetDefinition> facets, OutputStream out) throws IOException;
+    public int getCloseCount() {
+        return closeCount;
+    }
 
-    void writeBoundaries(Stream<? extends PlaneConvexSubset> boundaries, OutputStream out) throws IOException;
+    /** {@inheritDoc} */
+    @Override
+    public void close() throws IOException {
+        ++closeCount;
+
+        super.close();
+    }
 }

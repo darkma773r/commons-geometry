@@ -25,10 +25,10 @@ import java.util.stream.Stream;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.examples.io.internal.IOUtils;
-import org.apache.commons.geometry.examples.io.threed.ModelWriteHandler;
+import org.apache.commons.geometry.examples.io.threed.ModelIOManager;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 
-public class OBJModelWriteHandler implements ModelWriteHandler {
+public class OBJModelWriteHandler implements ModelIOManager.WriteHandler {
 
     /** {@inheritDoc} */
     @Override

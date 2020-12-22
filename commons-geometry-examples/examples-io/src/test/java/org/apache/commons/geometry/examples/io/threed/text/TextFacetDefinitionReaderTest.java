@@ -17,32 +17,23 @@
 package org.apache.commons.geometry.examples.io.threed.text;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
-import org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D;
 import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
+import org.apache.commons.geometry.examples.io.threed.test.FacetDefinitionReaderTestBase;
+import org.apache.commons.geometry.examples.io.threed.test.ModelIOTestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TextFacetDefinitionReaderTest {
-
-    private static final double EPS = 1e-10;
-
-    private static final DoublePrecisionContext PRECISION = new EpsilonDoublePrecisionContext(EPS);
+public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase {
 
     @Test
     public void testPropertyDefaults() {
@@ -75,7 +66,7 @@ public class TextFacetDefinitionReaderTest {
         TextFacetDefinitionReader reader = facetReader("");
 
         // act
-        List<FacetDefinition> facets = readAll(reader);
+        List<FacetDefinition> facets = ModelIOTestUtils.readAll(reader);
 
         // assert
         Assert.assertEquals(0, facets.size());
@@ -88,7 +79,7 @@ public class TextFacetDefinitionReaderTest {
                 "1.0 2.0 3.0 40 50 60 7.0e-2 8e-2 9E-02 1.01e+1 -11.02 +12");
 
         // act
-        List<FacetDefinition> facets = readAll(reader);
+        List<FacetDefinition> facets = ModelIOTestUtils.readAll(reader);
 
         // assert
         Assert.assertEquals(1, facets.size());
@@ -101,7 +92,7 @@ public class TextFacetDefinitionReaderTest {
     }
 
     @Test
-    public void testReadFacet_multipeFacets() throws IOException {
+    public void testReadFacet_multipleFacets() throws IOException {
         // arrange
         TextFacetDefinitionReader reader = facetReader(
                 "1,2,3    4,5,6 7,8,9    10,11,12\r" +
@@ -109,7 +100,7 @@ public class TextFacetDefinitionReaderTest {
                 "6 6 6 6 6 6 6 6 6");
 
         // act
-        List<FacetDefinition> facets = readAll(reader);
+        List<FacetDefinition> facets = ModelIOTestUtils.readAll(reader);
 
         // assert
         Assert.assertEquals(3, facets.size());
@@ -147,7 +138,7 @@ public class TextFacetDefinitionReaderTest {
                 "5 5 5 5 5 5 5 5 5\n\n  \n");
 
         // act
-        List<FacetDefinition> facets = readAll(reader);
+        List<FacetDefinition> facets = ModelIOTestUtils.readAll(reader);
 
         // assert
         Assert.assertEquals(3, facets.size());
@@ -184,7 +175,7 @@ public class TextFacetDefinitionReaderTest {
         reader.setCommentToken("5$");
 
         // act
-        List<FacetDefinition> facets = readAll(reader);
+        List<FacetDefinition> facets = ModelIOTestUtils.readAll(reader);
 
         // assert
         Assert.assertEquals(3, facets.size());
@@ -221,7 +212,7 @@ public class TextFacetDefinitionReaderTest {
         reader.setCommentToken("this_is-a-comment");
 
         // act
-        List<FacetDefinition> facets = readAll(reader);
+        List<FacetDefinition> facets = ModelIOTestUtils.readAll(reader);
 
         // assert
         Assert.assertEquals(3, facets.size());
@@ -312,58 +303,40 @@ public class TextFacetDefinitionReaderTest {
     }
 
     @Test
-    public void testReadFacet_cube_txt() throws IOException {
-        // act/assert
-        checkCubeResource("/models/cube.txt");
-    }
-
-    @Test
-    public void testReadFacet_cube_csv() throws IOException {
-        // act/assert
-        checkCubeResource("/models/cube.csv");
-    }
-
-    private void checkCubeResource(final String path) throws IOException{
+    public void testCube_csv() throws IOException {
         // arrange
-        try (Reader reader = resourceReader(path)) {
+        try (Reader reader = ModelIOTestUtils.resourceReader("/models/cube.csv")) {
             TextFacetDefinitionReader facetReader = new TextFacetDefinitionReader(reader);
 
             // act
-            List<FacetDefinition> facets = readAll(facetReader);
+            List<FacetDefinition> facets = ModelIOTestUtils.readAll(facetReader);
 
             // assert
             Assert.assertEquals(6, facets.size());
 
-            List<ConvexPolygon3D> polygons = facets.stream()
-                    .map(f -> f.toPolygon(PRECISION))
-                    .collect(Collectors.toList());
+            RegionBSPTree3D tree = toTree(facets);
 
-            RegionBSPTree3D tree = RegionBSPTree3D.empty();
-            tree.insert(polygons);
-
-            Assert.assertEquals(1.0, tree.getSize(), EPS);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0.5, 0.5, 0.5), tree.getCentroid(), EPS);
+            Assert.assertEquals(1.0, tree.getSize(), MODEL_TEST_EPS);
+            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0.5, 0.5, 0.5), tree.getCentroid(), MODEL_TEST_EPS);
         }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected List<String> getModelResourceLocations(final String baseName) {
+        return Arrays.asList(
+                "/models/" + baseName + ".txt",
+                "/models/" + baseName + ".csv");
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected FacetDefinitionReader createFacetDefinitionReader(final Reader reader) {
+        return new TextFacetDefinitionReader(reader);
     }
 
     private static TextFacetDefinitionReader facetReader(final String content) {
         return new TextFacetDefinitionReader(new StringReader(content));
-    }
-
-    private static Reader resourceReader(final String path) {
-        final InputStream in = TextFacetDefinitionReaderTest.class.getResourceAsStream(path);
-        return new InputStreamReader(in, StandardCharsets.UTF_8);
-    }
-
-    private static List<FacetDefinition> readAll(final FacetDefinitionReader reader) throws IOException {
-        List<FacetDefinition> facets = new ArrayList<>();
-
-        FacetDefinition facet;
-        while ((facet = reader.readFacet()) != null) {
-            facets.add(facet);
-        }
-
-        return facets;
     }
 
     private static void assertFacet(final FacetDefinition facet, final Vector3D... pts) {
@@ -373,7 +346,7 @@ public class TextFacetDefinitionReaderTest {
         Assert.assertEquals(pts.length, vertices.size());
 
         for (int i = 0; i < pts.length; ++i) {
-            EuclideanTestUtils.assertCoordinatesEqual(pts[i], facet.getVertices().get(i), EPS);
+            EuclideanTestUtils.assertCoordinatesEqual(pts[i], facet.getVertices().get(i), MODEL_TEST_EPS);
         }
     }
 }

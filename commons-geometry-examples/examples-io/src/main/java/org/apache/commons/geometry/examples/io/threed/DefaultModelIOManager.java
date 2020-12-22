@@ -14,23 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.examples.io.threed.facet;
+package org.apache.commons.geometry.examples.io.threed;
 
-import java.io.IOException;
+import org.apache.commons.geometry.examples.io.threed.obj.OBJModelReadHandler;
+import org.apache.commons.geometry.examples.io.threed.obj.OBJModelWriteHandler;
 
-/** Interface for reading facet definitions from an input source.
+/** {@link ModelIOManager} subclass that registers known handlers on
+ * instantiation.
  */
-public interface FacetDefinitionReader extends AutoCloseable {
+public class DefaultModelIOManager extends ModelIOManager {
 
-    /** Read and return the next facet definition or null if no
-     * more facets are available.
-     * @return the next facet definition or null if no more facets
-     *      are available
-     * @throws IOException if an I/O error occurs
+    /** Construct a new instance and register known handlers.
      */
-    FacetDefinition readFacet() throws IOException;
-
-    /** {@inheritDoc} */
-    @Override
-    void close() throws IOException;
+    public DefaultModelIOManager() {
+        // obj
+        registerReadHandler(ModelIO.OBJ, new OBJModelReadHandler());
+        registerWriteHandler(ModelIO.OBJ, new OBJModelWriteHandler());
+    }
 }

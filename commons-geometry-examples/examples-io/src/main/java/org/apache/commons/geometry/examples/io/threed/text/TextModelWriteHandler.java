@@ -22,10 +22,10 @@ import java.util.stream.Stream;
 
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
-import org.apache.commons.geometry.examples.io.threed.ModelWriteHandler;
+import org.apache.commons.geometry.examples.io.threed.ModelIOManager;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 
-public class TextModelWriteHandler implements ModelWriteHandler {
+public class TextModelWriteHandler implements ModelIOManager.WriteHandler {
 
     /** {@inheritDoc} */
     @Override
@@ -47,6 +47,9 @@ public class TextModelWriteHandler implements ModelWriteHandler {
     public void writeBoundaries(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
             throws IOException {
         // TODO Auto-generated method stub
+    }
 
+    protected TextFacetDefinitionWriter createWriter(final OutputStream out) {
+        return null;
     }
 }

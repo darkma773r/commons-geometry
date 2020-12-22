@@ -18,6 +18,7 @@ package org.apache.commons.geometry.core.partitioning;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -664,7 +665,11 @@ public class AbstractConvexHyperplaneBoundedRegionTest {
         }
 
         public StubRegion transform(final Transform<TestPoint2D> transform) {
-            return transformInternal(transform, this, TestLineSegment.class, StubRegion::new);
+            return transformInternal(transform, this, TestLineSegment.class, StubRegion::create);
+        }
+
+        private static StubRegion create(final Object args) {
+            return null;
         }
 
         @Override

@@ -49,11 +49,11 @@ public class ModelIOTest {
     @Test
     public void testGetHandler() {
         // act
-        final ModelIOHandlerRegistry registry = ModelIO.getDefaultRegistry();
+        final ModelIOManager registry = ModelIO.getDefaultManager();
 
         // assert
-        Assertions.assertTrue(registry instanceof DefaultModelIOHandlerRegistry);
-        Assertions.assertSame(registry, ModelIO.getDefaultRegistry());
+        Assertions.assertTrue(registry instanceof DefaultModelIOManager);
+        Assertions.assertSame(registry, ModelIO.getDefaultManager());
     }
 
     @Test

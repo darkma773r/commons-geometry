@@ -16,25 +16,25 @@
  */
 package org.apache.commons.geometry.examples.io.threed.text;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 
-import org.apache.commons.geometry.examples.io.threed.AbstractModelReadHandler;
-import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
+import org.apache.commons.geometry.examples.io.threed.ModelIOManager.ReadHandler;
+import org.apache.commons.geometry.examples.io.threed.test.ModelReadHandlerTestBase;
 
-public class TextModelReadHandler extends AbstractModelReadHandler {
-
-    /** Charset for use with txt and csv files. */
-    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+public class TextModelReadHandlerTest extends ModelReadHandlerTestBase {
 
     /** {@inheritDoc} */
     @Override
-    public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(in, DEFAULT_CHARSET));
-        return new TextFacetDefinitionReader(reader);
+    protected ReadHandler createReadHandler() {
+        return new TextModelReadHandler();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected List<String> getModelResourceLocations(String baseName) {
+        return Arrays.asList(
+                "/models/" + baseName + ".txt",
+                "/models/" + baseName + ".csv");
     }
 }

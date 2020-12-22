@@ -18,6 +18,8 @@ package org.apache.commons.geometry.examples.io.threed.text;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,8 +32,12 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Planes;
+import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 import org.apache.commons.geometry.examples.io.threed.facet.SimpleFacetDefinition;
+import org.apache.commons.geometry.examples.io.threed.obj.OBJFacetDefinitionReader;
+import org.apache.commons.geometry.examples.io.threed.test.ModelIOTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +57,32 @@ public class TextFacetDefinitionWriterTest {
     public void setup() {
         writer = new StringWriter();
         fdWriter = new TextFacetDefinitionWriter(writer);
+    }
+
+    @Test
+    public void scratch() throws Exception {
+        List<FacetDefinition> facets;
+        try (OBJFacetDefinitionReader reader =
+                new OBJFacetDefinitionReader(ModelIOTestUtils.resourceReader("/models/cube-minus-sphere.obj"))) {
+            facets = ModelIOTestUtils.readAll(reader);
+        }
+
+
+        DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-6);
+
+        RegionBSPTree3D tree = RegionBSPTree3D.empty();
+        facets.forEach(f -> tree.insert(f.toPolygon(precision)));
+
+        System.out.println("size = " + tree.getSize());
+        System.out.println("boundarySize = " + tree.getBoundarySize());
+        System.out.println("centroid = " + tree.getCentroid());
+
+
+        try (TextFacetDefinitionWriter writer = TextFacetDefinitionWriter.csvFormat(Files.newBufferedWriter(Paths.get("cube-minus-sphere.csv")))) {
+            for (FacetDefinition f : facets) {
+                writer.write(f.toPolygon(precision));
+            }
+        }
     }
 
     @Test
