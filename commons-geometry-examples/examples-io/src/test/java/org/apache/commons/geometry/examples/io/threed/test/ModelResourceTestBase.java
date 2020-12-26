@@ -58,15 +58,4 @@ public abstract class ModelResourceTestBase {
      * @return the classpath locations of the models with the given base name
      */
     protected abstract List<String> getModelResourceLocations(String baseName);
-
-    /** Construct a BSP tree from the given list of facets.
-     * @param facets facet to insert in a BSP tree
-     * @return BSP tree constructed from the given list of facets
-     */
-    public static RegionBSPTree3D toTree(final List<FacetDefinition> facets) {
-        final RegionBSPTree3D tree = RegionBSPTree3D.empty();
-        facets.forEach(f -> tree.insert(f.toPolygon(MODEL_TEST_PRECISION)));
-
-        return tree;
-    }
 }

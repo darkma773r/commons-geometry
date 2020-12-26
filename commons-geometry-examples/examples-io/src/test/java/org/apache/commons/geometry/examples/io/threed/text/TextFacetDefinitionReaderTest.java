@@ -28,6 +28,7 @@ import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
+import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitions;
 import org.apache.commons.geometry.examples.io.threed.test.FacetDefinitionReaderTestBase;
 import org.apache.commons.geometry.examples.io.threed.test.ModelIOTestUtils;
 import org.junit.Assert;
@@ -314,7 +315,7 @@ public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase
             // assert
             Assert.assertEquals(6, facets.size());
 
-            RegionBSPTree3D tree = toTree(facets);
+            RegionBSPTree3D tree = FacetDefinitions.toBoundaryList(facets, MODEL_TEST_PRECISION).toTree();
 
             Assert.assertEquals(1.0, tree.getSize(), MODEL_TEST_EPS);
             EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0.5, 0.5, 0.5), tree.getCentroid(), MODEL_TEST_EPS);

@@ -18,11 +18,11 @@ package org.apache.commons.geometry.examples.io.threed.test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
+import org.apache.commons.geometry.euclidean.threed.BoundaryList3D;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
-import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
-import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.examples.io.threed.ModelIOManager;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
@@ -69,11 +69,8 @@ public abstract class ModelReadHandlerTestBase extends ModelResourceTestBase {
             final List<FacetDefinition> facets = readModelResourceFacets(location);
 
             // assert
-            final RegionBSPTree3D tree = toTree(facets);
 
-            Assertions.assertEquals(1.0, tree.getSize(), MODEL_TEST_EPS,
-                    "Size check failed for resource " + location);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0.5, 0.5, 0.5), tree.getCentroid(), MODEL_TEST_EPS);
+            ModelIOTestUtils.assertCube(toBoundaryList(facets), MODEL_TEST_EPS);
         });
     }
 
@@ -84,11 +81,7 @@ public abstract class ModelReadHandlerTestBase extends ModelResourceTestBase {
             final List<FacetDefinition> facets = readModelResourceFacets(location);
 
             // assert
-            final RegionBSPTree3D tree = toTree(facets);
-
-            Assertions.assertEquals(0.11509505362599505, tree.getSize(), MODEL_TEST_EPS,
-                    "Size check failed for resource " + location);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), MODEL_TEST_EPS);
+            ModelIOTestUtils.assertCubeMinusSphere(toBoundaryList(facets), MODEL_TEST_EPS);
         });
     }
 
@@ -133,11 +126,7 @@ public abstract class ModelReadHandlerTestBase extends ModelResourceTestBase {
             final BoundarySource3D model = readHandler.read(in, MODEL_TEST_PRECISION);
 
             // assert
-            final RegionBSPTree3D tree = model.toTree();
-
-            Assertions.assertEquals(1.0, tree.getSize(), MODEL_TEST_EPS,
-                    "Size check failed for resource " + location);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0.5, 0.5, 0.5), tree.getCentroid(), MODEL_TEST_EPS);
+            ModelIOTestUtils.assertCube(model, MODEL_TEST_EPS);
         });
     }
 
@@ -152,11 +141,7 @@ public abstract class ModelReadHandlerTestBase extends ModelResourceTestBase {
             final BoundarySource3D model = readHandler.read(in, MODEL_TEST_PRECISION);
 
             // assert
-            final RegionBSPTree3D tree = model.toTree();
-
-            Assertions.assertEquals(0.11509505362599505, tree.getSize(), MODEL_TEST_EPS,
-                    "Size check failed for resource " + location);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), MODEL_TEST_EPS);
+            ModelIOTestUtils.assertCubeMinusSphere(model, MODEL_TEST_EPS);
         });
     }
 
@@ -203,11 +188,7 @@ public abstract class ModelReadHandlerTestBase extends ModelResourceTestBase {
             // assert
             Assertions.assertEquals(12, mesh.getFaceCount());
 
-            final RegionBSPTree3D tree = mesh.toTree();
-
-            Assertions.assertEquals(1.0, tree.getSize(), MODEL_TEST_EPS,
-                    "Size check failed for resource " + location);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0.5, 0.5, 0.5), tree.getCentroid(), MODEL_TEST_EPS);
+            ModelIOTestUtils.assertCube(mesh, MODEL_TEST_EPS);
         });
     }
 
@@ -222,11 +203,7 @@ public abstract class ModelReadHandlerTestBase extends ModelResourceTestBase {
             final TriangleMesh mesh = readHandler.readTriangleMesh(in, MODEL_TEST_PRECISION);
 
             // assert
-            final RegionBSPTree3D tree = mesh.toTree();
-
-            Assertions.assertEquals(0.11509505362599505, tree.getSize(), MODEL_TEST_EPS,
-                    "Size check failed for resource " + location);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), MODEL_TEST_EPS);
+            ModelIOTestUtils.assertCubeMinusSphere(mesh, MODEL_TEST_EPS);
         });
     }
 
@@ -241,6 +218,14 @@ public abstract class ModelReadHandlerTestBase extends ModelResourceTestBase {
                 readHandler.facetDefinitionReader(ModelIOTestUtils.resourceStream(location))) {
             return ModelIOTestUtils.readAll(facetReader);
         }
+    }
+
+    protected BoundaryList3D toBoundaryList(final List<FacetDefinition> facets) {
+        final List<ConvexPolygon3D> polygons = facets.stream()
+                .map(f -> f.toPolygon(MODEL_TEST_PRECISION))
+                .collect(Collectors.toList());
+
+        return new BoundaryList3D(polygons);
     }
 
     protected abstract ModelIOManager.ReadHandler createReadHandler();

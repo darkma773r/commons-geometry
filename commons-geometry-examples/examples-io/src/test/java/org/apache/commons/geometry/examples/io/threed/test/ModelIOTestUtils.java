@@ -26,15 +26,95 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.geometry.core.RegionLocation;
+import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
+import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
+import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
+import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
+import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
+import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
+import org.apache.commons.geometry.euclidean.threed.shape.Sphere;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
+import org.junit.jupiter.api.Assertions;
 
 /** Class containing utility methods for IO tests.
  */
 public final class ModelIOTestUtils {
 
+    public static final double DEFAULT_EPS = 1e-10;
+
+    public static final DoublePrecisionContext DEFAULT_PRECISION =
+            new EpsilonDoublePrecisionContext(DEFAULT_EPS);
+
     /** Utility class; no instantiation. */
     private ModelIOTestUtils() {}
+
+    public static Parallelepiped cube(final DoublePrecisionContext precision) {
+        return Parallelepiped.unitCube(precision);
+    }
+
+    public static void assertCube(final BoundarySource3D src, final double tolerance) {
+        final RegionBSPTree3D tree = src.toTree();
+
+        Assertions.assertEquals(1, tree.getSize(), tolerance);
+        Assertions.assertEquals(6, tree.getBoundarySize(), tolerance);
+
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), tolerance);
+
+        EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
+                Vector3D.ZERO,
+                Vector3D.of(0.25, 0, 0), Vector3D.of(-0.25, 0, 0),
+                Vector3D.of(0, 0.25, 0), Vector3D.of(0, -0.25, 0),
+                Vector3D.of(0, 0, 0.25), Vector3D.of(0, 0, -0.25));
+
+        EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.BOUNDARY,
+                Vector3D.of(-0.5, -0.5, -0.5), Vector3D.of(-0.5, -0.5, +0.5),
+                Vector3D.of(-0.5, +0.5, -0.5), Vector3D.of(-0.5, +0.5, +0.5),
+                Vector3D.of(+0.5, -0.5, -0.5), Vector3D.of(+0.5, -0.5, +0.5),
+                Vector3D.of(+0.5, +0.5, -0.5), Vector3D.of(+0.5, +0.5, +0.5));
+
+        EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.OUTSIDE,
+                Vector3D.of(0.5, 0.5, 1), Vector3D.of(0.5, 0.5, -1),
+                Vector3D.of(0.5, 1, 0.5), Vector3D.of(0.5, -1, 0.5),
+                Vector3D.of(1, 0.5, 0.5), Vector3D.of(-1, 0.5, 0.5));
+    }
+
+    public static RegionBSPTree3D cubeMinusSphere(final DoublePrecisionContext precision) {
+        final RegionBSPTree3D tree = Parallelepiped.unitCube(precision).toTree();
+        final Sphere sphere = Sphere.from(Vector3D.ZERO, 0.65, precision);
+
+        tree.difference(sphere.toTree(3));
+
+        return tree;
+    }
+
+    public static void assertCubeMinusSphere(final BoundarySource3D src, final double tolerance) {
+        final RegionBSPTree3D tree = src.toTree();
+
+        Assertions.assertEquals(0.11509505362599505, tree.getSize(), tolerance);
+        Assertions.assertEquals(4.585561662505128, tree.getBoundarySize(), tolerance);
+
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), tolerance);
+
+        EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
+                Vector3D.ZERO,
+                Vector3D.of(0.25, 0, 0), Vector3D.of(-0.25, 0, 0),
+                Vector3D.of(0, 0.25, 0), Vector3D.of(0, -0.25, 0),
+                Vector3D.of(0, 0, 0.25), Vector3D.of(0, 0, -0.25));
+
+        EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.BOUNDARY,
+                Vector3D.of(-0.5, -0.5, -0.5), Vector3D.of(-0.5, -0.5, +0.5),
+                Vector3D.of(-0.5, +0.5, -0.5), Vector3D.of(-0.5, +0.5, +0.5),
+                Vector3D.of(+0.5, -0.5, -0.5), Vector3D.of(+0.5, -0.5, +0.5),
+                Vector3D.of(+0.5, +0.5, -0.5), Vector3D.of(+0.5, +0.5, +0.5));
+
+        EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.OUTSIDE,
+                Vector3D.of(0.5, 0.5, 1), Vector3D.of(0.5, 0.5, -1),
+                Vector3D.of(0.5, 1, 0.5), Vector3D.of(0.5, -1, 0.5),
+                Vector3D.of(1, 0.5, 0.5), Vector3D.of(-1, 0.5, 0.5));
+    }
 
     /** Read all facets available from the given facet reader.
      * @param reader instance to read facets from

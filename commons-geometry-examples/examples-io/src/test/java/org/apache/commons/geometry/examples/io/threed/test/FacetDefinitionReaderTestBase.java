@@ -25,6 +25,7 @@ import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReader;
+import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +68,7 @@ public abstract class FacetDefinitionReaderTestBase extends ModelResourceTestBas
             final List<FacetDefinition> facets = readModelResourceFacets(location);
 
             // assert
-            final RegionBSPTree3D tree = toTree(facets);
+            final RegionBSPTree3D tree = FacetDefinitions.toBoundaryList(facets, MODEL_TEST_PRECISION).toTree();
 
             Assertions.assertEquals(1.0, tree.getSize(), MODEL_TEST_EPS,
                     "Size check failed for resource " + location);
@@ -82,7 +83,7 @@ public abstract class FacetDefinitionReaderTestBase extends ModelResourceTestBas
             final List<FacetDefinition> facets = readModelResourceFacets(location);
 
             // assert
-            final RegionBSPTree3D tree = toTree(facets);
+            final RegionBSPTree3D tree = FacetDefinitions.toBoundaryList(facets, MODEL_TEST_PRECISION).toTree();
 
             Assertions.assertEquals(0.11509505362599505, tree.getSize(), MODEL_TEST_EPS,
                     "Size check failed for resource " + location);
