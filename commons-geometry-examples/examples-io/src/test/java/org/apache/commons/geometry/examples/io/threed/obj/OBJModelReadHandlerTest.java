@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class OBJModelReadHandlerTest {
+
     private static final double TEST_EPS = 1e-10;
 
     private static final DoublePrecisionContext TEST_PRECISION =

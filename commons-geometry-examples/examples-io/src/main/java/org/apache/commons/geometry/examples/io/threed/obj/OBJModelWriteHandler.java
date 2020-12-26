@@ -33,41 +33,50 @@ public class OBJModelWriteHandler implements ModelIOManager.WriteHandler {
     /** {@inheritDoc} */
     @Override
     public void write(final BoundarySource3D model, final OutputStream out) throws IOException {
-        final OBJWriter writer = createWriter(out);
-        writer.writeBoundaries(model);
+        try (OBJWriter writer = createCloseShieldedWriter(out)) {
+            writer.writeBoundaries(model);
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
             throws IOException {
-        final OBJWriter writer = createWriter(out);
-        final OBJWriter.MeshBuffer meshBuffer = writer.createMeshBuffer();
+        try (OBJWriter writer = createCloseShieldedWriter(out)) {
+            final OBJWriter.MeshBuffer meshBuffer = writer.createMeshBuffer();
 
-        final Iterator<? extends FacetDefinition> it = facets.iterator();
-        while (it.hasNext()) {
-            meshBuffer.add(it.next());
+            final Iterator<? extends FacetDefinition> it = facets.iterator();
+            while (it.hasNext()) {
+                meshBuffer.add(it.next());
+            }
+
+            meshBuffer.flush();
         }
-
-        meshBuffer.flush();
     }
 
     /** {@inheritDoc} */
     @Override
     public void writeBoundaries(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
             throws IOException {
-        final OBJWriter writer = createWriter(out);
-        final OBJWriter.MeshBuffer meshBuffer = writer.createMeshBuffer();
+        try (OBJWriter writer = createCloseShieldedWriter(out)) {
+            final OBJWriter.MeshBuffer meshBuffer = writer.createMeshBuffer();
 
-        final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
-        while (it.hasNext()) {
-            meshBuffer.add(it.next());
+            final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
+            while (it.hasNext()) {
+                meshBuffer.add(it.next());
+            }
+
+            meshBuffer.flush();
         }
-
-        meshBuffer.flush();
     }
 
-    private OBJWriter createWriter(final OutputStream out) throws IOException {
+    /** Create an {@link OBJWriter} instance that closes all associated resources but
+     * <em>not</em> the given output stream when it is closed.
+     * @param out output stream to write content to
+     * @return an OBJ writer instance
+     * @throws IOException if the writer cannot be constructed
+     */
+    private OBJWriter createCloseShieldedWriter(final OutputStream out) throws IOException {
         final Writer writer = IOUtils.createCloseShieldWriter(out, OBJConstants.DEFAULT_CHARSET);
         return new OBJWriter(writer);
     }

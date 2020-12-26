@@ -17,6 +17,7 @@
 package org.apache.commons.geometry.examples.io.threed.test;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,10 +100,10 @@ public final class ModelIOTestUtils {
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), tolerance);
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
-                Vector3D.ZERO,
-                Vector3D.of(0.25, 0, 0), Vector3D.of(-0.25, 0, 0),
-                Vector3D.of(0, 0.25, 0), Vector3D.of(0, -0.25, 0),
-                Vector3D.of(0, 0, 0.25), Vector3D.of(0, 0, -0.25));
+                Vector3D.of(0.45, 0.45, 0.45), Vector3D.of(0.45, 0.45, -0.45),
+                Vector3D.of(0.45, -0.45, 0.45), Vector3D.of(0.45, -0.45, -0.45),
+                Vector3D.of(-0.45, 0.45, 0.45), Vector3D.of(-0.45, 0.45, -0.45),
+                Vector3D.of(-0.45, -0.45, 0.45), Vector3D.of(-0.45, -0.45, -0.45));
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.BOUNDARY,
                 Vector3D.of(-0.5, -0.5, -0.5), Vector3D.of(-0.5, -0.5, +0.5),
@@ -111,6 +112,7 @@ public final class ModelIOTestUtils {
                 Vector3D.of(+0.5, +0.5, -0.5), Vector3D.of(+0.5, +0.5, +0.5));
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.OUTSIDE,
+                Vector3D.ZERO,
                 Vector3D.of(0.5, 0.5, 1), Vector3D.of(0.5, 0.5, -1),
                 Vector3D.of(0.5, 1, 0.5), Vector3D.of(0.5, -1, 0.5),
                 Vector3D.of(1, 0.5, 0.5), Vector3D.of(-1, 0.5, 0.5));
@@ -130,6 +132,25 @@ public final class ModelIOTestUtils {
         }
 
         return facets;
+    }
+
+    /** Get the bytes of the classpath resource at the given location.
+     * @param location classpath location to read
+     * @return the bytes of the resource at the given location
+     * @throws IOException if the resource cannot be found or an I/O error occurs
+     */
+    public static byte[] resourceBytes(final String location) throws IOException {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        final byte[] buf = new byte[1024];
+        int read;
+        try (InputStream in = resourceStream(location)) {
+            while ((read = in.read(buf)) > -1) {
+                out.write(buf, 0, read);
+            }
+        }
+
+        return out.toByteArray();
     }
 
     /** Get a {@link InputStream} for reading the content of the classpath resource at the given location.

@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 
+import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
+import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
@@ -28,11 +30,20 @@ import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitionReade
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinitions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.ThrowingConsumer;
 
 /** Base class for tests of {@link FacetDefinitionReader} implementations. This class
  * provides some basic tests and utility methods.
  */
-public abstract class FacetDefinitionReaderTestBase extends ModelResourceTestBase {
+public abstract class FacetDefinitionReaderTestBase {
+
+    /** Epsilon value used in test comparisons. This is smaller than in other tests
+     * in order to account for storage precision.
+     */
+    public static final double MODEL_TEST_EPS = 1e-6;
+
+    public static final DoublePrecisionContext MODEL_TEST_PRECISION =
+            new EpsilonDoublePrecisionContext(MODEL_TEST_EPS);
 
     @Test
     public void testClose() throws Exception {
@@ -72,7 +83,7 @@ public abstract class FacetDefinitionReaderTestBase extends ModelResourceTestBas
 
             Assertions.assertEquals(1.0, tree.getSize(), MODEL_TEST_EPS,
                     "Size check failed for resource " + location);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0.5, 0.5, 0.5), tree.getCentroid(), MODEL_TEST_EPS);
+            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), MODEL_TEST_EPS);
         });
     }
 
@@ -102,6 +113,31 @@ public abstract class FacetDefinitionReaderTestBase extends ModelResourceTestBas
             return ModelIOTestUtils.readAll(facetReader);
         }
     }
+
+    /** Run the given function with each model resource returned for the given base name.
+     * @param baseName model base name
+     * @param fn function to execute for each resolved classpath location
+     * @throws Exception on failure
+     */
+    protected void runWithModelResource(final String baseName, final ThrowingConsumer<String> fn)
+            throws Exception {
+        try {
+            for (final String location : getModelResourceLocations(baseName)) {
+                fn.accept(location);
+            }
+        } catch (Error err) {
+            throw err;
+        } catch (Throwable thr) {
+            throw new Exception(thr);
+        }
+    }
+
+    /** Get the classpath locations of the models with the given base name. A list is returned
+     * so that multiple model variations containing the same geometry may be tested simultaneously.
+     * @param baseName resource base name
+     * @return the classpath locations of the models with the given base name
+     */
+    protected abstract List<String> getModelResourceLocations(String baseName);
 
     /** Create a new facet definition reader instance.
      * @param reader underlying reader

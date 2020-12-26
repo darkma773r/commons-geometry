@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
+import org.apache.commons.geometry.euclidean.threed.BoundaryList3D;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
@@ -44,7 +45,7 @@ public abstract class AbstractModelReadHandler implements ModelIOManager.ReadHan
             list.add(facet.toPolygon(precision));
         }
 
-        return BoundarySource3D.from(list);
+        return new BoundaryList3D(list);
     }
 
     /** {@inheritDoc} */

@@ -18,38 +18,60 @@ package org.apache.commons.geometry.examples.io.threed.text;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.stream.Stream;
 
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
+import org.apache.commons.geometry.examples.io.internal.IOUtils;
 import org.apache.commons.geometry.examples.io.threed.ModelIOManager;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 
 public class TextModelWriteHandler implements ModelIOManager.WriteHandler {
 
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
     /** {@inheritDoc} */
     @Override
     public void write(final BoundarySource3D model, final OutputStream out) throws IOException {
-        // TODO Auto-generated method stub
-
+        try (Stream<PlaneConvexSubset> boundaries = model.boundaryStream()) {
+            writeBoundaries(boundaries, out);
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
             throws IOException {
-        // TODO Auto-generated method stub
-
+        try (TextFacetDefinitionWriter writer = createWriter(out)) {
+            final Iterator<? extends FacetDefinition> it = facets.iterator();
+            while (it.hasNext()) {
+                writer.write(it.next());
+            }
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public void writeBoundaries(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
             throws IOException {
-        // TODO Auto-generated method stub
+        try (TextFacetDefinitionWriter writer = createWriter(out)) {
+            final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
+            while (it.hasNext()) {
+                writer.write(it.next());
+            }
+        }
     }
 
-    protected TextFacetDefinitionWriter createWriter(final OutputStream out) {
-        return null;
+    private TextFacetDefinitionWriter createWriter(final OutputStream out) {
+        final Writer writer = IOUtils.createCloseShieldWriter(out, DEFAULT_CHARSET);
+        return createWriter(writer);
+    }
+
+    protected TextFacetDefinitionWriter createWriter(final Writer writer) {
+        return new TextFacetDefinitionWriter(writer);
     }
 }

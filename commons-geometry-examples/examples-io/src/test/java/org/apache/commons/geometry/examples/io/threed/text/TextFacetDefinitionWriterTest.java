@@ -60,32 +60,6 @@ public class TextFacetDefinitionWriterTest {
     }
 
     @Test
-    public void scratch() throws Exception {
-        List<FacetDefinition> facets;
-        try (OBJFacetDefinitionReader reader =
-                new OBJFacetDefinitionReader(ModelIOTestUtils.resourceReader("/models/cube-minus-sphere.obj"))) {
-            facets = ModelIOTestUtils.readAll(reader);
-        }
-
-
-        DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-6);
-
-        RegionBSPTree3D tree = RegionBSPTree3D.empty();
-        facets.forEach(f -> tree.insert(f.toPolygon(precision)));
-
-        System.out.println("size = " + tree.getSize());
-        System.out.println("boundarySize = " + tree.getBoundarySize());
-        System.out.println("centroid = " + tree.getCentroid());
-
-
-        try (TextFacetDefinitionWriter writer = TextFacetDefinitionWriter.csvFormat(Files.newBufferedWriter(Paths.get("cube-minus-sphere.csv")))) {
-            for (FacetDefinition f : facets) {
-                writer.write(f.toPolygon(precision));
-            }
-        }
-    }
-
-    @Test
     public void testPropertyDefaults() {
         // act/assert
         Assert.assertEquals("\n", fdWriter.getLineSeparator());
@@ -310,7 +284,7 @@ public class TextFacetDefinitionWriterTest {
             ), TEST_PRECISION);
 
         // act
-        fdWriter.write(BoundarySource3D.from(poly1, poly2));
+        fdWriter.write(BoundarySource3D.of(poly1, poly2));
 
         // assert
         Assert.assertEquals(
@@ -321,7 +295,7 @@ public class TextFacetDefinitionWriterTest {
     @Test
     public void testWriteBoundarySource_empty() throws IOException {
         // act
-        fdWriter.write(BoundarySource3D.from(Collections.emptyList()));
+        fdWriter.write(BoundarySource3D.of(Collections.emptyList()));
 
         // assert
         Assert.assertEquals("", writer.toString());
@@ -349,7 +323,7 @@ public class TextFacetDefinitionWriterTest {
         // act
         fdWriter.writeComment("Test boundary source");
         fdWriter.writeBlankLine();
-        fdWriter.write(BoundarySource3D.from(poly1, poly2));
+        fdWriter.write(BoundarySource3D.of(poly1, poly2));
 
         // assert
         Assert.assertEquals(
@@ -373,7 +347,7 @@ public class TextFacetDefinitionWriterTest {
         final TextFacetDefinitionWriter csvWriter = TextFacetDefinitionWriter.csvFormat(writer);
 
         // act
-        csvWriter.write(BoundarySource3D.from(poly1, poly2));
+        csvWriter.write(BoundarySource3D.of(poly1, poly2));
 
         // assert
         Assert.assertEquals(
@@ -391,24 +365,5 @@ public class TextFacetDefinitionWriterTest {
         Assert.assertEquals(",", csvWriter.getVertexComponentSeparator());
         Assert.assertEquals(",", csvWriter.getVertexSeparator());
         Assert.assertNull(csvWriter.getCommentToken());
-    }
-
-    @Test
-    public void test() throws IOException {
-        fdWriter = TextFacetDefinitionWriter.csvFormat(writer);
-
-        ConvexPolygon3D p1 = Planes.convexPolygonFromVertices(Arrays.asList(
-                    Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0), Vector3D.of(0, 1, 0)
-                ), TEST_PRECISION);
-
-        ConvexPolygon3D p2 = Planes.convexPolygonFromVertices(Arrays.asList(
-                Vector3D.ZERO, Vector3D.of(0, 1, 0), Vector3D.of(0, 1, 1), Vector3D.of(0, 0, 1)
-            ), TEST_PRECISION);
-
-        BoundarySource3D src = BoundarySource3D.from(p1, p2);
-
-        fdWriter.write(src);
-
-        System.out.println(writer.toString());
     }
 }

@@ -16,13 +16,27 @@
  */
 package org.apache.commons.geometry.examples.io.threed.text;
 
-import java.io.Writer;
+import org.apache.commons.geometry.examples.io.threed.ModelIOManager.ReadHandler;
+import org.apache.commons.geometry.examples.io.threed.ModelIOManager.WriteHandler;
+import org.apache.commons.geometry.examples.io.threed.test.ModelReadWriteHandlerTestBase;
 
-public class CsvTextModelWriteHandler extends TextModelWriteHandler {
+public class TextModelReadWriteHandlerTest extends ModelReadWriteHandlerTestBase {
 
     /** {@inheritDoc} */
     @Override
-    protected TextFacetDefinitionWriter createWriter(final Writer writer) {
-        return TextFacetDefinitionWriter.csvFormat(writer);
+    protected ReadHandler getReadHandler() {
+        return new TextModelReadHandler();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected WriteHandler getWriteHandler() {
+        return new TextModelWriteHandler();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected String getModelLocation(final String baseName) {
+        return "/models/" + baseName + ".txt";
     }
 }

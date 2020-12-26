@@ -16,6 +16,27 @@
  */
 package org.apache.commons.geometry.examples.io.threed.obj;
 
-public class OBJFacetDefinitionReaderTest {
+import org.apache.commons.geometry.examples.io.threed.ModelIOManager.ReadHandler;
+import org.apache.commons.geometry.examples.io.threed.ModelIOManager.WriteHandler;
+import org.apache.commons.geometry.examples.io.threed.test.ModelReadWriteHandlerTestBase;
 
+public class OBJModelReadWriteHandlerTest extends ModelReadWriteHandlerTestBase {
+
+    /** {@inheritDoc} */
+    @Override
+    protected ReadHandler getReadHandler() {
+        return new OBJModelReadHandler();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected WriteHandler getWriteHandler() {
+        return new OBJModelWriteHandler();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected String getModelLocation(final String baseName) {
+        return "/models/" + baseName + ".obj";
+    }
 }

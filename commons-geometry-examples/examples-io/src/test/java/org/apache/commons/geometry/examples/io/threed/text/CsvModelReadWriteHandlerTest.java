@@ -16,25 +16,27 @@
  */
 package org.apache.commons.geometry.examples.io.threed.text;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.commons.geometry.examples.io.threed.ModelIOManager.ReadHandler;
-import org.apache.commons.geometry.examples.io.threed.test.ModelReadHandlerTestBase;
+import org.apache.commons.geometry.examples.io.threed.ModelIOManager.WriteHandler;
+import org.apache.commons.geometry.examples.io.threed.test.ModelReadWriteHandlerTestBase;
 
-public class TextModelReadHandlerTest extends ModelReadHandlerTestBase {
+public class CsvModelReadWriteHandlerTest extends ModelReadWriteHandlerTestBase {
 
     /** {@inheritDoc} */
     @Override
-    protected ReadHandler createReadHandler() {
+    protected ReadHandler getReadHandler() {
         return new TextModelReadHandler();
     }
 
     /** {@inheritDoc} */
     @Override
-    protected List<String> getModelResourceLocations(String baseName) {
-        return Arrays.asList(
-                "/models/" + baseName + ".txt",
-                "/models/" + baseName + ".csv");
+    protected WriteHandler getWriteHandler() {
+        return new CsvTextModelWriteHandler();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected String getModelLocation(final String baseName) {
+        return "/models/" + baseName + ".csv";
     }
 }

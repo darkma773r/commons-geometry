@@ -313,12 +313,12 @@ public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase
             List<FacetDefinition> facets = ModelIOTestUtils.readAll(facetReader);
 
             // assert
-            Assert.assertEquals(6, facets.size());
+            Assert.assertEquals(12, facets.size());
 
             RegionBSPTree3D tree = FacetDefinitions.toBoundaryList(facets, MODEL_TEST_PRECISION).toTree();
 
             Assert.assertEquals(1.0, tree.getSize(), MODEL_TEST_EPS);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0.5, 0.5, 0.5), tree.getCentroid(), MODEL_TEST_EPS);
+            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), MODEL_TEST_EPS);
         }
     }
 

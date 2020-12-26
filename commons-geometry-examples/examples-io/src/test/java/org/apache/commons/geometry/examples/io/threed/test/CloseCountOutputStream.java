@@ -14,8 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.examples.io.threed.text;
+package org.apache.commons.geometry.examples.io.threed.test;
 
-public class TextModelWriteHandlerTest {
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
+public class CloseCountOutputStream extends FilterOutputStream {
+
+    private int closeCount;
+
+    public CloseCountOutputStream(final OutputStream out) {
+        super(out);
+    }
+
+    public int getCloseCount() {
+        return closeCount;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void close() throws IOException {
+        ++closeCount;
+
+        super.close();
+    }
 }
