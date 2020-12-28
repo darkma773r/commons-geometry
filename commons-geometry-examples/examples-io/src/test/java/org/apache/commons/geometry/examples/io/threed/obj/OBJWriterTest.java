@@ -19,9 +19,8 @@ package org.apache.commons.geometry.examples.io.threed.obj;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
@@ -29,12 +28,9 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Planes;
-import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
-import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
-import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
-import org.apache.commons.geometry.euclidean.threed.shape.Sphere;
+import org.apache.commons.geometry.examples.io.threed.facet.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +42,7 @@ public class OBJWriterTest {
             new EpsilonDoublePrecisionContext(TEST_EPS);
 
     @Test
-    public void testDefaults() throws IOException {
+    public void testPropertyDefaults() throws IOException {
         // arrange
         final StringWriter writer = new StringWriter();
 
@@ -54,6 +50,8 @@ public class OBJWriterTest {
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
             Assertions.assertEquals("\n", meshWriter.getLineSeparator());
             Assertions.assertEquals(6, meshWriter.getDecimalFormat().getMaximumFractionDigits());
+            Assertions.assertEquals(0, meshWriter.getVertexCount());
+            Assertions.assertEquals(0, meshWriter.getVertexNormalCount());
         }
     }
 
@@ -64,7 +62,6 @@ public class OBJWriterTest {
 
         // act/assert
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            meshWriter.close();
             meshWriter.close();
         }
     }
@@ -161,19 +158,50 @@ public class OBJWriterTest {
         // act
         final int index1;
         final int index2;
+        final int count;
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
             meshWriter.getDecimalFormat().setMaximumFractionDigits(1);
 
             index1 = meshWriter.writeVertex(Vector3D.of(1.09, 2.1, 3.005));
             index2 = meshWriter.writeVertex(Vector3D.of(0.06, 10, 12));
+
+            count = meshWriter.getVertexCount();
         }
 
         // assert
         Assertions.assertEquals(0, index1);
         Assertions.assertEquals(1, index2);
+        Assertions.assertEquals(2, count);
         Assertions.assertEquals(
             "v 1.1 2.1 3\n" +
             "v 0.1 10 12\n", writer.getBuffer().toString());
+    }
+
+    @Test
+    public void testWriteNormal() throws IOException {
+        // arrange
+        final StringWriter writer = new StringWriter();
+
+        // act
+        final int index1;
+        final int index2;
+        final int count;
+        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            meshWriter.getDecimalFormat().setMaximumFractionDigits(1);
+
+            index1 = meshWriter.writeVertexNormal(Vector3D.of(1.09, 2.1, 3.005));
+            index2 = meshWriter.writeVertexNormal(Vector3D.of(0.06, 10, 12));
+
+            count = meshWriter.getVertexNormalCount();
+        }
+
+        // assert
+        Assertions.assertEquals(0, index1);
+        Assertions.assertEquals(1, index2);
+        Assertions.assertEquals(2, count);
+        Assertions.assertEquals(
+            "vn 1.1 2.1 3\n" +
+            "vn 0.1 10 12\n", writer.getBuffer().toString());
     }
 
     @Test
@@ -203,6 +231,37 @@ public class OBJWriterTest {
     }
 
     @Test
+    public void testWriteFace_withNormals() throws IOException {
+        // arrange
+        final StringWriter writer = new StringWriter();
+
+        // act
+        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            meshWriter.writeVertex(Vector3D.ZERO);
+            meshWriter.writeVertex(Vector3D.of(1, 0, 0));
+            meshWriter.writeVertex(Vector3D.of(1, 1, 0));
+            meshWriter.writeVertex(Vector3D.of(0, 1, 0));
+
+            meshWriter.writeVertexNormal(Vector3D.Unit.PLUS_Z);
+            meshWriter.writeVertexNormal(Vector3D.Unit.MINUS_Z);
+
+            meshWriter.writeFace(new int[] {0, 1, 2}, 0);
+            meshWriter.writeFace(new int[] {0, 1, 2, 3}, new int[] {1, 1, 1, 1});
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "v 0 0 0\n" +
+            "v 1 0 0\n" +
+            "v 1 1 0\n" +
+            "v 0 1 0\n" +
+            "vn 0 0 1\n" +
+            "vn 0 0 -1\n" +
+            "f 1//1 2//1 3//1\n" +
+            "f 1//2 2//2 3//2 4//2\n", writer.getBuffer().toString());
+    }
+
+    @Test
     public void testWriteFace_invalidVertexNumber() throws IOException {
         // arrange
         final StringWriter writer = new StringWriter();
@@ -211,10 +270,21 @@ public class OBJWriterTest {
         GeometryTestUtils.assertThrowsWithMessage(() -> {
             try (OBJWriter meshWriter = new OBJWriter(writer)) {
                 meshWriter.writeFace(1, 2);
-            } catch (final IOException exc) {
-                throw new UncheckedIOException(exc);
             }
         }, IllegalArgumentException.class, "Face must have more than 3 vertices; found 2");
+    }
+
+    @Test
+    public void testWriteFace_invalidVertexAndNormalCountMismatch() throws IOException {
+        // arrange
+        final StringWriter writer = new StringWriter();
+
+        // act
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+                meshWriter.writeFace(new int[] {0, 1, 2, 3}, new int[] {0, 1, 2});
+            }
+        }, IllegalArgumentException.class, "Face normal index count must equal vertex index count; expected 4 but was 3");
     }
 
     @Test
@@ -240,6 +310,123 @@ public class OBJWriterTest {
             "v 0 0 1\n" +
             "f 1 2 3\n" +
             "f 1 2 4\n", writer.getBuffer().toString());
+    }
+
+    @Test
+    public void testMeshBuffer() throws IOException {
+        // arrange
+        final StringWriter writer = new StringWriter();
+
+        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            OBJWriter.MeshBuffer buf = meshWriter.createMeshBuffer();
+
+            // act
+            buf.add(new SimpleFacetDefinition(Arrays.asList(
+                    Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0)), Vector3D.Unit.MINUS_Z));
+            buf.add(Planes.convexPolygonFromVertices(Arrays.asList(
+                    Vector3D.ZERO, Vector3D.of(1, 1, 0), Vector3D.of(0, 1.5, 0)), TEST_PRECISION));
+            buf.add(new SimpleFacetDefinition(Arrays.asList(
+                    Vector3D.of(0, 1.5, 0), Vector3D.of(1, 1, 0), Vector3D.of(0, 2, 0)), Vector3D.Unit.PLUS_Z));
+
+            buf.flush();
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "v 0 0 0\n" +
+            "v 1 0 0\n" +
+            "v 1 1 0\n" +
+            "v 0 1.5 0\n" +
+            "v 0 2 0\n" +
+            "vn 0 0 -1\n" +
+            "vn 0 0 1\n" +
+            "f 1//1 2//1 3//1\n" +
+            "f 1 3 4\n" +
+            "f 4//2 3//2 5//2\n", writer.getBuffer().toString());
+    }
+
+    @Test
+    public void testMeshBuffer_givenBatchSize() throws IOException {
+        // arrange
+        final StringWriter writer = new StringWriter();
+
+        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            OBJWriter.MeshBuffer buf = meshWriter.createMeshBuffer(2);
+
+            // act
+            buf.add(new SimpleFacetDefinition(Arrays.asList(
+                    Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0)), Vector3D.Unit.MINUS_Z));
+            buf.add(Planes.convexPolygonFromVertices(Arrays.asList(
+                    Vector3D.ZERO, Vector3D.of(1, 1, 0), Vector3D.of(0, 1.5, 0)), TEST_PRECISION));
+            buf.add(new SimpleFacetDefinition(Arrays.asList(
+                    Vector3D.of(0, 1.5, 0), Vector3D.of(1, 1, 0), Vector3D.of(0, 2, 0)), Vector3D.Unit.PLUS_Z));
+
+            buf.flush();
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "v 0 0 0\n" +
+            "v 1 0 0\n" +
+            "v 1 1 0\n" +
+            "v 0 1.5 0\n" +
+            "vn 0 0 -1\n" +
+            "f 1//1 2//1 3//1\n" +
+            "f 1 3 4\n" +
+            "v 0 1.5 0\n" +
+            "v 1 1 0\n" +
+            "v 0 2 0\n" +
+            "vn 0 0 1\n" +
+            "f 5//2 6//2 7//2\n", writer.getBuffer().toString());
+    }
+
+    @Test
+    public void testMeshBuffer_mixedWithDirectlyAddedFace() throws IOException {
+        // arrange
+        final StringWriter writer = new StringWriter();
+
+        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            OBJWriter.MeshBuffer buf = meshWriter.createMeshBuffer(2);
+
+            // act
+            meshWriter.writeVertex(Vector3D.ZERO);
+            meshWriter.writeVertex(Vector3D.Unit.MINUS_Y);
+            meshWriter.writeVertex(Vector3D.Unit.MINUS_X);
+            meshWriter.writeVertexNormal(Vector3D.Unit.PLUS_Z);
+            meshWriter.writeFace(new int[] {0, 1, 2}, 0);
+
+            buf.add(new SimpleFacetDefinition(Arrays.asList(
+                    Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0)), Vector3D.Unit.MINUS_Z));
+            buf.add(Planes.convexPolygonFromVertices(Arrays.asList(
+                    Vector3D.ZERO, Vector3D.of(1, 1, 0), Vector3D.of(0, 1.5, 0)), TEST_PRECISION));
+            buf.add(new SimpleFacetDefinition(Arrays.asList(
+                    Vector3D.of(0, 1.5, 0), Vector3D.of(1, 1, 0), Vector3D.of(0, 2, 0)), Vector3D.Unit.PLUS_Z));
+
+            buf.flush();
+
+            meshWriter.writeFace(meshWriter.getVertexCount() - 1, 2, 1, 0);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "v 0 0 0\n" +
+            "v 0 -1 0\n" +
+            "v -1 0 0\n" +
+            "vn 0 0 1\n" +
+            "f 1//1 2//1 3//1\n" +
+            "v 0 0 0\n" +
+            "v 1 0 0\n" +
+            "v 1 1 0\n" +
+            "v 0 1.5 0\n" +
+            "vn 0 0 -1\n" +
+            "f 4//2 5//2 6//2\n" +
+            "f 4 6 7\n" +
+            "v 0 1.5 0\n" +
+            "v 1 1 0\n" +
+            "v 0 2 0\n" +
+            "vn 0 0 1\n" +
+            "f 8//3 9//3 10//3\n" +
+            "f 10 3 2 1\n", writer.getBuffer().toString());
     }
 
     @Test
@@ -310,49 +497,5 @@ public class OBJWriterTest {
                 throw new UncheckedIOException(exc);
             }
         }, IllegalArgumentException.class, Pattern.compile("^OBJ input geometry cannot be infinite: .*"));
-    }
-
-    @Test
-    public void testWriteToFile_boundaries() throws IOException {
-        // arrange
-        final RegionBSPTree3D box = Parallelepiped.unitCube(TEST_PRECISION).toTree();
-        final RegionBSPTree3D sphere = Sphere.from(Vector3D.ZERO, 0.6, TEST_PRECISION)
-                .toTree(3);
-
-        final RegionBSPTree3D result = RegionBSPTree3D.empty();
-        result.difference(box, sphere);
-
-        final TriangleMesh mesh = result.toTriangleMesh(TEST_PRECISION);
-
-        // act
-        final Path out = Files.createTempFile("objTest", ".obj");
-        try (OBJWriter writer = new OBJWriter(Files.newBufferedWriter(out))) {
-            writer.writeComment("A test obj file\nWritten by " + OBJWriterTest.class.getName());
-
-            writer.writeBoundaries(mesh);
-        } finally {
-            Files.delete(out);
-        }
-    }
-
-    @Test
-    public void testWriteToFile_mesh() throws IOException {
-        // arrange
-        final RegionBSPTree3D box = Parallelepiped.unitCube(TEST_PRECISION).toTree();
-        final RegionBSPTree3D sphere = Sphere.from(Vector3D.ZERO, 0.6, TEST_PRECISION)
-                .toTree(3);
-
-        final RegionBSPTree3D result = RegionBSPTree3D.empty();
-        result.difference(box, sphere);
-
-        // act
-        final Path out = Files.createTempFile("objTest", ".obj");
-        try (OBJWriter writer = new OBJWriter(Files.newBufferedWriter(out))) {
-            writer.writeComment("A test obj file\nWritten by " + OBJWriterTest.class.getName());
-
-            writer.writeBoundaries(result);
-        } finally {
-            Files.delete(out);
-        }
     }
 }

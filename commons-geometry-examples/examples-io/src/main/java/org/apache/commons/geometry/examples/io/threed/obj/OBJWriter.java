@@ -35,11 +35,12 @@ import org.apache.commons.geometry.euclidean.threed.mesh.Mesh;
 import org.apache.commons.geometry.examples.io.internal.AbstractTextFormatWriter;
 import org.apache.commons.geometry.examples.io.threed.facet.FacetDefinition;
 
-/** Class for writing OBJ files containing 3D mesh data.
+/** Class for writing OBJ files containing 3D polygon geometries.
  */
-public final class OBJWriter extends AbstractTextFormatWriter implements AutoCloseable {
+public final class OBJWriter extends AbstractTextFormatWriter {
 
-    private static final int DEFAULT_MESH_BUFFER_SIZE = 1024;
+    /** Default number of faces to store in mesh buffers. */
+    private static final int DEFAULT_MESH_BUFFER_BATCH_SIZE = 1024;
 
     /** Space character. */
     private static final char SPACE = ' ';
@@ -57,9 +58,23 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
         super(writer);
     }
 
+    /** Get the number of vertices written to the output.
+     * @return the number of vertices written to the output.
+     */
+    public int getVertexCount() {
+        return vertexCount;
+    }
+
+    /** Get the number of vertex normals written to the output.
+     * @return the number of vertex normals written to the output.
+     */
+    public int getVertexNormalCount() {
+        return normalCount;
+    }
+
     /** Write an OBJ comment with the given value.
      * @param comment comment to write
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      */
     public void writeComment(final String comment) throws IOException {
         for (final String line : comment.split("\\R")) {
@@ -74,7 +89,7 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
      * does not affect the geometry, although it may affect how the file content
      * is read by other programs.
      * @param objectName the name to write
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      */
     public void writeObjectName(final String objectName) throws IOException {
         writeKeywordLine(OBJConstants.OBJECT_KEYWORD, objectName);
@@ -84,7 +99,7 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
      * does not affect the geometry, although it may affect how the file content
      * is read by other programs.
      * @param groupName the name to write
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      */
     public void writeGroupName(final String groupName) throws IOException {
         writeKeywordLine(OBJConstants.GROUP_KEYWORD, groupName);
@@ -92,29 +107,25 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
 
     /** Write a vertex and return the 0-based index of the vertex in the output.
      * @param vertex vertex to write
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      * @return 0-based index of the written vertex
      */
     public int writeVertex(final Vector3D vertex) throws IOException {
-        writeKeywordLine(OBJConstants.VERTEX_KEYWORD, createVectorString(vertex));
-
-        return vertexCount++;
+        return writeVertexLine(createVectorString(vertex));
     }
 
     /** Write a vertex normal and return the 0-based index of the normal in the output.
      * @param normal normal to write
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      * @return 0-based index of the written normal
      */
-    public int writeNormal(final Vector3D normal) throws IOException {
-        writeKeywordLine(OBJConstants.VERTEX_NORMAL_KEYWORD, createVectorString(normal));
-
-        return normalCount++;
+    public int writeVertexNormal(final Vector3D normal) throws IOException {
+        return writeVertexNormalLine(createVectorString(normal));
     }
 
-    /** Write a face with the given vertex indices. Indices are 0-based.
+    /** Write a face with the given 0-based vertex indices.
      * @param vertexIndices 0-based vertex indices for the face
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      * @throw IllegalArgumentException if fewer than 3 vertex indices are given
      */
     public void writeFace(final int... vertexIndices) throws IOException {
@@ -134,7 +145,7 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
      * @param vertexIndices 0-based vertex indices; may not be null
      * @param normalIndices 0-based normal indices; may be null but if present must contain
      *      the same number of indices as {@code vertexIndices}
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if fewer than 3 vertex indices are given or {@code normalIndices}
      *      is not null but has a different length than {@code vertexIndices}
      */
@@ -147,7 +158,7 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
      * separately.
      * @param boundarySource boundary source containing the boundaries to write to the output
      * @throws IllegalArgumentException if any boundary in the argument is infinite
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      */
     public void writeBoundaries(final BoundarySource3D boundarySource) throws IOException {
         if (boundarySource instanceof Mesh) {
@@ -170,7 +181,7 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
 
     /** Write a mesh to the output. All vertices and faces in the mesh are written.
      * @param mesh the mesh to write
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      */
     public void writeMesh(final Mesh<?> mesh) throws IOException {
         final int vertexOffset = vertexCount;
@@ -184,8 +195,13 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
         }
     }
 
+    /** Create a new {@link MeshBuffer} instance with the default batch size of
+     * {@value #DEFAULT_MESH_BUFFER_BATCH_SIZE}. The returned instance can be used to
+     * write consolidated mesh data to the output.
+     * @return new mesh buffer instance
+     */
     public MeshBuffer createMeshBuffer() {
-        return createMeshBuffer(DEFAULT_MESH_BUFFER_SIZE);
+        return createMeshBuffer(DEFAULT_MESH_BUFFER_BATCH_SIZE);
     }
 
     public MeshBuffer createMeshBuffer(final int batchSize) {
@@ -199,7 +215,7 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
      * @param normalOffset normal offset value
      * @param normalIndices 0-based normal indices for the face; may be null if no normal are
      *      defined for the face
-     * @throws IOException if an IO operation fails
+     * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if fewer than 3 vertex indices are given or {@code normalIndices}
      *      is not null but has a different length than {@code vertexIndices}
      */
@@ -230,6 +246,10 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
         writeNewLine();
     }
 
+    /** Create the OBJ string representation of the given vector.
+     * @param vec vector to convert to a string
+     * @return string representation of the given vector
+     */
     private String createVectorString(final Vector3D vec) {
         final DecimalFormat df = getDecimalFormat();
 
@@ -243,6 +263,31 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
         return sb.toString();
     }
 
+    /** Write a vertex line containing the given string content.
+     * @param content vertex string content
+     * @return the 0-based index of the added vertex
+     * @throws IOException if an I/O error occurs
+     */
+    private int writeVertexLine(final String content) throws IOException {
+        writeKeywordLine(OBJConstants.VERTEX_KEYWORD, content);
+        return vertexCount++;
+    }
+
+    /** Write a vertex normal line containing the given string content.
+     * @param content vertex normal string content
+     * @return the 0-based index of the added vertex normal
+     * @throws IOException if an I/O error occurs
+     */
+    private int writeVertexNormalLine(final String content) throws IOException {
+        writeKeywordLine(OBJConstants.VERTEX_NORMAL_KEYWORD, content);
+        return normalCount++;
+    }
+
+    /** Write a line of content prefixed with the given OBJ keyword.
+     * @param keyword OBJ keyword
+     * @param content line content
+     * @throws IOException if and I/O error occurs
+     */
     private void writeKeywordLine(final String keyword, final String content) throws IOException {
         write(keyword);
         write(SPACE);
@@ -250,7 +295,7 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
         writeNewLine();
     }
 
-    public class MeshBuffer {
+    public final class MeshBuffer {
 
         private final int batchSize;
 
@@ -325,12 +370,12 @@ public final class OBJWriter extends AbstractTextFormatWriter implements AutoClo
 
             // write vertices
             for (final String vertexStr : vertexMap.keySet()) {
-                writeKeywordLine(OBJConstants.VERTEX_KEYWORD, vertexStr);
+                writeVertexLine(vertexStr);
             }
 
             // write normals
             for (final String normalStr : normalMap.keySet()) {
-                writeKeywordLine(OBJConstants.VERTEX_NORMAL_KEYWORD, normalStr);
+                writeVertexNormalLine(normalStr);
             }
 
             // write faces
