@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.geometry.core.io.internal.GeometryTextParser;
 import org.apache.commons.geometry.core.io.internal.SimpleTextParser;
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinition;
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinitionReader;
@@ -83,7 +82,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
     private final Reader reader;
 
     /** Parser used to parse text content. */
-    private final GeometryTextParser parser;
+    private final SimpleTextParser parser;
 
     /** Comment token string; may be null. */
     private String commentToken;
@@ -108,7 +107,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
      */
     public TextFacetDefinitionReader(final Reader reader, final String commentToken) {
         this.reader = reader;
-        this.parser = new GeometryTextParser(reader);
+        this.parser = new SimpleTextParser(reader);
 
         setCommentToken(commentToken);
     }
