@@ -350,7 +350,7 @@ public class BoundaryIOManager<
      */
     protected String getFormatForFileName(final String name) {
         final String ext = GeometryIOUtils.getFileExtension(name);
-        if (ext == null) {
+        if (ext == null || ext.length() < 1) {
             throw new IllegalArgumentException("Cannot determine file data format: file name \"" + name +
                     "\" does not have a file extension");
         }

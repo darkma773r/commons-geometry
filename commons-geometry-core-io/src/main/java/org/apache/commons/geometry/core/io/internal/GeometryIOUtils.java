@@ -39,15 +39,19 @@ public final class GeometryIOUtils {
     /** Utility class; no instantiation. */
     private GeometryIOUtils() {}
 
-    /** Get the file extension of the given file name or null if not found. The file extension
-     * is normalized to lower case.
-     * @param name file name to determine the extension for
-     * @return the file extension, converted to lower case or null if not found
+    /** Get the part of the file name after the last dot.
+     * @param name file name to get the extension for
+     * @return the extension of the file name, the empty string if no extension is found, or
+     *      null if the argument is null
      */
-    public static String getFileExtension(final String name) {
-        final int idx = name.lastIndexOf('.');
-        if (idx > -1) {
-            return name.substring(idx + 1).toLowerCase();
+    public static String getFileExtension(final String fileName) {
+        if (fileName != null) {
+            final int idx = fileName.lastIndexOf('.');
+            if (idx > -1) {
+                return fileName.substring(idx + 1);
+            }
+
+            return "";
         }
 
         return null;
