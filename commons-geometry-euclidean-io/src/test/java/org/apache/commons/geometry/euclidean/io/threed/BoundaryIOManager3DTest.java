@@ -87,7 +87,7 @@ public class BoundaryIOManager3DTest {
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final FacetDefinitionReader reader = manager.facetDefinitionReader("TEST", in);
+        final FacetDefinitionReader reader = manager.facetDefinitionReader(in, "TEST");
 
         // assert
         Assertions.assertSame(FACET_DEF_READER, reader);
@@ -103,7 +103,7 @@ public class BoundaryIOManager3DTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.facetDefinitionReader("TEST", in),
+                () -> manager.facetDefinitionReader(in, "TEST"),
                 IllegalArgumentException.class, "No read handler registered for format \"TEST\"");
 
         Assertions.assertEquals(0, in.getCloseCount());
@@ -185,7 +185,7 @@ public class BoundaryIOManager3DTest {
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final Stream<FacetDefinition> stream = manager.facets("test", in);
+        final Stream<FacetDefinition> stream = manager.facets(in, "test");
 
         // assert
         Assertions.assertSame(in, readHandler.in);
@@ -203,7 +203,7 @@ public class BoundaryIOManager3DTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.facets("TEST", in),
+                () -> manager.facets(in, "TEST"),
                 IllegalArgumentException.class, "No read handler registered for format \"TEST\"");
     }
 
@@ -289,7 +289,7 @@ public class BoundaryIOManager3DTest {
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final Stream<Triangle3D> stream = manager.triangles("test", in, TEST_PRECISION);
+        final Stream<Triangle3D> stream = manager.triangles(in, "test", TEST_PRECISION);
 
         // assert
         Assertions.assertSame(in, readHandler.in);
@@ -307,7 +307,7 @@ public class BoundaryIOManager3DTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.triangles("TEST", in, TEST_PRECISION),
+                () -> manager.triangles(in, "TEST", TEST_PRECISION),
                 IllegalArgumentException.class, "No read handler registered for format \"TEST\"");
     }
 
@@ -393,7 +393,7 @@ public class BoundaryIOManager3DTest {
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final TriangleMesh mesh = manager.readTriangleMesh("TEST", in, TEST_PRECISION);
+        final TriangleMesh mesh = manager.readTriangleMesh(in, "TEST", TEST_PRECISION);
 
         // assert
         Assertions.assertSame(TRI_MESH, mesh);
@@ -410,7 +410,7 @@ public class BoundaryIOManager3DTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.readTriangleMesh("TEST", in, TEST_PRECISION),
+                () -> manager.readTriangleMesh(in, "TEST", TEST_PRECISION),
                 IllegalArgumentException.class, "No read handler registered for format \"TEST\"");
 
         Assertions.assertEquals(0, in.getCloseCount());
@@ -495,7 +495,7 @@ public class BoundaryIOManager3DTest {
         final CloseCountOutputStream out = new CloseCountOutputStream(new ByteArrayOutputStream());
 
         // act
-        manager.writeFacets(FACET_LIST, "test", out);
+        manager.writeFacets(FACET_LIST, out, "test");
 
         // assert
         Assertions.assertSame(FACET_LIST, writeHandler.facets);
@@ -511,7 +511,7 @@ public class BoundaryIOManager3DTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.writeFacets(FACET_LIST, "test", out),
+                () -> manager.writeFacets(FACET_LIST, out, "test"),
                 IllegalArgumentException.class, "No write handler registered for format \"test\"");
 
         Assertions.assertEquals(0, out.getCloseCount());

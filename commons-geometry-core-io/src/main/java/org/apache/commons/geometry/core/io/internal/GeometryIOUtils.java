@@ -67,32 +67,56 @@ public final class GeometryIOUtils {
         return new UncheckedIOException(msg, exc);
     }
 
+    /** Return an input stream that delegates all calls to the argument but does not
+     * close the argument when {@link InputStream#close() close()} is called.
+     * @param in input stream to wrap
+     * @return an input stream that delegates all calls to {@code in} except for {@code close()}
+     */
     public static InputStream createCloseShieldInputStream(final InputStream in) {
         return new CloseShieldInputStream(in);
     }
 
+    /** Return an output stream that delegates all calls to the argument but does not close
+     * the argument when {@link OutputStream#close() close()} is called.
+     * @param out output stream to wrap
+     * @return an output stream that delegates all calls to {@code out} except for {@code close()}
+     */
     public static OutputStream createCloseShieldOutputStream(final OutputStream out) {
         return new CloseShieldOutputStream(out);
     }
 
+    /** Return a buffered reader that reads characters of the given charset from {@code in} but
+     * does not close {@code in} when {@link Reader#close() close()} is called.
+     * @param in input stream to read from
+     * @param charset reader charset
+     * @return a buffered reader that reads characters from {@code in} but does not close it when
+     *      {@code close()} is called
+     */
     public static Reader createCloseShieldReader(final InputStream in, final Charset charset) {
         final InputStream shielded = createCloseShieldInputStream(in);
         return new BufferedReader(new InputStreamReader(shielded, charset));
     }
 
+    /** Return a buffered writer that writer characters of the given charset to {@code out} but
+     * does not close {@code out} when {@link Writer#close() close} is called.
+     * @param out output stream to write to
+     * @param charset writer charset
+     * @return a buffered writer that writes characters to {@code out} but does not close it
+     *      when {@code close()} is called
+     */
     public static Writer createCloseShieldWriter(final OutputStream out, final Charset charset) {
         final OutputStream shielded = createCloseShieldOutputStream(out);
         return new BufferedWriter(new OutputStreamWriter(shielded, charset));
     }
 
     /** Pass a supplied {@link Closeable} instance to {@code function} and return the result.
-     * The {@code Closeable} instance is closed if function execution fails, otherwise the
-     * instance is <em>not</em> closed.
+     * The {@code Closeable} instance returned by the supplier is closed if function execution
+     * fails, otherwise the instance is <em>not</em> closed.
      * @param <T> Return type
      * @param <C> Closeable type
-     * @param function function called with the supplied closeable instance
-     * @param closeableSupplier supplier used to obtain a closeable instance
-     * @return result of calling {@code function} with a supplied closeable instance
+     * @param function function called with the supplied Closeable instance
+     * @param closeableSupplier supplier used to obtain a Closeable instance
+     * @return result of calling {@code function} with a supplied Closeable instance
      * @throws IOException if an I/O error occurs
      */
     public static <T, C extends Closeable> T tryApplyCloseable(final IOFunction<C, T> function,
@@ -132,8 +156,8 @@ public final class GeometryIOUtils {
                 inputStreamSupplier);
     }
 
-    /** Return a {@link Runnable} that calls {@code close()} on the argument, wrapping
-     * any {@link IOException} with {@link UncheckedIOException}.
+    /** Return a {@link Runnable} that calls {@link Closeable#getClass() close()} on the argument,
+     * wrapping any {@link IOException} with {@link UncheckedIOException}.
      * @param closeable instance to be closed
      * @return runnable that calls {@code close()) on the argument
      */

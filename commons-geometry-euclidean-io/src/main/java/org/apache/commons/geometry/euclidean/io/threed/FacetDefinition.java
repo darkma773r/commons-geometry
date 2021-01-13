@@ -27,7 +27,7 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
  * For example, instances may contain vertices that do not lie in the same plane
  * or have normals that are not unit length or point in an unexpected direction.
  * This is lack of validation is intentional, since a primary purpose of this
- * class is to allow access to raw, possibly invalid, geometric data from input
+ * interfaces is to allow access to raw, possibly invalid, geometric data from input
  * sources.
  * @see org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D
  * @see FacetDefinitions

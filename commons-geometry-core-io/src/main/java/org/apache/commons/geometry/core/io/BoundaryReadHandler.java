@@ -28,15 +28,15 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) from a specific data storage
  * format. This interface is intentionally kept simple to reduce the amount of work required by implementers.
  * Callers may prefer to access this functionality using the more convenient
- * {@link BoundaryIOHandlerRegistry} class instead.
+ * {@link BoundaryIOManager} class instead.
  *
  * <p><strong>Implementation note:</strong> implementations of this interface <em>must</em>
  * be thread-safe.</p>
  * @param <H> Geometric boundary type
  * @param <B> Boundary source type
- * @see <a href="https://en.wikipedia.org/wiki/Boundary_representations">Boundary representations</a>
  * @see BoundaryWriteHandler
- * @see BoundaryIOHandlerRegistry
+ * @see BoundaryIOManager
+ * @see <a href="https://en.wikipedia.org/wiki/Boundary_representations">Boundary representations</a>
  */
 public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B extends BoundarySource<H>> {
 
@@ -48,7 +48,7 @@ public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B exte
      * @param in input stream to read from; this is <em>not</em> closed
      * @param precision precision context used for floating point comparisons
      * @return an object containing all boundary information from the input stream
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
     B read(InputStream in, DoublePrecisionContext precision) throws IOException;
 

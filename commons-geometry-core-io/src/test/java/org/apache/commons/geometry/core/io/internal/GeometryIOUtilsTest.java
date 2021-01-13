@@ -19,7 +19,6 @@ package org.apache.commons.geometry.core.io.internal;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -170,19 +169,12 @@ public class GeometryIOUtilsTest {
     @Test
     public void testTryApplyCloseable_functionThrows_inputCloseThrows() throws IOException {
         // arrange
-        final InputStream throwingStream = new FilterInputStream(new ByteArrayInputStream(new byte[0])) {
-            @Override
-            public void close() throws IOException {
-                throw new IOException("close");
-            }
-        };
-        final CloseCountInputStream in = new CloseCountInputStream(throwingStream);
+        final CloseCountInputStream in = new CloseCountInputStream(new CloseFailByteArrayInputStream(new byte[0]));
 
         // act/assert
         final Throwable thr = Assertions.assertThrows(
-                IOException.class, () -> {
-                    GeometryIOUtils.tryApplyCloseable(i -> { throw new IOException("fn"); },() -> in);
-                });
+                IOException.class,
+                () -> GeometryIOUtils.tryApplyCloseable(i -> { throw new IOException("fn"); },() -> in));
 
         Assertions.assertEquals(IOException.class, thr.getClass());
         Assertions.assertEquals("close", thr.getSuppressed()[0].getMessage());
@@ -207,18 +199,23 @@ public class GeometryIOUtilsTest {
     @Test
     public void testCreateCloseableStream_closeThrows() throws IOException {
         // arrange
-        final InputStream throwingStream = new FilterInputStream(new ByteArrayInputStream(new byte[0])) {
-            @Override
-            public void close() throws IOException {
-                throw new IOException("close");
-            }
-        };
-        final CloseCountInputStream in = new CloseCountInputStream(throwingStream);
+        final CloseCountInputStream in = new CloseCountInputStream(new CloseFailByteArrayInputStream(new byte[0]));
 
         // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(() -> {
-            final Stream<String> stream = GeometryIOUtils.createCloseableStream(i -> Stream.of("a"), () -> in);
-            stream.close();
-        }, UncheckedIOException.class, "IOException: close");
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> GeometryIOUtils.createCloseableStream(i -> Stream.of("a"), () -> in).close(),
+                UncheckedIOException.class, "IOException: close");
+    }
+
+    private static final class CloseFailByteArrayInputStream extends ByteArrayInputStream {
+
+        public CloseFailByteArrayInputStream(final byte[] buf) {
+            super(buf);
+        }
+
+        @Override
+        public void close() throws IOException {
+            throw new IOException("close");
+        }
     }
 }

@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
 
-/** Base type for classes that write text-based geometry data formats. This class
+/** Base type for classes that write text-based data formats. This class
  * provides a number of common configuration options and utility methods.
  */
 public abstract class AbstractTextFormatWriter implements AutoCloseable {
@@ -71,7 +71,7 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
         return decimalFormat;
     }
 
-    /** Set the {@link DecimalFormat} instance used to format floatin point output.
+    /** Set the {@link DecimalFormat} instance used to format floating point output.
      * @param decimalFormat decimal format instance
      */
     public void setDecimalFormat(final DecimalFormat decimalFormat) {

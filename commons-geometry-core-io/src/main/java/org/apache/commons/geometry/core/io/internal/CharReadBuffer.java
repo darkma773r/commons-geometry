@@ -201,7 +201,7 @@ public class CharReadBuffer {
         return result;
     }
 
-    /** Get the character at the given buffer index or {@code -1} if the index
+    /** Get the character at the given buffer index or {@value #EOF} if the index
      * is past the end of the content. The character is not removed from the buffer.
      * @param index index of the character to receive relative to the buffer start
      * @return the character at the given index of {@code -1} if the character is
@@ -235,6 +235,7 @@ public class CharReadBuffer {
         final int removeFromBuffer = Math.min(n, count);
         charsRemoved(removeFromBuffer);
 
+        // skip from the reader if required
         final int remaining = n - removeFromBuffer;
         if (remaining > 0) {
             reader.skip(remaining);

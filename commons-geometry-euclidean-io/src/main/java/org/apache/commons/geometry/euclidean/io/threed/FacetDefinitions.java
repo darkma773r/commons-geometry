@@ -57,13 +57,15 @@ public final class FacetDefinitions {
      * attempts to honor any {@link #getDefinedNormal() defined normal} for the facet by making the
      * polygon point in a similar (but not necessarily equal) direction, reversing the
      * order of vertices if needed.
-     * @param facet facet to convert to a polygon
+     * @param facet facet to convert to a polygon instance
      * @param precision precision context used for floating point comparisons
      * @return convex polygon constructed from the facet
+     * @throws NullPointerException if either argument is null
      * @throws IllegalArgumentException if a valid convex polygon cannot be constructed
      */
     public static ConvexPolygon3D toPolygon(final FacetDefinition facet, final DoublePrecisionContext precision) {
         Objects.requireNonNull(facet, "Facet cannot be null");
+        Objects.requireNonNull(precision, "Precision context cannot be null");
         return toPolygon(facet.getVertices(), facet.getNormal(), precision);
     }
 }

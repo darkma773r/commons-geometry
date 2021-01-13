@@ -121,7 +121,7 @@ public class BoundaryIOManagerTest {
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final TestBoundaryList result = manager.read("TEST", in, TEST_PRECISION);
+        final TestBoundaryList result = manager.read(in, "TEST", TEST_PRECISION);
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, result);
@@ -139,7 +139,7 @@ public class BoundaryIOManagerTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.read("TEST", in, TEST_PRECISION),
+                () -> manager.read(in, "TEST", TEST_PRECISION),
                 IllegalArgumentException.class, "No read handler registered for format \"TEST\"");
 
         Assertions.assertEquals(0, in.getCloseCount());
@@ -247,7 +247,7 @@ public class BoundaryIOManagerTest {
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final Stream<TestLineSegment> stream = manager.boundaries("test", in, TEST_PRECISION);
+        final Stream<TestLineSegment> stream = manager.boundaries(in, "test", TEST_PRECISION);
 
         // assert
         final List<TestLineSegment> segments = stream.collect(Collectors.toList());
@@ -266,7 +266,7 @@ public class BoundaryIOManagerTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.boundaries("TEST", in, TEST_PRECISION),
+                () -> manager.boundaries(in, "TEST", TEST_PRECISION),
                 IllegalArgumentException.class, "No read handler registered for format \"TEST\"");
 
         Assertions.assertEquals(0, in.getCloseCount());
@@ -482,7 +482,7 @@ public class BoundaryIOManagerTest {
         final CloseCountOutputStream out = new CloseCountOutputStream(new ByteArrayOutputStream());
 
         // act
-        manager.write(BOUNDARY_LIST, "test", out);
+        manager.write(BOUNDARY_LIST, out, "test");
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, writeHandler.list);
@@ -498,7 +498,7 @@ public class BoundaryIOManagerTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.write(BOUNDARY_LIST, "test", out),
+                () -> manager.write(BOUNDARY_LIST, out, "test"),
                 IllegalArgumentException.class, "No write handler registered for format \"test\"");
 
         Assertions.assertEquals(0, out.getCloseCount());

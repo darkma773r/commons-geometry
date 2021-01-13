@@ -72,8 +72,8 @@ public class IO3DTest {
                 (fmt, url) -> readerToBoundaryList(IO3D.facetDefinitionReader(url)),
                 (src, fmt, path) -> IO3D.writeFacets(boundarySourceToFacets(src), path));
         testReadWriteWithStreams(
-                (fmt, in) -> readerToBoundaryList(IO3D.facetDefinitionReader(fmt, in)),
-                (src, fmt, out) -> IO3D.writeFacets(boundarySourceToFacets(src), fmt, out));
+                (fmt, in) -> readerToBoundaryList(IO3D.facetDefinitionReader(in, fmt)),
+                (src, fmt, out) -> IO3D.writeFacets(boundarySourceToFacets(src), out, fmt));
     }
 
     @Test
@@ -86,8 +86,8 @@ public class IO3DTest {
                 (fmt, url) -> facetsToBoundaryList(IO3D.facets(url)),
                 (src, fmt, path) -> IO3D.writeFacets(boundarySourceToFacets(src), path));
         testReadWriteWithStreams(
-                (fmt, in) -> facetsToBoundaryList(IO3D.facets(fmt, in)),
-                (src, fmt, out) -> IO3D.writeFacets(boundarySourceToFacets(src), fmt, out));
+                (fmt, in) -> facetsToBoundaryList(IO3D.facets(in, fmt)),
+                (src, fmt, out) -> IO3D.writeFacets(boundarySourceToFacets(src), out, fmt));
     }
 
     @Test
@@ -100,8 +100,8 @@ public class IO3DTest {
                 (fmt, url) -> IO3D.read(url, MODEL_PRECISION),
                 (src, fmt, path) -> IO3D.write(src, path));
         testReadWriteWithStreams(
-                (fmt, in) -> IO3D.read(fmt, in, MODEL_PRECISION),
-                (src, fmt, out) -> IO3D.write(src, fmt, out));
+                (fmt, in) -> IO3D.read(in, fmt, MODEL_PRECISION),
+                (src, fmt, out) -> IO3D.write(src, out, fmt));
     }
 
     @Test
@@ -114,8 +114,8 @@ public class IO3DTest {
                 (fmt, url) -> IO3D.readTriangleMesh(url, MODEL_PRECISION),
                 (src, fmt, path) -> IO3D.write(src.toTriangleMesh(MODEL_PRECISION), path));
         testReadWriteWithStreams(
-                (fmt, in) -> IO3D.readTriangleMesh(fmt, in, MODEL_PRECISION),
-                (src, fmt, out) -> IO3D.write(src.toTriangleMesh(MODEL_PRECISION), fmt, out));
+                (fmt, in) -> IO3D.readTriangleMesh(in, fmt, MODEL_PRECISION),
+                (src, fmt, out) -> IO3D.write(src.toTriangleMesh(MODEL_PRECISION), out, fmt));
     }
 
     @Test
@@ -128,8 +128,8 @@ public class IO3DTest {
                 (fmt, url) -> boundariesToBoundaryList(IO3D.boundaries(url, MODEL_PRECISION)),
                 (src, fmt, path) -> IO3D.write(src, path));
         testReadWriteWithStreams(
-                (fmt, in) -> boundariesToBoundaryList(IO3D.boundaries(fmt, in, MODEL_PRECISION)),
-                (src, fmt, out) -> IO3D.write(src, fmt, out));
+                (fmt, in) -> boundariesToBoundaryList(IO3D.boundaries(in, fmt, MODEL_PRECISION)),
+                (src, fmt, out) -> IO3D.write(src, out, fmt));
     }
 
     @Test
@@ -142,8 +142,8 @@ public class IO3DTest {
                 (fmt, url) -> boundariesToBoundaryList(IO3D.triangles(url, MODEL_PRECISION)),
                 (src, fmt, path) -> IO3D.write(src, path));
         testReadWriteWithStreams(
-                (fmt, in) -> boundariesToBoundaryList(IO3D.triangles(fmt, in, MODEL_PRECISION)),
-                (src, fmt, out) -> IO3D.write(src, fmt, out));
+                (fmt, in) -> boundariesToBoundaryList(IO3D.triangles(in, fmt, MODEL_PRECISION)),
+                (src, fmt, out) -> IO3D.write(src, out, fmt));
     }
 
     private void testReadWriteWithPath(final ReadFn<Path> readFn, final WriteFn<Path> writeFn)

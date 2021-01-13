@@ -26,20 +26,20 @@ import org.apache.commons.geometry.core.partitioning.HyperplaneConvexSubset;
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) in a specific data storage
  * format. This interface is intentionally kept simple to reduce the amount of work required by implementers.
  * Callers may prefer to access this functionality using the more convenient
- * {@link BoundaryIOHandlerRegistry} class instead.
+ * {@link BoundaryIOManager} class instead.
  *
  * <p><strong>Implementation note:</strong> implementations of this interface <em>must</em>
  * be thread-safe.</p>
  * @param <H> Geometric boundary type
  * @param <B> Boundary source type
- * @see <a href="https://en.wikipedia.org/wiki/Boundary_representations">Boundary representations</a>
  * @see BoundaryReadHandler
- * @see BoundaryIOHandlerRegistry
+ * @see BoundaryIOManager
+ * @see <a href="https://en.wikipedia.org/wiki/Boundary_representations">Boundary representations</a>
  */
 public interface BoundaryWriteHandler<H extends HyperplaneConvexSubset<?>, B extends BoundarySource<H>> {
 
-    /** Write all boundary information from the given source to the output stream. The output stream
-     * is <em>not</em> closed.
+    /** Write all boundary information from the given source to the output stream using the
+     * data format supported by this instance. The output stream is <em>not</em> closed.
      * @param boundarySource object containing geometric boundary information to write
      * @param out output stream to write content to; <em>not</em> closed by this method
      * @throws IOException if an I/O error occurs

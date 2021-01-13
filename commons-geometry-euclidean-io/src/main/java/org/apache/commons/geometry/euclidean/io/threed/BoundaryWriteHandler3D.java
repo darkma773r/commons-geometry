@@ -28,13 +28,14 @@ import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) in a specific data storage
  * format. This interface is intentionally kept simple to reduce the amount of work required by implementers.
  * Callers may prefer to access this functionality using the more convenient
- * {@link BoundaryIOHandlerRegistry3D} class instead.
+ * {@link BoundaryIOManager3D} class instead.
  *
  * <p><strong>Implementation note:</strong> implementations of this interface <em>must</em>
  * be thread-safe.</p>
  *
  * @see <a href="https://en.wikipedia.org/wiki/Boundary_representations">Boundary representations</a>
- * @see BoundaryIOHandlerRegistry3D
+ * @see BoundaryReadHandler3D
+ * @see BoundaryIOManager3D
  */
 public interface BoundaryWriteHandler3D extends BoundaryWriteHandler<PlaneConvexSubset, BoundarySource3D> {
 

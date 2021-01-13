@@ -19,6 +19,7 @@ package org.apache.commons.geometry.euclidean.io.threed;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
@@ -94,5 +95,21 @@ public class FacetDefinitionsTest {
 
         // act/assert
         Assertions.assertThrows(IllegalArgumentException.class, () -> FacetDefinitions.toPolygon(f, TEST_PRECISION));
+    }
+
+    @Test
+    public void testToPolygon_invalidArgs() {
+        // arrange
+        final SimpleFacetDefinition f = new SimpleFacetDefinition(Arrays.asList(
+                Vector3D.ZERO, Vector3D.ZERO, Vector3D.ZERO));
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> FacetDefinitions.toPolygon(null, TEST_PRECISION),
+                NullPointerException.class, "Facet cannot be null");
+
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> FacetDefinitions.toPolygon(f, null),
+                NullPointerException.class, "Precision context cannot be null");
     }
 }

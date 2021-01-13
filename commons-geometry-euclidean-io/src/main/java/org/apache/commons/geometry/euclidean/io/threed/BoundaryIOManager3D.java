@@ -41,6 +41,7 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
  * thread-safe.</p>
  * @see BoundaryReadHandler3D
  * @see BoundaryWriteHandler3D
+ * @see <a href="https://en.wikipedia.org/wiki/Boundary_representations">Boundary representations</a>
  */
 public class BoundaryIOManager3D extends BoundaryIOManager<
         PlaneConvexSubset,
@@ -53,7 +54,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * @param path path to obtain a reader for
      * @return facet definition reader
      * @throws IllegalArgumentException if no handler has been registered for the indicated format
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
     public FacetDefinitionReader facetDefinitionReader(final Path path) throws IOException {
         return facetDefinitionReader(path.toUri().toURL());
@@ -61,10 +62,10 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
 
     /** Get a {@link FacetDefinitionReader} for reading facet information from the given URL.
      * The data format is determined by the file extension of the argument.
-     * @param url url to read from
+     * @param url URL to read from
      * @return facet definition reader
      * @throws IllegalArgumentException if no handler has been registered for the indicated format
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
     public FacetDefinitionReader facetDefinitionReader(final URL url) throws IOException {
         final BoundaryReadHandler3D readHandler = requireReadHandler(url);
@@ -76,13 +77,13 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
 
     /** Get a {@link FacetDefinitionReader} for reading facet information from the given input stream.
      * The input stream is closed when the returned reader is closed.
+     * @param in input stream containing data in the specified format
      * @param formatName input stream data format
-     * @param in input stream
      * @return facet definition reader
      * @throws IllegalArgumentException if no handler has been registered for the given format
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
-    public FacetDefinitionReader facetDefinitionReader(final String formatName, final InputStream in)
+    public FacetDefinitionReader facetDefinitionReader(final InputStream in, final String formatName)
             throws IOException {
         final BoundaryReadHandler3D readHandler = requireReadHandler(formatName);
         return readHandler.facetDefinitionReader(in);
@@ -100,8 +101,8 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     * @param url data location
-     * @return stream providing access to the geometric data contained in the argument
+     * @param path file path to read from
+     * @return stream providing access to the facets contained in the argument
      * @throws IllegalArgumentException if the path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
@@ -122,9 +123,9 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     * @param url data location
-     * @return stream providing access to the geometric data contained in the argument
-     * @throws IllegalArgumentException if the url path does not have a file extension or the file
+     * @param url URL to read from
+     * @return stream providing access to the facets contained in the argument
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
      */
@@ -140,13 +141,14 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * The input stream is <em>not</em> closed when the returned stream is closed. An {@link IOException}
      * is thrown immediately by this method if stream creation fails. Any IO errors occurring during
      * stream iteration are wrapped with {@link java.io.UncheckedIOException}.
+     * @param in input stream containing data in the specified format; this is <em>not</em> closed when
+     *      the returned stream is closed
      * @param formatName data format of the input
-     * @param in input stream containing data in the specified format
-     * @return stream providing access to the geometric data contained in the argument
+     * @return stream providing access to the facets contained in the argument
      * @throws IllegalArgumentException if no read handler is registered for the given format
      * @throws IOException if stream creation fails
      */
-    public Stream<FacetDefinition> facets(final String formatName, final InputStream in) throws IOException {
+    public Stream<FacetDefinition> facets(final InputStream in, final String formatName) throws IOException {
         final BoundaryReadHandler3D readHandler = requireReadHandler(formatName);
         return readHandler.facets(in);
     }
@@ -163,9 +165,9 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     * @param path file path
+     * @param path file path to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the geometric data contained in the argument
+     * @return stream providing access to the triangles contained in the argument
      * @throws IllegalArgumentException if the file path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
@@ -175,7 +177,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
         return triangles(path.toUri().toURL(), precision);
     }
 
-    /** Return a {@link Stream} providing access to all triangles from the given url location.
+    /** Return a {@link Stream} providing access to all triangles from the given URL.
      * The underlying input stream is closed when the returned stream is closed. Callers should
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly closed. Ex:
@@ -187,10 +189,10 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     * @param url file location
+     * @param url URL to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the geometric data contained in the argument
-     * @throws IllegalArgumentException if the url path does not have a file extension or the file
+     * @return stream providing access to the triangles contained in the argument
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
      */
@@ -204,27 +206,28 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * The input stream is <em>not</em> closed when the returned stream is closed. An {@link IOException}
      * is thrown immediately by this method if stream creation fails. Any IO errors occurring during
      * stream iteration are wrapped with {@link java.io.UncheckedIOException}.
+     * @param in input stream containing data in the specified format; this is <em>not</em> closed when
+     *      the returned stream is closed
      * @param formatName data format of the input
-     * @param in input stream containing data in the specified format
      * @param precision precision context used for floating point comparisons
      * @return stream providing access to the triangle information from the given input stream
      * @throws IllegalArgumentException if no read handler is registered for the given format
      * @throws IOException if stream creation fails
      */
-    public Stream<Triangle3D> triangles(final String formatName, final InputStream in,
+    public Stream<Triangle3D> triangles(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
-        return boundaries(formatName, in, precision)
+        return boundaries(in, formatName, precision)
                 .flatMap(p -> p.toTriangles().stream());
     }
 
     /** Return a {@link TriangleMesh} containing all triangles from the given file path. The data
      * format is determined from the file extension of the path.
-     * @param path file path
+     * @param path file path to read from
      * @param precision precision context used for floating point comparisons
      * @return mesh containing all triangles from the given file path
      * @throws IllegalArgumentException if the file path does not have a file extension or the file
      *      extension does not match a registered data format
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
     public TriangleMesh readTriangleMesh(final Path path, final DoublePrecisionContext precision)
             throws IOException {
@@ -232,13 +235,13 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
     }
 
     /** Return a {@link TriangleMesh} containing all triangles from the given URL. The data
-     * format is determined from the file extension of the url path.
-     * @param url data file location
+     * format is determined from the file extension of the URL path.
+     * @param url URL to read from
      * @param precision precision context used for floating point comparisons
      * @return mesh containing all triangles from the given URL
-     * @throws IllegalArgumentException if the url path does not have a file extension or the file
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a registered data format
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
     public TriangleMesh readTriangleMesh(final URL url, final DoublePrecisionContext precision)
             throws IOException {
@@ -251,14 +254,14 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
 
     /** Return a {@link TriangleMesh} containing all triangles from the given input stream.
      * The input stream is <em>not</em> closed.
-     * @param formatName data format of the input
      * @param in input stream containing data in the specified format
+     * @param formatName data format of the input
      * @param precision precision context used for floating point comparisons
      * @return a mesh containing all triangles from the input stream
      * @throws IllegalArgumentException if no read handler is registered for the given format
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
-    public TriangleMesh readTriangleMesh(final String formatName, final InputStream in,
+    public TriangleMesh readTriangleMesh(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
         final BoundaryReadHandler3D readHandler = requireReadHandler(formatName);
         return readHandler.readTriangleMesh(in, precision);
@@ -284,13 +287,13 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
     /** Write the given collection of facets to the output stream. The output stream
      * is <em>not</em> closed.
      * @param facets facets to write
-     * @param formatName format name
      * @param out output stream to write to
+     * @param formatName format name
      * @throws IllegalArgumentException if no write handler is registered for the given format name
      * @throws IOException if an I/O error occurs
      */
-    public void writeFacets(final Collection<? extends FacetDefinition> facets, final String formatName,
-            final OutputStream out) throws IOException {
+    public void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out,
+            final String formatName) throws IOException {
         final BoundaryWriteHandler3D writeHandler = requireWriteHandler(formatName);
         writeHandler.writeFacets(facets, out);
     }

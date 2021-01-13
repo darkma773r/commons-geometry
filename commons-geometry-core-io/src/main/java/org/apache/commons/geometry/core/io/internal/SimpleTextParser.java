@@ -26,6 +26,7 @@ import java.util.function.IntPredicate;
 /** Class providing basic text parsing capabilities. The goals of this class are to
  * (1) provide a simple, flexible API for performing common text parsing operations and
  * (2) provide a mechanism for creating consistent and informative parsing errors.
+ * This class is not intended as a replacement for grammar-based parsers and/or lexers.
  */
 public class SimpleTextParser {
 
@@ -981,7 +982,7 @@ public class SimpleTextParser {
      * @return a new parse exception instance
      */
     protected IOException createParseError(final String msg, final Throwable cause) {
-        return new IOException(msg, cause);
+        return new ParseException(msg, cause);
     }
 
     /** Set the current token string and position.
@@ -1184,5 +1185,20 @@ public class SimpleTextParser {
         return caseSensitive ?
                 a.equals(b) :
                 a.equalsIgnoreCase(b);
+    }
+
+    /** Exception used to indicate a parsing error. */
+    private static final class ParseException extends IOException {
+
+        /** Serializable UID. */
+        private static final long serialVersionUID = 20210113L;
+
+        /** Construct a new instance with the given message and cause.
+         * @param msg exception message
+         * @param cause exception cause; may be null
+         */
+        ParseException(final String msg, final Throwable cause) {
+            super(msg, cause);
+        }
     }
 }

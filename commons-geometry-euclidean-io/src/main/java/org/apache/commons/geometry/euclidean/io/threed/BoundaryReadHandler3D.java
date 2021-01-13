@@ -30,13 +30,14 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) from a specific data storage
  * format. This interface is intentionally kept simple to reduce the amount of work required by implementers.
  * Callers may prefer to access this functionality using the more convenient
- * {@link BoundaryIOHandlerRegistry3D} class instead.
+ * {@link BoundaryIOManager3D} class instead.
  *
  * <p><strong>Implementation note:</strong> implementations of this interface <em>must</em>
  * be thread-safe.</p>
  *
  * @see <a href="https://en.wikipedia.org/wiki/Boundary_representations">Boundary representations</a>
- * @see BoundaryIOHandlerRegistry3D
+ * @see BoundaryWriteHandler3D
+ * @see BoundaryIOManager3D
  */
 public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSubset, BoundarySource3D> {
 
@@ -45,7 +46,7 @@ public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSu
      * input stream.
      * @param in input stream to read from
      * @return facet definition reader instance
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
     FacetDefinitionReader facetDefinitionReader(InputStream in) throws IOException;
 
@@ -59,7 +60,7 @@ public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSu
      * @param in input stream to read from; this is <em>not</em> closed when the returned stream is closed
      * @param precision precision context used for floating point comparisons
      * @return stream providing access to the facet information from the given input stream
-     * @throws IOException if an I/O error occurs during stream creation
+     * @throws IOException if an I/O or data format error occurs during stream creation
      */
     Stream<FacetDefinition> facets(InputStream in) throws IOException;
 
@@ -67,7 +68,7 @@ public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSu
      * @param in input stream to read from
      * @param precision precision context used for floating point comparisons
      * @return triangle mesh containing the data from the given input stream
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
     TriangleMesh readTriangleMesh(InputStream in, DoublePrecisionContext precision) throws IOException;
 }

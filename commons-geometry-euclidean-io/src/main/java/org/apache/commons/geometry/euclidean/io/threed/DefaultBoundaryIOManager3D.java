@@ -23,11 +23,12 @@ import org.apache.commons.geometry.euclidean.io.threed.text.TextBoundaryReadHand
 import org.apache.commons.geometry.euclidean.io.threed.text.TextBoundaryWriteHandler3D;
 
 /** {@link BoundaryIOManager3D} subclass that automatically registers handlers
- * for supported format types.
+ * for internally supported format types.
  */
 public class DefaultBoundaryIOManager3D extends BoundaryIOManager3D {
 
-    /** Construct a new instance with default registered read and write handlers.
+    /** Construct a new instance with default registered {@link BoundaryReadHandler3D read}
+     * and {@link BoundaryWriteHandler3D write} handlers.
      */
     public DefaultBoundaryIOManager3D() {
         registerReadHandler(IO3D.TXT, new TextBoundaryReadHandler3D());

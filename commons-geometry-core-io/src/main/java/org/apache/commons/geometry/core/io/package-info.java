@@ -14,21 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.euclidean.io.threed;
-
-import java.io.Closeable;
-import java.io.IOException;
-
-/** Interface for reading {@link FacetDefinition facet definitions} from an input source.
- * @see FacetDefinition
+/** This package contains the core interfaces and classes for <em>commons-geometry</em>
+ * IO functionality.
  */
-public interface FacetDefinitionReader extends Closeable {
-
-    /** Return the next facet definition from the input source or null if no more
-     * facets are available.
-     * @return the next facet definition or null if no more facets
-     *      are available
-     * @throws IOException if an I/O or data format error occurs
-     */
-    FacetDefinition readFacet() throws IOException;
-}
+package org.apache.commons.geometry.core.io;

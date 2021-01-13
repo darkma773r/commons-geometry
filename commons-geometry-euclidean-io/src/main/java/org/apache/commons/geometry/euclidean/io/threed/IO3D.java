@@ -67,9 +67,9 @@ public final class IO3D {
         return getDefaultManager().facetDefinitionReader(url);
     }
 
-    public static FacetDefinitionReader facetDefinitionReader(final String formatName, final InputStream in)
+    public static FacetDefinitionReader facetDefinitionReader(final InputStream in, final String formatName)
             throws IOException {
-        return getDefaultManager().facetDefinitionReader(formatName, in);
+        return getDefaultManager().facetDefinitionReader(in, formatName);
     }
 
     public static Stream<FacetDefinition> facets(final Path path) throws IOException {
@@ -80,9 +80,9 @@ public final class IO3D {
         return getDefaultManager().facets(url);
     }
 
-    public static Stream<FacetDefinition> facets(final String formatName, final InputStream in)
+    public static Stream<FacetDefinition> facets(final InputStream in, final String formatName)
             throws IOException {
-        return getDefaultManager().facets(formatName, in);
+        return getDefaultManager().facets(in, formatName);
     }
 
     public static Stream<PlaneConvexSubset> boundaries(final Path path, final DoublePrecisionContext precision)
@@ -95,9 +95,9 @@ public final class IO3D {
         return getDefaultManager().boundaries(url, precision);
     }
 
-    public static Stream<PlaneConvexSubset> boundaries(final String formatName, final InputStream in,
+    public static Stream<PlaneConvexSubset> boundaries(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
-        return getDefaultManager().boundaries(formatName, in, precision);
+        return getDefaultManager().boundaries(in, formatName, precision);
     }
 
     public static Stream<Triangle3D> triangles(final Path path, final DoublePrecisionContext precision)
@@ -110,9 +110,9 @@ public final class IO3D {
         return getDefaultManager().triangles(url, precision);
     }
 
-    public static Stream<Triangle3D> triangles(final String formatName, final InputStream in,
+    public static Stream<Triangle3D> triangles(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
-        return getDefaultManager().triangles(formatName, in, precision);
+        return getDefaultManager().triangles(in, formatName, precision);
     }
 
     public static BoundarySource3D read(final Path path, final DoublePrecisionContext precision)
@@ -125,9 +125,9 @@ public final class IO3D {
         return getDefaultManager().read(url, precision);
     }
 
-    public static BoundarySource3D read(final String formatName, final InputStream in,
+    public static BoundarySource3D read(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
-        return getDefaultManager().read(formatName, in, precision);
+        return getDefaultManager().read(in, formatName, precision);
     }
 
     public static TriangleMesh readTriangleMesh(final Path path, final DoublePrecisionContext precision)
@@ -140,9 +140,9 @@ public final class IO3D {
         return getDefaultManager().readTriangleMesh(url, precision);
     }
 
-    public static TriangleMesh readTriangleMesh(final String formatName, final InputStream in,
+    public static TriangleMesh readTriangleMesh(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
-        return getDefaultManager().readTriangleMesh(formatName, in, precision);
+        return getDefaultManager().readTriangleMesh(in, formatName, precision);
     }
 
     public static void write(final BoundarySource3D src, final Path path)
@@ -150,9 +150,9 @@ public final class IO3D {
         getDefaultManager().write(src, path);
     }
 
-    public static void write(final BoundarySource3D src, final String formatName, final OutputStream out)
+    public static void write(final BoundarySource3D src, final OutputStream out, final String formatName)
             throws IOException {
-        getDefaultManager().write(src, formatName, out);
+        getDefaultManager().write(src, out, formatName);
     }
 
     public static void writeFacets(final Collection<? extends FacetDefinition> facets, final Path path)
@@ -160,9 +160,9 @@ public final class IO3D {
         getDefaultManager().writeFacets(facets, path);
     }
 
-    public static void writeFacets(final Collection<? extends FacetDefinition> facets, final String formatName,
-            final OutputStream out) throws IOException {
-        getDefaultManager().writeFacets(facets, formatName, out);
+    public static void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out,
+            final String formatName) throws IOException {
+        getDefaultManager().writeFacets(facets, out, formatName);
     }
 
     public static BoundaryIOManager3D getDefaultManager() {

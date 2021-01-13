@@ -48,6 +48,7 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
  * @param <W> Write handler type
  * @see BoundaryReadHandler
  * @see BoundaryWriteHandler
+ * @see <a href="https://en.wikipedia.org/wiki/Boundary_representations">Boundary representations</a>
  */
 public class BoundaryIOManager<
     H extends HyperplaneConvexSubset<?>,
@@ -56,7 +57,7 @@ public class BoundaryIOManager<
     W extends BoundaryWriteHandler<H, B>> {
 
     /** Map of format names to read handlers. */
-    private final Map<String, R> readerHandlers = new HashMap<>();
+    private final Map<String, R> readHandlers = new HashMap<>();
 
     /** Map of format names to write handlers. */
     private final Map<String, W> writeHandlers = new HashMap<>();
@@ -82,8 +83,8 @@ public class BoundaryIOManager<
      * @return a set containing the formats supported for reading
      */
     public Set<String> getReadFormats() {
-        synchronized (readerHandlers) {
-            return Collections.unmodifiableSet(new HashSet<>(readerHandlers.keySet()));
+        synchronized (readHandlers) {
+            return Collections.unmodifiableSet(new HashSet<>(readHandlers.keySet()));
         }
     }
 
@@ -103,8 +104,8 @@ public class BoundaryIOManager<
      */
     public R getReadHandler(final String formatName) {
         final String normalizedFormat = normalizeFormat(formatName);
-        synchronized (readerHandlers) {
-            return readerHandlers.get(normalizedFormat);
+        synchronized (readHandlers) {
+            return readHandlers.get(normalizedFormat);
         }
     }
 
@@ -128,8 +129,8 @@ public class BoundaryIOManager<
         final String normalizedFormat = normalizeFormat(formatName);
         Objects.requireNonNull(readHandler, "Read handler cannot be null");
 
-        synchronized (readerHandlers) {
-            readerHandlers.put(normalizedFormat, readHandler);
+        synchronized (readHandlers) {
+            readHandlers.put(normalizedFormat, readHandler);
         }
     }
 
@@ -142,32 +143,32 @@ public class BoundaryIOManager<
         final String normalizedFormat = normalizeFormat(formatName);
         Objects.requireNonNull(writeHandler, "Write handler cannot be null");
 
-        synchronized (readerHandlers) {
+        synchronized (readHandlers) {
             writeHandlers.put(normalizedFormat, writeHandler);
         }
     }
 
     /** Return a {@link BoundarySource} containing all boundaries from the file at the
      * given path. The data format is determined from the file extension.
-     * @param path data file path
+     * @param path file path to read from
      * @param precision precision context used for floating point comparisons
      * @return object containing all boundaries from the file at the given path
      * @throws IllegalArgumentException if the file does not have a file extension or the file
      *      extension does not match a registered data format
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
     public B read(final Path path, final DoublePrecisionContext precision) throws IOException {
         return read(path.toUri().toURL(), precision);
     }
 
     /** Return a {@link BoundarySource} containing all boundaries from the given URL. The data
-     * format is determined from the file extension of the url path.
-     * @param url data file location
+     * format is determined from the file extension of the URL path.
+     * @param url URL to read from
      * @param precision precision context used for floating point comparisons
-     * @return object containing all boundaries from the given url resource
-     * @throws IllegalArgumentException if the url path does not have a file extension or the file
+     * @return object containing all boundaries from the given URL
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a registered data format
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
     public B read(final URL url, final DoublePrecisionContext precision) throws IOException {
         final R reader = requireReadHandler(url);
@@ -179,20 +180,20 @@ public class BoundaryIOManager<
 
     /** Return a {@link BoundarySource} containing all boundaries from the given input stream.
      * The input stream is <em>not</em> closed.
-     * @param formatName data format of the input
      * @param in input stream containing data in the specified format
+     * @param formatName data format of the input
      * @param precision precision context used for floating point comparisons
      * @return a boundary source containing the boundary information from the input stream
      * @throws IllegalArgumentException if no read handler is registered for the given format
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or data format error occurs
      */
-    public B read(final String formatName, final InputStream in,
+    public B read(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
         final R reader = requireReadHandler(formatName);
         return reader.read(in, precision);
     }
 
-    /** Return a {@link Stream} providing access to all boundaries from the file at the given path..
+    /** Return a {@link Stream} providing access to all boundaries from the file at the given path.
      * The underlying input stream is closed when the returned stream is closed. Callers should
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly closed. Ex:
@@ -204,7 +205,7 @@ public class BoundaryIOManager<
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     * @param path data file path
+     * @param path file path to read from
      * @param precision precision context used for floating point comparisons
      * @return stream providing access to the boundary information from the file at the given path
      * @throws IllegalArgumentException if the path does not have a file extension or the file
@@ -228,10 +229,10 @@ public class BoundaryIOManager<
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     * @param url data file location
+     * @param url URL to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the boundary information from the given url resource
-     * @throws IllegalArgumentException if the url path does not have a file extension or the file
+     * @return stream providing access to the boundary information from the given URL
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
      */
@@ -248,14 +249,14 @@ public class BoundaryIOManager<
      * The input stream is <em>not</em> closed when the returned stream is closed. An {@link IOException}
      * is thrown immediately by this method if stream creation fails. Any IO errors occurring during
      * stream iteration are wrapped with {@link java.io.UncheckedIOException}.
-     * @param formatName data format of the input
      * @param in input stream containing data in the specified format
+     * @param formatName data format of the input
      * @param precision precision context used for floating point comparisons
      * @return stream providing access to the boundary information from the given input stream
      * @throws IllegalArgumentException if no read handler is registered for the given format
      * @throws IOException if stream creation fails
      */
-    public Stream<H> boundaries(final String formatName, final InputStream in,
+    public Stream<H> boundaries(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
         final R reader = requireReadHandler(formatName);
         return reader.boundaries(in, precision);
@@ -265,7 +266,7 @@ public class BoundaryIOManager<
      * is determined by the file extension of the target path. If the target path already exists,
      * it is overwritten.
      * @param src boundary source containing the boundaries to write
-     * @param path path to write to
+     * @param path file path to write to
      * @throws IllegalArgumentException if the target file does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if an I/O error occurs
@@ -281,12 +282,12 @@ public class BoundaryIOManager<
     /** Write all boundaries from {@code src} to the given output stream. The output stream
      * is <em>not</em> closed.
      * @param src boundary source containing the boundaries to write
-     * @param formatName data format name; not case-sensitive
      * @param out output stream to write to
+     * @param formatName data format name; not case-sensitive
      * @throws IllegalArgumentException if no write handler is registered for the given format name
      * @throws IOException if an I/O error occurs
      */
-    public void write(final B src, final String formatName, final OutputStream out)
+    public void write(final B src, final OutputStream out, final String formatName)
             throws IOException {
         final W writer = requireWriteHandler(formatName);
         writer.write(src, out);
@@ -307,9 +308,9 @@ public class BoundaryIOManager<
     }
 
     /** Get the {@link BoundaryReadHandler read handler} registered for data format indicated
-     * by the URL file extension.
-     * @param url url to get read handler for
-     * @return read handler registered for the indicated format
+     * by the URL path file extension.
+     * @param url URL to get a read handler for
+     * @return read handler registered for the format indicated by the URL
      * @throws IllegalArgumentException if no handler has been registered for the indicated format
      */
     protected R requireReadHandler(final URL url) {
@@ -333,7 +334,7 @@ public class BoundaryIOManager<
 
     /** Get the {@link BoundaryWriteHandler write handler} registered for the format indicated by the
      * path file extension.
-     * @param path path to get the write handler for
+     * @param path path to get a write handler for
      * @return write handler registered for the indicated format
      * @throws IllegalArgumentException if no handler has been registered for the indicated format
      */
@@ -342,11 +343,11 @@ public class BoundaryIOManager<
         return requireWriteHandler(formatName);
     }
 
-    /** Get the data format indicated by the given file name or path, throwing an exception if one cannot
+    /** Get the data format name indicated by the given file name or path, throwing an exception if one cannot
      * be determined. The file extension is used as the format name.
      * @param name file name or path
      * @return the data format indicated by the file name or path
-     * @throws IllegalArgumentException if no data format can be determine
+     * @throws IllegalArgumentException if no data format can be determined
      */
     protected String getFormatForFileName(final String name) {
         final String ext = GeometryIOUtils.getFileExtension(name);
@@ -358,8 +359,8 @@ public class BoundaryIOManager<
         return ext;
     }
 
-    /** Get an input stream for reading the content of the given URL resource.
-     * @param url url to get an input stream for
+    /** Get an input stream for reading the content of the given URL.
+     * @param url URL to get an input stream for
      * @return input stream for reading the content of the URL
      * @throws IOException if the stream cannot be created
      */
