@@ -318,7 +318,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            OBJWriter.MeshBuffer buf = meshWriter.createMeshBuffer();
+            OBJWriter.MeshBuffer buf = meshWriter.meshBuffer();
 
             // act
             buf.add(new SimpleFacetDefinition(Arrays.asList(
@@ -351,7 +351,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            OBJWriter.MeshBuffer buf = meshWriter.createMeshBuffer(2);
+            OBJWriter.MeshBuffer buf = meshWriter.meshBuffer(2);
 
             // act
             buf.add(new SimpleFacetDefinition(Arrays.asList(
@@ -386,7 +386,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            OBJWriter.MeshBuffer buf = meshWriter.createMeshBuffer(2);
+            OBJWriter.MeshBuffer buf = meshWriter.meshBuffer(2);
 
             // act
             meshWriter.writeVertex(Vector3D.ZERO);
@@ -477,6 +477,33 @@ public class OBJWriterTest {
             "v 0 0 1\n" +
             "f 1 2 3\n" +
             "f 1 2 4\n", writer.getBuffer().toString());
+    }
+
+    @Test
+    public void testWriteBoundaries_nonMeshArgument_smallBatchSize() throws IOException {
+        // arrange
+        final BoundarySource3D src = BoundarySource3D.of(
+                    Planes.triangleFromVertices(Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(0, 1, 0), TEST_PRECISION),
+                    Planes.triangleFromVertices(Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(0, 0, 1), TEST_PRECISION)
+                );
+
+        final StringWriter writer = new StringWriter();
+
+        // act
+        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            meshWriter.writeBoundaries(src, 1);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "v 0 0 0\n" +
+            "v 1 0 0\n" +
+            "v 0 1 0\n" +
+            "f 1 2 3\n" +
+            "v 0 0 0\n" +
+            "v 1 0 0\n" +
+            "v 0 0 1\n" +
+            "f 4 5 6\n", writer.getBuffer().toString());
     }
 
     @Test

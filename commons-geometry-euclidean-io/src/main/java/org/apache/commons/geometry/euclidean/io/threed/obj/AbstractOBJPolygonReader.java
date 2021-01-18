@@ -16,19 +16,50 @@
  */
 package org.apache.commons.geometry.euclidean.io.threed.obj;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
 
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 
-public abstract class AbstractOBJReader implements AutoCloseable {
+/** Abstract base class for types that read OBJ polygon content using
+ * {@link PolygonOBJParser}.
+ */
+public abstract class AbstractOBJPolygonReader implements Closeable {
+
+    /** Underlying reader. */
     private final Reader reader;
 
+    /** OBJ polygon parser. */
     private final PolygonOBJParser parser;
 
-    AbstractOBJReader(final Reader reader) {
+    /** Construct a new instance that reads OBJ content from the given reader.
+     * @param reader reader to read characters from
+     */
+    protected AbstractOBJPolygonReader(final Reader reader) {
         this.reader = reader;
         this.parser = new PolygonOBJParser(reader);
+    }
+
+    /** Get the flag indicating whether or not an {@link IOException} will be thrown
+     * if the OBJ content contains any keywords defining non-polygon geometric content
+     * (ex: {@code curv}). If false, non-polygon data is ignored.
+     * @return flag indicating whether or not an {@link IOException} will be thrown
+     *      if non-polygon content is encountered
+     * @see PolygonOBJParser#getFailOnNonPolygonKeywords()
+     */
+    public boolean getFailOnNonPolygonKeywords() {
+        return parser.getFailOnNonPolygonKeywords();
+    }
+
+    /** Set the flag indicating whether or not an {@link IOException} will be thrown
+     * if the OBJ content contains any keywords defining non-polygon geometric content
+     * (ex: {@code curv}). If set to false, non-polygon data is ignored.
+     * @param fail flag indicating whether or not an {@link IOException} will be thrown
+     *      if non-polygon content is encountered
+     */
+    public void setFailOnNonPolygonKeywords(final boolean fail) {
+        parser.setFailOnNonPolygonKeywords(fail);
     }
 
     /** {@inheritDoc} */
@@ -37,6 +68,10 @@ public abstract class AbstractOBJReader implements AutoCloseable {
         reader.close();
     }
 
+    /** Return the next face from the OBJ content or null if no face is found.
+     * @return the next face from the OBJ content or null if no face is found
+     * @throws IOException if an I/O or data format error occurs
+     */
     protected PolygonOBJParser.Face readFace() throws IOException {
         String keyword;
         while (parser.nextKeyword()) {
@@ -57,7 +92,13 @@ public abstract class AbstractOBJReader implements AutoCloseable {
         return null;
     }
 
+    /** Method called when a vertex is found in the OBJ content.
+     * @param vertex vertex value
+     */
     protected abstract void handleVertex(final Vector3D vertex);
 
+    /** Method called when a normal is found in the OBJ content.
+     * @param normal normal value
+     */
     protected abstract void handleNormal(final Vector3D normal);
 }

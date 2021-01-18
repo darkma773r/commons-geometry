@@ -14,10 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.euclidean.io.threed.text;
+package org.apache.commons.geometry.euclidean.io.threed.txt;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -34,7 +35,7 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
  * facet, with one facet defined per line. Facet vertices are defined by listing their
  * {@code x}, {@code y}, and {@code z} components in that order. At least 3 vertices are
  * required for each facet but more can be specified. The facet normal is defined implicitly
- * from the facet vertices using the right-hand rule.
+ * from the facet vertices using the right-hand rule (i.e. vertices are arranged counter-clockwise).
  *
  * <p>Delimiters can be configured for both {@link #getVertexComponentSeparator() vertex components} and
  * {@link #getVertexSeparator() vertices}. This allows a wide range of outputs to be configured, from standard
@@ -75,19 +76,22 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
 public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
 
     /** Vertex and vertex component separator used in the CSV format. */
-    private static final String CSV_SEPARATOR = ",";
+    static final String CSV_SEPARATOR = ",";
+
+    /** Default CSV decimal format pattern stirng. */
+    static final String CSV_DECIMAL_PATTERN = "0.0#####";
 
     /** Number of vertices required per facet in the CSV format. */
-    private static final int CSV_FACET_VERTEX_COUNT = 3;
+    static final int CSV_FACET_VERTEX_COUNT = 3;
 
     /** Default vertex component separator. */
-    private static final String DEFAULT_VERTEX_COMPONENT_SEPARATOR = " ";
+    static final String DEFAULT_VERTEX_COMPONENT_SEPARATOR = " ";
 
     /** Default vertex separator. */
-    private static final String DEFAULT_VERTEX_SEPARATOR = "; ";
+    static final String DEFAULT_VERTEX_SEPARATOR = "; ";
 
     /** Default facet vertex count. */
-    private static final int DEFAULT_FACET_VERTEX_COUNT = -1;
+    static final int DEFAULT_FACET_VERTEX_COUNT = -1;
 
     /** Default comment token. */
     private static final String DEFAULT_COMMENT_TOKEN = "# ";
@@ -193,8 +197,8 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
 
     /** Write a comment to the output.
      * @param comment comment string to write
-     * @throws IOException if an I/O error occurs
      * @throws IllegalStateException if the configured {@link #getCommentToken() comment token} is null
+     * @throws IOException if an I/O error occurs
      */
     public void writeComment(final String comment) throws IOException {
         if (commentToken == null) {
@@ -216,12 +220,15 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
         writeNewLine();
     }
 
-    /** Write all boundaries in the argument to the output.
+    /** Write all boundaries in the argument to the output. If the
+     * {@link #getFacetVertexCount() facet vertex count} has been set to {@code 3}, then each
+     * boundary is converted to triangles before being written. Otherwise, the boundaries are
+     * written as-is.
      * @param src object providing the boundaries to write
-     * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if any boundary has infinite size or a
-     *      {@link #getFacetVertexCount() facet vertex count} has been configured and the number of required
-     *      vertices does not match the number present in one of the boundaries
+     *      {@link #getFacetVertexCount() facet vertex count} has been configured and a boundary
+     *      cannot be represented using the required number of vertices
+     * @throws IOException if an I/O error occurs
      */
     public void write(final BoundarySource3D src) throws IOException {
         try (final Stream<PlaneConvexSubset> stream = src.boundaryStream()) {
@@ -234,13 +241,13 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
 
     /** Write the vertices defining the argument to the output. If the
      * {@link #getFacetVertexCount() facet vertex count} has been set to {@code 3}, then the convex subset
-     * is converted to triangles before being written to the output. Otherwise, the convex subset vertices
-     * are written as-is.
+     * is converted to triangles before being written to the output. Otherwise, the argument
+     * vertices are written as-is.
      * @param convexSubset convex subset to write
-     * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if the argument has infinite size or a
      *      {@link #getFacetVertexCount() facet vertex count} has been configured and the number of required
      *      vertices does not match the number present in the argument
+     * @throws IOException if an I/O error occurs
      */
     public void write(final PlaneConvexSubset convexSubset) throws IOException {
         if (convexSubset.isInfinite()) {
@@ -261,10 +268,10 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
 
     /** Write the vertices in the argument to the output.
      * @param facet facet containing the vertices to write
-     * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if a {@link #getFacetVertexCount() facet vertex count}
      *      has been configured and the number of required vertices does not match the number
      *      present in the argument
+     * @throws IOException if an I/O error occurs
      */
     public void write(final FacetDefinition facet) throws IOException {
         write(facet.getVertices());
@@ -275,10 +282,10 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
      * {@link #getVertexComponentSeparator() vertex component separator} and vertices are separated with the
      * configured {@link #getVertexSeparator() vertex separator}.
      * @param vertices vertices to write
-     * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if the vertex list contains less than 3 vertices or a
      *      {@link #getFacetVertexCount() facet vertex count} has been configured and the number of required
-     *      vertices does not match that given
+     *      vertices does not match the number given
+     * @throws IOException if an I/O error occurs
      * @see #getVertexComponentSeparator()
      * @see #getVertexSeparator()
      * @see #getFacetVertexCount()
@@ -316,14 +323,14 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
     }
 
     /** Construct a new instance configured to write CSV output to the given writer.
-     * The returned instance has the following characteristics:
+     * The returned instance has the following configuration:
      * <ul>
      *  <li>Vertex separator and vertex components separator are set to the "," string.</li>
-     *  <li>Comments are disabled (ie, comment token is set to null).</li>
+     *  <li>Comments are disabled (i.e., comment token is set to null).</li>
      *  <li>Facet vertex count is set to 3 to ensure a consistent number of columns.</li>
-     *  <li>The {@link java.text.DecimalFormat#setMinimumFractionDigits(int) minimum fraction digits}
-     *      for the instance's decimal format is set to 1 to ensure that all values are interpreted as
-     *      floating point numbers.</li>
+     *  <li>Floating point numbers are formatted using the {@link DecimalFormat#DecimalFormat(String) pattern}
+     *      {@value #CSV_DECIMAL_PATTERN}, which includes at least one fractional digit to ensure that all values
+     *      are interpreted as floating point numbers.</li>
      * </ul>
      * This configuration produces output similar to the following:
      * <pre>
@@ -337,7 +344,7 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
     public static TextFacetDefinitionWriter csvFormat(final Writer writer) {
         final TextFacetDefinitionWriter fdWriter = new TextFacetDefinitionWriter(writer);
 
-        fdWriter.getDecimalFormat().setMinimumFractionDigits(1);
+        fdWriter.setDecimalFormat(new DecimalFormat(CSV_DECIMAL_PATTERN));
 
         fdWriter.setVertexComponentSeparator(CSV_SEPARATOR);
         fdWriter.setVertexSeparator(CSV_SEPARATOR);

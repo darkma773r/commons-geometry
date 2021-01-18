@@ -63,6 +63,13 @@ public class IO3DTest {
     public Path tempDir;
 
     @Test
+    public void scratch() {
+        System.out.println(IO3D.class);
+        System.out.println("--");
+        System.out.println(IO3D.getDefaultManager());
+    }
+
+    @Test
     public void testReadWriteFacets_facetDefinitionReader() throws Exception {
         // act/assert
         testReadWriteWithPath(

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.euclidean.io.threed.text;
+package org.apache.commons.geometry.euclidean.io.threed.txt;
 
 import java.io.IOException;
 import java.io.StringWriter;

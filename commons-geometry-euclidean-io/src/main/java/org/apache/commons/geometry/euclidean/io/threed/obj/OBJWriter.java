@@ -129,6 +129,12 @@ public final class OBJWriter extends AbstractTextFormatWriter {
         writeFaceWithOffsets(0, vertexIndices, 0, null);
     }
 
+    /** Write a face with the given 0-based vertex indices and 0-based normal index. The normal
+     * index is applied to all face vertices.
+     * @param vertexIndices 0-based vertex indices
+     * @param normalIndex 0-based normal index
+     * @throws IOException if an I/O error occurs
+     */
     public void writeFace(final int[] vertexIndices, final int normalIndex) throws IOException {
         final int[] normalIndices = new int[vertexIndices.length];
         Arrays.fill(normalIndices, normalIndex);
@@ -150,33 +156,44 @@ public final class OBJWriter extends AbstractTextFormatWriter {
         writeFaceWithOffsets(0, vertexIndices, 0, normalIndices);
     }
 
-    /** Write the boundaries present in the given boundary source. If the argument is a {@link Mesh},
-     * it is written using {@link #writeMesh(Mesh)}. Otherwise, each boundary is written to the output
-     * separately.
-     * @param boundarySource boundary source containing the boundaries to write to the output
+    /** Write the boundaries present in the given boundary source using a {@link MeshBuffer}
+     * with an unlimited size.
+     * @param src boundary source containing the boundaries to write to the output
      * @throws IllegalArgumentException if any boundary in the argument is infinite
      * @throws IOException if an I/O error occurs
+     * @see #meshBuffer(int)
+     * @see #writeMesh(Mesh)
      */
-    public void writeBoundaries(final BoundarySource3D boundarySource) throws IOException {
-        if (boundarySource instanceof Mesh) {
-            // write directly as a mesh
-            writeMesh((Mesh<?>) boundarySource);
-        } else {
-            // write using a buffer
-            final MeshBuffer buffer = createMeshBuffer();
-
-            try (final Stream<PlaneConvexSubset> stream = boundarySource.boundaryStream()) {
-                final Iterator<PlaneConvexSubset> it = stream.iterator();
-                while (it.hasNext()) {
-                    buffer.add(it.next());
-                }
-            }
-
-            buffer.flush();
-        }
+    public void writeBoundaries(final BoundarySource3D src) throws IOException {
+        writeBoundaries(src, -1);
     }
 
-    /** Write a mesh to the output. All vertices and faces in the mesh are written.
+    /** Write the boundaries present in the given boundary source using a {@link MeshBuffer} with
+     * the given {@code batchSize}.
+     * @param src boundary source containing the boundaries to write to the output
+     * @param batchSize batch size to use for the mesh buffer; pass {@code -1} to use a buffer
+     *      of unlimited size
+     * @throws IllegalArgumentException if any boundary in the argument is infinite
+     * @throws IOException if an I/O error occurs
+     * @see #meshBuffer(int)
+     * @see #writeMesh(Mesh)
+     */
+    public void writeBoundaries(final BoundarySource3D src, final int batchSize)
+            throws IOException {
+        final MeshBuffer buffer = meshBuffer(batchSize);
+
+        try (final Stream<PlaneConvexSubset> stream = src.boundaryStream()) {
+            final Iterator<PlaneConvexSubset> it = stream.iterator();
+            while (it.hasNext()) {
+                buffer.add(it.next());
+            }
+        }
+
+        buffer.flush();
+    }
+
+    /** Write a mesh to the output. All vertices and faces are written exactly as found. For example,
+     * if a vertex is duplicated in the argument, it will also be duplicated in the output.
      * @param mesh the mesh to write
      * @throws IOException if an I/O error occurs
      */
@@ -197,11 +214,21 @@ public final class OBJWriter extends AbstractTextFormatWriter {
      * mesh but at the most of higher memory usage during writing.
      * @return new mesh buffer instance
      */
-    public MeshBuffer createMeshBuffer() {
-        return createMeshBuffer(-1);
+    public MeshBuffer meshBuffer() {
+        return meshBuffer(-1);
     }
 
-    public MeshBuffer createMeshBuffer(final int batchSize) {
+    /** Create a new {@link MeshBuffer} instance with the given batch size. The batch size determines
+     * how many faces will be stored in the buffer before being flushed. Faces stored in the buffer
+     * share duplicate vertices, reducing the number of vertices required in the file. The {@code batchSize}
+     * is therefore a trade-off between higher memory usage (high batch size) and a higher probability of duplicate
+     * vertices present in the output (low batch size). A batch size of {@code -1} indicates an unlimited
+     * batch size.
+     * @param batchSize number of faces to store in the buffer before automatically flushing to the
+     *      output
+     * @return new mesh buffer instance
+     */
+    public MeshBuffer meshBuffer(final int batchSize) {
         return new MeshBuffer(batchSize);
     }
 
@@ -292,18 +319,38 @@ public final class OBJWriter extends AbstractTextFormatWriter {
         writeNewLine();
     }
 
+    /** Class used to produce OBJ mesh content from sequences of facets. As facets are added to the buffer
+     * their vertices and normals are converted to OBJ vertex and normal definition strings. Vertices and normals
+     * that produce equal definition strings are shared among all of the facets in the buffer. This process
+     * converts the facet sequence into a compact mesh suitable for writing as OBJ file content.
+     *
+     * <p>Ideally, no vertices or normals would be duplicated in an OBJ file. However, when working with very large
+     * geometries it may not be desirable to store values in memory before writing to the output. This
+     * is where the {@code batchSize} property comes into play. The {@code batchSize} represents the maximum
+     * number of faces that the buffer will store before automatically flushing its contents to the output and
+     * resetting its state. This reduces the amount of memory used by the buffer at the cost of increasing the
+     * likelihood of duplicate vertices and/or normals in the output.</p>
+     */
     public final class MeshBuffer {
 
+        /** Maximum number of faces that will be stored in the buffer before automatically flushing. */
         private final int batchSize;
 
+        /** Map of vertex definition strings to their local index. */
         private final Map<String, Integer> vertexMap = new LinkedHashMap<>();
 
+        /** Map of vertex normals to their local index. */
         private final Map<String, Integer> normalMap = new LinkedHashMap<>();
 
+        /** List of local face vertex indices. */
         private final List<int[]> faceVertices;
 
+        /** Map of local face indices to their local normal index. */
         private final Map<Integer, Integer> faceToNormalMap = new HashMap<>();
 
+        /** Construct a new mesh buffer instance with the given batch size.
+         * @param batchSize batch size; set to -1 to indicate an unlimited size
+         */
         MeshBuffer(final int batchSize) {
             this.batchSize = batchSize;
             this.faceVertices = batchSize > -1 ?
@@ -311,10 +358,23 @@ public final class OBJWriter extends AbstractTextFormatWriter {
                     new ArrayList<>();
         }
 
+        /** Add a facet to this buffer. If {@code batchSize} is greater than {@code -1} and the number
+         * of currently stored faces is greater than or equal to {@code batchSize}, then the buffer
+         * content is written to the output and the buffer state is reset.
+         * @param facet facet to add
+         * @throws IOException if an I/O error occurs
+         */
         public void add(final FacetDefinition facet) throws IOException {
             addFace(facet.getVertices(), facet.getNormal());
         }
 
+        /** Add a boundary to this buffer. If {@code batchSize} is greater than {@code -1} and the number
+         * of currently stored faces is greater than or equal to {@code batchSize}, then the buffer
+         * content is written to the output and the buffer state is reset.
+         * @param boundary boundary to add
+         * @throws IllegalArgumentException if the boundary is infinite
+         * @throws IOException if an I/O error occurs
+         */
         public void add(final PlaneConvexSubset boundary) throws IOException {
             if (boundary.isInfinite()) {
                 throw new IllegalArgumentException("OBJ input geometry cannot be infinite: " + boundary);
@@ -323,46 +383,25 @@ public final class OBJWriter extends AbstractTextFormatWriter {
             }
         }
 
-        public int addVertex(final Vector3D vertex) throws IOException {
+        /** Add a vertex to the buffer.
+         * @param vertex vertex to add
+         * @return the index of the vertex in the buffer
+         */
+        public int addVertex(final Vector3D vertex) {
             return addToMap(vertex, vertexMap);
         }
 
-        public int addNormal(final Vector3D normal) throws IOException {
+        /** Add a normal to the buffer.
+         * @param normal normal to add
+         * @return the index of the normal in the buffer
+         */
+        public int addNormal(final Vector3D normal) {
             return addToMap(normal, normalMap);
         }
 
-        private int addToMap(final Vector3D vertex, final Map<String, Integer> map) {
-            final String str = createVectorString(vertex);
-
-            Integer idx = map.get(str);
-            if (idx == null) {
-                idx = map.size();
-                map.put(str, idx);
-            }
-
-            return idx;
-        }
-
-        private void addFace(final List<Vector3D> vertices, final Vector3D normal) throws IOException {
-            final int faceIndex = faceVertices.size();
-
-            final int[] vertexIndices = new int[vertices.size()];
-
-            int i = -1;
-            for (final Vector3D vertex : vertices) {
-                vertexIndices[++i] = addVertex(vertex);
-            }
-            faceVertices.add(vertexIndices);
-
-            if (normal != null) {
-                faceToNormalMap.put(faceIndex, addNormal(normal));
-            }
-
-            if (batchSize > -1 && faceVertices.size() >= batchSize) {
-                flush();
-            }
-        }
-
+        /** Flush the buffer content to the output and reset its state.
+         * @throws IOException if an I/O error occurs
+         */
         public void flush() throws IOException {
             final int vertexOffset = vertexCount;
             final int normalOffset = normalCount;
@@ -398,6 +437,53 @@ public final class OBJWriter extends AbstractTextFormatWriter {
             reset();
         }
 
+        /** Convert the given vector to on OBJ definition string and add it to the
+         * map if not yet present. The mapped index of the vector is returned.
+         * @param vec vector to add
+         * @param map map to add the vector to
+         * @return the index the vector entry is mapped to
+         */
+        private int addToMap(final Vector3D vec, final Map<String, Integer> map) {
+            final String str = createVectorString(vec);
+
+            Integer idx = map.get(str);
+            if (idx == null) {
+                idx = map.size();
+                map.put(str, idx);
+            }
+
+            return idx;
+        }
+
+        /** Add a face to the buffer. If {@code batchSize} is greater than {@code -1} and the number
+         * of currently stored faces is greater than or equal to {@code batchSize}, then the buffer
+         * content is written to the output and the buffer state is reset.
+         * @param vertices face vertices
+         * @param normal face normal; may be null
+         * @throws IOException if an I/O error occurs
+         */
+        private void addFace(final List<Vector3D> vertices, final Vector3D normal) throws IOException {
+            final int faceIndex = faceVertices.size();
+
+            final int[] vertexIndices = new int[vertices.size()];
+
+            int i = -1;
+            for (final Vector3D vertex : vertices) {
+                vertexIndices[++i] = addVertex(vertex);
+            }
+            faceVertices.add(vertexIndices);
+
+            if (normal != null) {
+                faceToNormalMap.put(faceIndex, addNormal(normal));
+            }
+
+            if (batchSize > -1 && faceVertices.size() >= batchSize) {
+                flush();
+            }
+        }
+
+        /** Reset the buffer state.
+         */
         private void reset() {
             vertexMap.clear();
             normalMap.clear();

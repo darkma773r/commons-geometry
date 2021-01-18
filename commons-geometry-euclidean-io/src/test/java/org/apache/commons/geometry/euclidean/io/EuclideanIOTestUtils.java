@@ -16,30 +16,18 @@
  */
 package org.apache.commons.geometry.euclidean.io;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.geometry.core.RegionLocation;
-import org.apache.commons.geometry.core.io.test.CloseCountInputStream;
-import org.apache.commons.geometry.core.io.test.CloseCountReader;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinition;
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinitionReader;
-import org.apache.commons.geometry.euclidean.io.threed.FacetDefinitions;
-import org.apache.commons.geometry.euclidean.threed.BoundaryList3D;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
-import org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D;
 import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
@@ -50,25 +38,29 @@ import org.junit.jupiter.api.Assertions;
  */
 public final class EuclideanIOTestUtils {
 
-    public static final double DEFAULT_EPS = 1e-10;
-
-    public static final DoublePrecisionContext DEFAULT_PRECISION =
-            new EpsilonDoublePrecisionContext(DEFAULT_EPS);
-
     /** Utility class; no instantiation. */
     private EuclideanIOTestUtils() {}
 
+    /** Return a test cube.
+     * @param precision precision context used for floating point comparisons
+     * @return a test cube
+     */
     public static Parallelepiped cube(final DoublePrecisionContext precision) {
         return Parallelepiped.unitCube(precision);
     }
 
-    public static void assertCube(final BoundarySource3D src, final double tolerance) {
+    /** Assert that the given boundary source defines a cube equivalent to that returned by
+     * {@link #cube(DoublePrecisionContext)}.
+     * @param src boundary source to test
+     * @param eps floating point comparison epsilon
+     */
+    public static void assertCube(final BoundarySource3D src, final double eps) {
         final RegionBSPTree3D tree = src.toTree();
 
-        Assertions.assertEquals(1, tree.getSize(), tolerance);
-        Assertions.assertEquals(6, tree.getBoundarySize(), tolerance);
+        Assertions.assertEquals(1, tree.getSize(), eps);
+        Assertions.assertEquals(6, tree.getBoundarySize(), eps);
 
-        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), tolerance);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), eps);
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
                 Vector3D.ZERO,
@@ -88,6 +80,10 @@ public final class EuclideanIOTestUtils {
                 Vector3D.of(1, 0.5, 0.5), Vector3D.of(-1, 0.5, 0.5));
     }
 
+    /** Return a test cube with a sphere removed from the center.
+     * @param precision precision context used for floating point comparisons
+     * @return a test cube with a sphere removed from the center
+     */
     public static RegionBSPTree3D cubeMinusSphere(final DoublePrecisionContext precision) {
         final RegionBSPTree3D tree = Parallelepiped.unitCube(precision).toTree();
         final Sphere sphere = Sphere.from(Vector3D.ZERO, 0.65, precision);
@@ -97,13 +93,18 @@ public final class EuclideanIOTestUtils {
         return tree;
     }
 
-    public static void assertCubeMinusSphere(final BoundarySource3D src, final double tolerance) {
+    /** Assert that the given boundary source defines a region equivalent to that returned by
+     * {@link #cubeMinusSphere(DoublePrecisionContext)}.
+     * @param src boundary source to test
+     * @param eps floating point comparison epsilon
+     */
+    public static void assertCubeMinusSphere(final BoundarySource3D src, final double eps) {
         final RegionBSPTree3D tree = src.toTree();
 
-        Assertions.assertEquals(0.11509505362599505, tree.getSize(), tolerance);
-        Assertions.assertEquals(4.585561662505128, tree.getBoundarySize(), tolerance);
+        Assertions.assertEquals(0.11509505362599505, tree.getSize(), eps);
+        Assertions.assertEquals(4.585561662505128, tree.getBoundarySize(), eps);
 
-        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), tolerance);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), eps);
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
                 Vector3D.of(0.45, 0.45, 0.45), Vector3D.of(0.45, 0.45, -0.45),
@@ -127,7 +128,7 @@ public final class EuclideanIOTestUtils {
     /** Read all facets available from the given facet reader.
      * @param reader instance to read facets from
      * @return list containing all facets available from the given facet reader
-     * @throws IOException
+     * @throws IOException if an I/O or data format error occurs
      */
     public static List<FacetDefinition> readAll(final FacetDefinitionReader reader) throws IOException {
         final List<FacetDefinition> facets = new ArrayList<>();
@@ -138,25 +139,6 @@ public final class EuclideanIOTestUtils {
         }
 
         return facets;
-    }
-
-    /** Get the bytes of the classpath resource at the given location.
-     * @param location classpath location to read
-     * @return the bytes of the resource at the given location
-     * @throws IOException if the resource cannot be found or an I/O error occurs
-     */
-    public static byte[] resourceBytes(final String location) throws IOException {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        final byte[] buf = new byte[1024];
-        int read;
-        try (InputStream in = resourceStream(location)) {
-            while ((read = in.read(buf)) > -1) {
-                out.write(buf, 0, read);
-            }
-        }
-
-        return out.toByteArray();
     }
 
     /** Get the classpath resource at the given location, throwing an exception if it could not be found.
@@ -173,46 +155,18 @@ public final class EuclideanIOTestUtils {
         return url;
     }
 
-    /** Get a {@link InputStream} for reading the content of the classpath resource at the given location.
-     * @param location classpath location
-     * @return input stream for reading the content of the classpath resource at the given location
-     * @throws IOException if the resource cannot be found or the stream cannot be constructed
+    /** Assert that the facet definition contains the given vertices in order.
+     * @param facet facet to test
+     * @param expectedVertices expected vertices
+     * @param eps floating point comparision epsilon
      */
-    public static CloseCountInputStream resourceStream(final String location) throws IOException {
-        return new CloseCountInputStream(resource(location).openStream());
-    }
+    public static void assertFacetVertices(final FacetDefinition facet, final List<Vector3D> expectedVertices,
+            final double eps) {
+        List<Vector3D> vertices = facet.getVertices();
+        Assertions.assertEquals(expectedVertices.size(), vertices.size());
 
-    /** Get a {@link Reader} for reading the content of the classpath resource at the given location. The
-     * UTF-8 charset is used to read the content.
-     * @param location classpath location
-     * @return reader for the classpath resource at the given location
-     * @throws IOException if the resource cannot be found or the reader cannot be constructed
-     */
-    public static CloseCountReader resourceReader(final String location)
-            throws IOException {
-        return resourceReader(location, StandardCharsets.UTF_8);
-    }
-
-    /** Get a {@link Reader} for reading the content of the classpath resource at the given location.
-     * @param location classpath location
-     * @param charset input character set
-     * @return reader for the classpath resource at the given location
-     * @throws IOException if the resource cannot be found or the reader cannot be constructed
-     */
-    public static CloseCountReader resourceReader(final String location, final Charset charset)
-            throws IOException {
-        final InputStream in = resourceStream(location);
-
-        return new CloseCountReader(new BufferedReader(new InputStreamReader(in, charset)));
-    }
-
-    public static BoundaryList3D toBoundaryList(final Iterable<? extends FacetDefinition> facets,
-            final DoublePrecisionContext precision) {
-        final List<ConvexPolygon3D> polys = new ArrayList<>();
-        for (final FacetDefinition f : facets) {
-            polys.add(FacetDefinitions.toPolygon(f, precision));
+        for (int i = 0; i < expectedVertices.size(); ++i) {
+            EuclideanTestUtils.assertCoordinatesEqual(expectedVertices.get(i), facet.getVertices().get(i), eps);
         }
-
-        return new BoundaryList3D(polys);
     }
 }

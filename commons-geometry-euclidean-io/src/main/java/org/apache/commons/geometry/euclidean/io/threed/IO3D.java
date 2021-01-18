@@ -30,6 +30,9 @@ import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 
+/** Utility class providing convenient access to 3D IO functionality. The static read and write functions delegate
+ * to a default {@link #getDefaultManager() DefaultBoundaryIOManager3D} instance.
+ */
 public final class IO3D {
 
     /** String representing the OBJ file format.
@@ -59,117 +62,393 @@ public final class IO3D {
     /** Utility class; no instantiation. */
     private IO3D() {}
 
+    /** Get a {@link FacetDefinitionReader} for reading facet information from the given file path.
+     * The data format is determined by the file extension of the argument.
+     * @param path path to obtain a reader for
+     * @return facet definition reader
+     * @throws IllegalArgumentException if no handler has been registered with the
+     *      {@link #getDefaultManager() default manager} for the indicated format
+     * @throws IOException if an I/O or data format error occurs
+     */
     public static FacetDefinitionReader facetDefinitionReader(final Path path) throws IOException {
         return getDefaultManager().facetDefinitionReader(path);
     }
 
+    /** Get a {@link FacetDefinitionReader} for reading facet information from the given URL.
+     * The data format is determined by the file extension of the argument.
+     * @param url URL to read from
+     * @return facet definition reader
+     * @throws IllegalArgumentException if no handler has been registered with the
+     *      {@link #getDefaultManager() default manager} for the indicated format
+     * @throws IOException if an I/O or data format error occurs
+     */
     public static FacetDefinitionReader facetDefinitionReader(final URL url) throws IOException {
         return getDefaultManager().facetDefinitionReader(url);
     }
 
+    /** Get a {@link FacetDefinitionReader} for reading facet information from the given input stream.
+     * The input stream is closed when the returned reader is closed.
+     * @param in input stream containing data in the specified format
+     * @param formatName input stream data format
+     * @return facet definition reader
+     * @throws IllegalArgumentException if no handler has been registered with the
+     *      {@link #getDefaultManager() default manager} for the given format
+     * @throws IOException if an I/O or data format error occurs
+     */
     public static FacetDefinitionReader facetDefinitionReader(final InputStream in, final String formatName)
             throws IOException {
         return getDefaultManager().facetDefinitionReader(in, formatName);
     }
 
+    /** Return a {@link Stream} providing access to all facets from the given file path.
+     * The underlying input stream is closed when the returned stream is closed. Callers should
+     * therefore use the returned stream in a try-with-resources statement to ensure that all
+     * resources are properly closed. Ex:
+     * <pre>
+     *  try (Stream&lt;FacetDefinition&gt; stream = manager.facets(path)) {
+     *      // access stream content
+     *  }
+     * </pre>
+     *
+     * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
+     * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
+     * @param path file path to read from
+     * @return stream providing access to the facets contained in the argument
+     * @throws IllegalArgumentException if the path does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if stream creation fails
+     */
     public static Stream<FacetDefinition> facets(final Path path) throws IOException {
         return getDefaultManager().facets(path);
     }
 
+    /** Return a {@link Stream} providing access to all facets from the given URL.
+     * The underlying input stream is closed when the returned stream is closed. Callers should
+     * therefore use the returned stream in a try-with-resources statement to ensure that all
+     * resources are properly closed. Ex:
+     * <pre>
+     *  try (Stream&lt;FacetDefinition&gt; stream = manager.facets(url)) {
+     *      // access stream content
+     *  }
+     * </pre>
+     *
+     * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
+     * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
+     * @param url URL to read from
+     * @return stream providing access to the facets contained in the argument
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if stream creation fails
+     */
     public static Stream<FacetDefinition> facets(final URL url) throws IOException {
         return getDefaultManager().facets(url);
     }
 
+    /** Return a {@link Stream} providing access to all facets from the given input stream.
+     * The input stream is <em>not</em> closed when the returned stream is closed. An {@link IOException}
+     * is thrown immediately by this method if stream creation fails. Any IO errors occurring during
+     * stream iteration are wrapped with {@link java.io.UncheckedIOException}.
+     * @param in input stream containing data in the specified format; this is <em>not</em> closed when
+     *      the returned stream is closed
+     * @param formatName data format of the input
+     * @return stream providing access to the facets contained in the argument
+     * @throws IllegalArgumentException if no read handler has been registered with the
+     *      {@link #getDefaultManager() default manager} for the given format
+     * @throws IOException if stream creation fails
+     */
     public static Stream<FacetDefinition> facets(final InputStream in, final String formatName)
             throws IOException {
         return getDefaultManager().facets(in, formatName);
     }
 
+    /** Return a {@link Stream} providing access to all boundaries from the given file path.
+     * The underlying input stream is closed when the returned stream is closed. Callers should
+     * therefore use the returned stream in a try-with-resources statement to ensure that all
+     * resources are properly closed. Ex:
+     * <pre>
+     *  try (Stream&lt;PlaneConvexSubset&gt; stream = manager.boundaries(path, precision)) {
+     *      // access stream content
+     *  }
+     * </pre>
+     *
+     * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
+     * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
+     * @param path file path to read from
+     * @param precision precision context used for floating point comparisons
+     * @return stream providing access to the triangles contained in the argument
+     * @throws IllegalArgumentException if the file path does not have a file extension or the file
+     *      extension does not match a data format with the {@link #getDefaultManager() default manager}
+     * @throws IOException if stream creation fails
+     */
     public static Stream<PlaneConvexSubset> boundaries(final Path path, final DoublePrecisionContext precision)
             throws IOException {
         return getDefaultManager().boundaries(path, precision);
     }
 
+    /** Return a {@link Stream} providing access to all boundaries from the given URL.
+     * The underlying input stream is closed when the returned stream is closed. Callers should
+     * therefore use the returned stream in a try-with-resources statement to ensure that all
+     * resources are properly closed. Ex:
+     * <pre>
+     *  try (Stream&lt;PlaneConvexSubset&gt; stream = manager.boundaries(url, precision)) {
+     *      // access stream content
+     *  }
+     * </pre>
+     *
+     * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
+     * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
+     * @param url URL to read from
+     * @param precision precision context used for floating point comparisons
+     * @return stream providing access to the triangles contained in the argument
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
+     *      extension does not match a data format registerd with the {@link #getDefaultManager() default manager}
+     * @throws IOException if stream creation fails
+     */
     public static Stream<PlaneConvexSubset> boundaries(final URL url, final DoublePrecisionContext precision)
             throws IOException {
         return getDefaultManager().boundaries(url, precision);
     }
 
+    /** Return a {@link Stream} providing access to all boundaries from the given input stream.
+     * The input stream is <em>not</em> closed when the returned stream is closed. An {@link IOException}
+     * is thrown immediately by this method if stream creation fails. Any IO errors occurring during
+     * stream iteration are wrapped with {@link java.io.UncheckedIOException}.
+     * @param in input stream containing data in the specified format; this is <em>not</em> closed when
+     *      the returned stream is closed
+     * @param formatName data format of the input
+     * @param precision precision context used for floating point comparisons
+     * @return stream providing access to the triangle information from the given input stream
+     * @throws IllegalArgumentException if no read handler is registered with the
+     *      {@link #getDefaultManager() default manager} for the given format
+     * @throws IOException if stream creation fails
+     */
     public static Stream<PlaneConvexSubset> boundaries(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
         return getDefaultManager().boundaries(in, formatName, precision);
     }
 
+    /** Return a {@link Stream} providing access to all triangles from the given file path.
+     * The underlying input stream is closed when the returned stream is closed. Callers should
+     * therefore use the returned stream in a try-with-resources statement to ensure that all
+     * resources are properly closed. Ex:
+     * <pre>
+     *  try (Stream&lt;Triangle3D&gt; stream = manager.triangles(path)) {
+     *      // access stream content
+     *  }
+     * </pre>
+     *
+     * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
+     * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
+     * @param path file path to read from
+     * @param precision precision context used for floating point comparisons
+     * @return stream providing access to the triangles contained in the argument
+     * @throws IllegalArgumentException if the file path does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if stream creation fails
+     */
     public static Stream<Triangle3D> triangles(final Path path, final DoublePrecisionContext precision)
             throws IOException {
         return getDefaultManager().triangles(path, precision);
     }
 
+    /** Return a {@link Stream} providing access to all triangles from the given URL.
+     * The underlying input stream is closed when the returned stream is closed. Callers should
+     * therefore use the returned stream in a try-with-resources statement to ensure that all
+     * resources are properly closed. Ex:
+     * <pre>
+     *  try (Stream&lt;Triangle3D&gt; stream = manager.triangles(url, precision)) {
+     *      // access stream content
+     *  }
+     * </pre>
+     *
+     * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
+     * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
+     * @param url URL to read from
+     * @param precision precision context used for floating point comparisons
+     * @return stream providing access to the triangles contained in the argument
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if stream creation fails
+     */
     public static Stream<Triangle3D> triangles(final URL url, final DoublePrecisionContext precision)
             throws IOException {
         return getDefaultManager().triangles(url, precision);
     }
 
+    /** Return a {@link Stream} providing access to all triangles from the given input stream.
+     * The input stream is <em>not</em> closed when the returned stream is closed. An {@link IOException}
+     * is thrown immediately by this method if stream creation fails. Any IO errors occurring during
+     * stream iteration are wrapped with {@link java.io.UncheckedIOException}.
+     * @param in input stream containing data in the specified format; this is <em>not</em> closed when
+     *      the returned stream is closed
+     * @param formatName data format of the input
+     * @param precision precision context used for floating point comparisons
+     * @return stream providing access to the triangle information from the given input stream
+     * @throws IllegalArgumentException if no read handler is registered the
+     *      {@link #getDefaultManager() default manager}for the given format
+     * @throws IOException if stream creation fails
+     */
     public static Stream<Triangle3D> triangles(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
         return getDefaultManager().triangles(in, formatName, precision);
     }
 
+    /** Return a {@link BoundarySource3D} containing all boundaries from the file at the
+     * given path. The data format is determined from the file extension.
+     * @param path file path to read from
+     * @param precision precision context used for floating point comparisons
+     * @return object containing all boundaries from the file at the given path
+     * @throws IllegalArgumentException if the file does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if an I/O or data format error occurs
+     */
     public static BoundarySource3D read(final Path path, final DoublePrecisionContext precision)
             throws IOException {
         return getDefaultManager().read(path, precision);
     }
 
+    /** Return a {@link BoundarySource3D} containing all boundaries from the given URL. The data
+     * format is determined from the file extension of the URL path.
+     * @param url URL to read from
+     * @param precision precision context used for floating point comparisons
+     * @return object containing all boundaries from the given URL
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if an I/O or data format error occurs
+     */
     public static BoundarySource3D read(final URL url, final DoublePrecisionContext precision)
             throws IOException {
         return getDefaultManager().read(url, precision);
     }
 
+    /** Return a {@link BoundarySource3D} containing all boundaries from the given input stream.
+     * The input stream is <em>not</em> closed.
+     * @param in input stream containing data in the specified format
+     * @param formatName data format of the input
+     * @param precision precision context used for floating point comparisons
+     * @return a boundary source containing the boundary information from the input stream
+     * @throws IllegalArgumentException if no read handler is registered with the
+     *      {@link #getDefaultManager() default manager} for the given format
+     * @throws IOException if an I/O or data format error occurs
+     */
     public static BoundarySource3D read(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
         return getDefaultManager().read(in, formatName, precision);
     }
 
+    /** Return a {@link TriangleMesh} containing all triangles from the given file path. The data
+     * format is determined from the file extension of the path.
+     * @param path file path to read from
+     * @param precision precision context used for floating point comparisons
+     * @return mesh containing all triangles from the given file path
+     * @throws IllegalArgumentException if the file path does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if an I/O or data format error occurs
+     */
     public static TriangleMesh readTriangleMesh(final Path path, final DoublePrecisionContext precision)
             throws IOException {
         return getDefaultManager().readTriangleMesh(path, precision);
     }
 
+    /** Return a {@link TriangleMesh} containing all triangles from the given URL. The data
+     * format is determined from the file extension of the URL path.
+     * @param url URL to read from
+     * @param precision precision context used for floating point comparisons
+     * @return mesh containing all triangles from the given URL
+     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if an I/O or data format error occurs
+     */
     public static TriangleMesh readTriangleMesh(final URL url, final DoublePrecisionContext precision)
             throws IOException {
         return getDefaultManager().readTriangleMesh(url, precision);
     }
 
+    /** Return a {@link TriangleMesh} containing all triangles from the given input stream.
+     * The input stream is <em>not</em> closed.
+     * @param in input stream containing data in the specified format
+     * @param formatName data format of the input
+     * @param precision precision context used for floating point comparisons
+     * @return a mesh containing all triangles from the input stream
+     * @throws IllegalArgumentException if no read handler is registered with the
+     *      {@link #getDefaultManager() default manager} for the given format
+     * @throws IOException if an I/O or data format error occurs
+     */
     public static TriangleMesh readTriangleMesh(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
         return getDefaultManager().readTriangleMesh(in, formatName, precision);
     }
 
+    /** Write all boundaries from {@code src} to the given file path. The data format
+     * is determined by the file extension of the target path. If the target path already exists,
+     * it is overwritten.
+     * @param src boundary source containing the boundaries to write
+     * @param path file path to write to
+     * @throws IllegalArgumentException if the target file does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if an I/O error occurs
+     */
     public static void write(final BoundarySource3D src, final Path path)
             throws IOException {
         getDefaultManager().write(src, path);
     }
 
+    /** Write all boundaries from {@code src} to the given output stream. The output stream
+     * is <em>not</em> closed.
+     * @param src boundary source containing the boundaries to write
+     * @param out output stream to write to
+     * @param formatName data format name; not case-sensitive
+     * @throws IllegalArgumentException if no write handler is registered with the
+     *      {@link #getDefaultManager() default manager} for the given format name
+     * @throws IOException if an I/O error occurs
+     */
     public static void write(final BoundarySource3D src, final OutputStream out, final String formatName)
             throws IOException {
         getDefaultManager().write(src, out, formatName);
     }
 
+    /** Write the given facets to the file path. The data format is determined by the file extension of
+     * the target path. If the target path already exists, it is overwritten.
+     * @param facets facets to write
+     * @param path path to write to
+     * @throws IllegalArgumentException if the target file does not have a file extension or the file
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if an I/O error occurs
+     */
     public static void writeFacets(final Collection<? extends FacetDefinition> facets, final Path path)
             throws IOException {
         getDefaultManager().writeFacets(facets, path);
     }
 
+    /** Write the given collection of facets to the output stream. The output stream
+     * is <em>not</em> closed.
+     * @param facets facets to write
+     * @param out output stream to write to
+     * @param formatName format name
+     * @throws IllegalArgumentException if no write handler is registered with the
+     *      {@link #getDefaultManager() default manager} for the given format name
+     * @throws IOException if an I/O error occurs
+     */
     public static void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out,
             final String formatName) throws IOException {
         getDefaultManager().writeFacets(facets, out, formatName);
     }
 
+    /** Get the default {@link BoundaryIOManager3D} instance.
+     * @return the default {@link BoundaryIOManager3D} instance
+     */
     public static BoundaryIOManager3D getDefaultManager() {
         return ManagerHolder.DEFAULT_MANAGER;
     }
 
+    /** Class holding a reference to the default IO manager instance.
+     */
     private static final class ManagerHolder {
+
+        /** Default IO manager instance. */
         private static final BoundaryIOManager3D DEFAULT_MANAGER = new DefaultBoundaryIOManager3D();
+
+        /** Utility class; no instantiation. */
+        private ManagerHolder() {}
     }
 }

@@ -14,26 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.euclidean.io.threed.text;
+package org.apache.commons.geometry.euclidean.io.threed.txt;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
+import org.apache.commons.geometry.core.io.test.CloseCountReader;
 import org.apache.commons.geometry.euclidean.io.EuclideanIOTestUtils;
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinition;
-import org.apache.commons.geometry.euclidean.io.threed.FacetDefinitionReader;
-import org.apache.commons.geometry.euclidean.io.threed.FacetDefinitionReaderTestBase;
-import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase {
+public class TextFacetDefinitionReaderTest {
+
+    private static final double TEST_EPS = 1e-10;
 
     @Test
     public void testPropertyDefaults() {
@@ -84,11 +82,11 @@ public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase
         // assert
         Assertions.assertEquals(1, facets.size());
 
-        assertFacet(facets.get(0),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(0), Arrays.asList(
                 Vector3D.of(1, 2, 3),
                 Vector3D.of(40, 50, 60),
                 Vector3D.of(0.07, 0.08, 0.09),
-                Vector3D.of(10.1, -11.02, 12));
+                Vector3D.of(10.1, -11.02, 12)), TEST_EPS);
     }
 
     @Test
@@ -105,23 +103,23 @@ public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase
         // assert
         Assertions.assertEquals(3, facets.size());
 
-        assertFacet(facets.get(0),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(0), Arrays.asList(
                 Vector3D.of(1, 2, 3),
                 Vector3D.of(4, 5, 6),
                 Vector3D.of(7, 8, 9),
-                Vector3D.of(10, 11, 12));
+                Vector3D.of(10, 11, 12)), TEST_EPS);
 
-        assertFacet(facets.get(1),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(1), Arrays.asList(
                 Vector3D.of(1, 1, 1),
                 Vector3D.of(2, 2, 2),
                 Vector3D.of(3, 3, 3),
                 Vector3D.of(4, 4, 4),
-                Vector3D.of(5, 5, 5));
+                Vector3D.of(5, 5, 5)), TEST_EPS);
 
-        assertFacet(facets.get(2),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(2), Arrays.asList(
                 Vector3D.of(6, 6, 6),
                 Vector3D.of(6, 6, 6),
-                Vector3D.of(6, 6, 6));
+                Vector3D.of(6, 6, 6)), TEST_EPS);
     }
 
     @Test
@@ -143,20 +141,20 @@ public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase
         // assert
         Assertions.assertEquals(3, facets.size());
 
-        assertFacet(facets.get(0),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(0), Arrays.asList(
                 Vector3D.of(1, 2, 3),
                 Vector3D.of(4, 5, 6),
-                Vector3D.of(7, 8, 9));
+                Vector3D.of(7, 8, 9)), TEST_EPS);
 
-        assertFacet(facets.get(1),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(1), Arrays.asList(
                 Vector3D.of(1, 1, 1),
                 Vector3D.of(2, 2, 2),
-                Vector3D.of(3, 3, 3));
+                Vector3D.of(3, 3, 3)), TEST_EPS);
 
-        assertFacet(facets.get(2),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(2), Arrays.asList(
                 Vector3D.of(5, 5, 5),
                 Vector3D.of(5, 5, 5),
-                Vector3D.of(5, 5, 5));
+                Vector3D.of(5, 5, 5)), TEST_EPS);
     }
 
     @Test
@@ -180,20 +178,20 @@ public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase
         // assert
         Assertions.assertEquals(3, facets.size());
 
-        assertFacet(facets.get(0),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(0), Arrays.asList(
                 Vector3D.of(1, 2, 3),
                 Vector3D.of(4, 5, 6),
-                Vector3D.of(7, 8, 9));
+                Vector3D.of(7, 8, 9)), TEST_EPS);
 
-        assertFacet(facets.get(1),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(1), Arrays.asList(
                 Vector3D.of(1, 1, 1),
                 Vector3D.of(2, 2, 2),
-                Vector3D.of(3, 3, 3));
+                Vector3D.of(3, 3, 3)), TEST_EPS);
 
-        assertFacet(facets.get(2),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(2), Arrays.asList(
                 Vector3D.of(5, 5, 5),
                 Vector3D.of(5, 5, 5),
-                Vector3D.of(5, 5, 5));
+                Vector3D.of(5, 5, 5)), TEST_EPS);
     }
 
     @Test
@@ -217,20 +215,20 @@ public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase
         // assert
         Assertions.assertEquals(3, facets.size());
 
-        assertFacet(facets.get(0),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(0), Arrays.asList(
                 Vector3D.of(1, 2, 3),
                 Vector3D.of(4, 5, 6),
-                Vector3D.of(7, 8, 9));
+                Vector3D.of(7, 8, 9)), TEST_EPS);
 
-        assertFacet(facets.get(1),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(1), Arrays.asList(
                 Vector3D.of(1, 1, 1),
                 Vector3D.of(2, 2, 2),
-                Vector3D.of(3, 3, 3));
+                Vector3D.of(3, 3, 3)), TEST_EPS);
 
-        assertFacet(facets.get(2),
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(2), Arrays.asList(
                 Vector3D.of(5, 5, 5),
                 Vector3D.of(5, 5, 5),
-                Vector3D.of(5, 5, 5));
+                Vector3D.of(5, 5, 5)), TEST_EPS);
     }
 
     @Test
@@ -303,50 +301,19 @@ public class TextFacetDefinitionReaderTest extends FacetDefinitionReaderTestBase
     }
 
     @Test
-    public void testCube_csv() throws IOException {
+    public void testClose() throws IOException {
         // arrange
-        try (Reader reader = EuclideanIOTestUtils.resourceReader("/models/cube.csv")) {
-            TextFacetDefinitionReader facetReader = new TextFacetDefinitionReader(reader);
+        final CloseCountReader countReader = new CloseCountReader(new StringReader(""));
+        final TextFacetDefinitionReader reader = new TextFacetDefinitionReader(countReader);
 
-            // act
-            List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(facetReader);
+        // act
+        reader.close();
 
-            // assert
-            Assertions.assertEquals(12, facets.size());
-
-            RegionBSPTree3D tree = EuclideanIOTestUtils.toBoundaryList(facets, MODEL_TEST_PRECISION).toTree();
-
-            Assertions.assertEquals(1.0, tree.getSize(), MODEL_TEST_EPS);
-            EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, tree.getCentroid(), MODEL_TEST_EPS);
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected List<String> getModelResourceLocations(final String baseName) {
-        return Arrays.asList(
-                "/models/" + baseName + ".txt",
-                "/models/" + baseName + ".csv");
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected FacetDefinitionReader createFacetDefinitionReader(final Reader reader) {
-        return new TextFacetDefinitionReader(reader);
+        // assert
+        Assertions.assertEquals(1, countReader.getCloseCount());
     }
 
     private static TextFacetDefinitionReader facetReader(final String content) {
         return new TextFacetDefinitionReader(new StringReader(content));
-    }
-
-    private static void assertFacet(final FacetDefinition facet, final Vector3D... pts) {
-        Assertions.assertNull(facet.getNormal());
-
-        List<Vector3D> vertices = facet.getVertices();
-        Assertions.assertEquals(pts.length, vertices.size());
-
-        for (int i = 0; i < pts.length; ++i) {
-            EuclideanTestUtils.assertCoordinatesEqual(pts[i], facet.getVertices().get(i), MODEL_TEST_EPS);
-        }
     }
 }

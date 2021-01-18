@@ -20,14 +20,14 @@ import java.util.List;
 
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 
-/** Interface containing values (vertices and normal) used to define a convex,
+/** Interface containing values (vertices and optional normal) used to define a convex,
  * finite polygon in 3D space. In contrast to the similar
  * {@link org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D ConvexPolygon3D}
  * class, no guarantees are made regarding the geometric validity of the data.
  * For example, instances may contain vertices that do not lie in the same plane
  * or have normals that are not unit length or point in an unexpected direction.
  * This is lack of validation is intentional, since a primary purpose of this
- * interfaces is to allow access to raw, possibly invalid, geometric data from input
+ * interface is to allow access to raw, possibly invalid, geometric data from input
  * sources.
  * @see org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D
  * @see FacetDefinitions

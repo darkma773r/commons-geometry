@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.euclidean.io.threed.text;
+package org.apache.commons.geometry.euclidean.io.threed.txt;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -40,7 +40,7 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
  * <em>p2</em> those of the second, and so on. At least 3 vertices are required for each
  * facet but more can be specified as long as all {@code x, y, z} components are provided
  * for each vertex. The facet normal is defined implicitly from the facet vertices using
- * the right-hand rule.
+ * the right-hand rule (i.e. vertices are arranged counter-clockwise).
  *
  * <p><strong>Delimiters</strong></p>
  * <p>Vertex coordinate values may be separated by any character that is
@@ -48,7 +48,7 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
  * not need to be consistent between (or even within) lines and does not
  * need to be configured in the reader. This design provides configuration-free
  * support for common formats such as CSV as well as other formats designed
- * for human readability. See then end section for format examples.</p>
+ * for human readability.</p>
  *
  * <p><strong>Comments</strong></p>
  * <p>Comments are supported through use of the {@link #getCommentToken() comment token}
@@ -103,7 +103,8 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Construct a new instance with the given reader and comment token.
      * @param reader reader to read characters from
-     * @param commentToken comment token string
+     * @param commentToken comment token string; set to null to disable comment parsing
+     * @throws IllegalArgumentException if {@code commentToken} is non-null and contains whitespace
      */
     public TextFacetDefinitionReader(final Reader reader, final String commentToken) {
         this.reader = reader;
@@ -125,7 +126,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
      * or the empty string to disable comment parsing. Comment tokens may not contain
      * whitespace.
      * @param commentToken token to set
-     * @throws IllegalArgumentException if the argument contains whitespace
+     * @throws IllegalArgumentException if the argument is non-null and contains whitespace
      */
     public void setCommentToken(final String commentToken) {
         if (commentToken != null && containsWhitespace(commentToken)) {
@@ -140,9 +141,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
                 -1;
     }
 
-    /** {@inheritDoc}
-     * @throws IllegalStateException if parsing fails
-     */
+    /** {@inheritDoc} */
     @Override
     public FacetDefinition readFacet() throws IOException {
         discardNonDataLines();
@@ -167,8 +166,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
     /** Internal method to read a facet definition starting from the current parser
      * position. Empty lines (including lines containing only comments) are discarded.
      * @return facet definition or null if the end of input is reached
-     * @throws IOException if an I/O error occurs
-     * @throws IllegalStateException if parsing fails
+     * @throws IOException if an I/O or parsing error occurs
      */
     private FacetDefinition readFacetInternal() throws IOException {
         final Vector3D p1 = readVector();
@@ -199,8 +197,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Read a vector starting from the current parser position.
      * @return vector read from the parser
-     * @throws IOException if an I/O error occurs
-     * @throws IllegalStateException if parsing fails
+     * @throws IOException if an I/O or parsing error occurs
      */
     private Vector3D readVector() throws IOException {
         final double x = readDouble();
@@ -214,8 +211,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Read a double starting from the current parser position.
      * @return double value read from the parser
-     * @throws IOException if an I/O error occurs
-     * @throws IllegalStateException if parsing fails
+     * @throws IOException if an I/O or parsing error occurs
      */
     private double readDouble() throws IOException {
         return parser
@@ -225,7 +221,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Discard lines that do not contain any data. This includes empty lines
      * and lines that only contain comments.
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or parsing error occurs
      */
     private void discardNonDataLines() throws IOException {
         parser.discardLineWhitespace();
@@ -241,7 +237,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Discard a sequence of non-data characters on the current line starting
      * from the current parser position.
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or parsing error occurs
      */
     private void discardNonData() throws IOException {
         parser.discard(c ->
@@ -258,7 +254,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Return true if the parser is positioned at the start of the comment token.
      * @return true if the parser is positioned at the start of the comment token.
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O or parsing error occurs
      */
     private boolean foundComment() throws IOException {
         return hasCommentToken &&

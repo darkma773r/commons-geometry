@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.geometry.core.io.internal.GeometryIOUtils;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
@@ -28,20 +30,42 @@ import org.apache.commons.geometry.euclidean.io.threed.AbstractBoundaryReadHandl
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinitionReader;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 
+/** {@link org.apache.commons.geometry.euclidean.io.threed.BoundaryReadHandler3D BoundaryReadHandler3D}
+ * implementation for reading OBJ data. Input is read using the UTF-8 charset by default.
+ */
 public class OBJBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
+
+    /** Charset for use with OBJ content. */
+    static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
+    /** Charset for reading text input. */
+    private Charset charset = DEFAULT_CHARSET;
+
+    /** Get the text input charset.
+     * @return text input charset
+     */
+    public Charset getCharset() {
+        return charset;
+    }
+
+    /** Set the text input charset.
+     * @param charset text input charset
+     */
+    public void setCharset(final Charset charset) {
+        this.charset = charset;
+    }
 
     /** {@inheritDoc} */
     @Override
     public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
-        final Reader reader = new BufferedReader(new InputStreamReader(in, OBJConstants.DEFAULT_CHARSET));
-        return new OBJFacetDefinitionReader(reader);
+        return new OBJFacetDefinitionReader(new BufferedReader(new InputStreamReader(in, charset)));
     }
 
     /** {@inheritDoc} */
     @Override
     public TriangleMesh readTriangleMesh(final InputStream in, final DoublePrecisionContext precision)
             throws IOException {
-        final Reader reader = GeometryIOUtils.createCloseShieldReader(in, OBJConstants.DEFAULT_CHARSET);
+        final Reader reader = GeometryIOUtils.createCloseShieldReader(in, charset);
         try (OBJTriangleMeshReader meshReader = new OBJTriangleMeshReader(reader, precision)) {
             return meshReader.readTriangleMesh();
         }

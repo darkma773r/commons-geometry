@@ -26,12 +26,20 @@ import org.apache.commons.geometry.euclidean.io.threed.FacetDefinitionReader;
 import org.apache.commons.geometry.euclidean.io.threed.SimpleFacetDefinition;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 
-public class OBJFacetDefinitionReader extends AbstractOBJReader implements FacetDefinitionReader {
+/** Class for reading {@link FacetDefinition facets} from OBJ content.
+ */
+public class OBJFacetDefinitionReader extends AbstractOBJPolygonReader
+    implements FacetDefinitionReader {
 
+    /** List of vertices encountered in the input. */
     private final List<Vector3D> vertices = new ArrayList<>();
 
+    /** List of normals encountered in the input. */
     private final List<Vector3D> normals = new ArrayList<>();
 
+    /** Construct a new instance that reads OBJ content from the given reader.
+     * @param reader reader to read from
+     */
     public OBJFacetDefinitionReader(final Reader reader) {
         super(reader);
     }

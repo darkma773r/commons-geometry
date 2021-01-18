@@ -1,5 +1,5 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
+a` * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.euclidean.io.threed.text;
+package org.apache.commons.geometry.euclidean.io.threed.txt;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,7 +26,8 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.geometry.euclidean.io.threed.AbstractBoundaryReadHandler3D;
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinitionReader;
 
-/** Handler class for reading simple text and CSV data.
+/** {@link org.apache.commons.geometry.euclidean.io.threed.BoundaryReadHandler3D BoundaryReadHandler3D}
+ * implementation for reading simple text and CSV data. Input is read using the UTF-8 charset by default.
  * @see TextFacetDefinitionReader
  */
 public class TextBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
@@ -34,9 +35,26 @@ public class TextBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
     /** Charset for use with txt and csv files. */
     static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
+    /** Charset for reading text input. */
+    private Charset charset = DEFAULT_CHARSET;
+
+    /** Get the text input charset.
+     * @return text input charset
+     */
+    public Charset getCharset() {
+        return charset;
+    }
+
+    /** Set the text input charset.
+     * @param charset text input charset
+     */
+    public void setCharset(final Charset charset) {
+        this.charset = charset;
+    }
+
     /** {@inheritDoc} */
     @Override
     public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
-        return new TextFacetDefinitionReader(new BufferedReader(new InputStreamReader(in, DEFAULT_CHARSET)));
+        return new TextFacetDefinitionReader(new BufferedReader(new InputStreamReader(in, charset)));
     }
 }

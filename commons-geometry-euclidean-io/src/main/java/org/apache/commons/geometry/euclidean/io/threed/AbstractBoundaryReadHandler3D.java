@@ -36,7 +36,7 @@ import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 
-/** Base class for {@link BoundaryReadHandler3D} implementations.
+/** Abstract base class for {@link BoundaryReadHandler3D} implementations.
  */
 public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandler3D {
 

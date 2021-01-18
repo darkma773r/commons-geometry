@@ -158,7 +158,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly closed. Ex:
      * <pre>
-     *  try (Stream&lt;Triangle3D&gt; stream = manager.triangles(path)) {
+     *  try (Stream&lt;Triangle3D&gt; stream = manager.triangles(path, precision)) {
      *      // access stream content
      *  }
      * </pre>
@@ -182,7 +182,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly closed. Ex:
      * <pre>
-     *  try (Stream&lt;Triangle3D&gt; stream = manager.triangles(url)) {
+     *  try (Stream&lt;Triangle3D&gt; stream = manager.triangles(url, precision)) {
      *      // access stream content
      *  }
      * </pre>

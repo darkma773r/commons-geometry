@@ -26,8 +26,7 @@ import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 
 /** Basic interface for writing 3D geometric boundary representations
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) in a specific data storage
- * format. This interface is intentionally kept simple to reduce the amount of work required by implementers.
- * Callers may prefer to access this functionality using the more convenient
+ * format. Callers may prefer to access this functionality using the more convenient
  * {@link BoundaryIOManager3D} class instead.
  *
  * <p><strong>Implementation note:</strong> implementations of this interface <em>must</em>

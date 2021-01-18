@@ -1,5 +1,5 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
+a` * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
@@ -14,14 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.euclidean.io.threed.text;
-
-import java.io.Writer;
-
-public class CSVBoundaryWriteHandler3D extends TextBoundaryWriteHandler3D {
-
-    @Override
-    protected TextFacetDefinitionWriter createWriter(final Writer writer) {
-        return TextFacetDefinitionWriter.csvFormat(writer);
-    }
-}
+/** This package contains types for reading and writing the
+ * <a href="https://en.wikipedia.org/wiki/Wavefront_.obj_file">OBJ</a>
+ * geometric data file format.
+ * @see <a href="https://en.wikipedia.org/wiki/Wavefront_.obj_file">Wavefront OBJ</a>
+ */
+package org.apache.commons.geometry.euclidean.io.threed.obj;

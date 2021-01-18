@@ -18,12 +18,17 @@ package org.apache.commons.geometry.euclidean.io.threed;
 
 import org.apache.commons.geometry.euclidean.io.threed.obj.OBJBoundaryReadHandler3D;
 import org.apache.commons.geometry.euclidean.io.threed.obj.OBJBoundaryWriteHandler3D;
-import org.apache.commons.geometry.euclidean.io.threed.text.CSVBoundaryWriteHandler3D;
-import org.apache.commons.geometry.euclidean.io.threed.text.TextBoundaryReadHandler3D;
-import org.apache.commons.geometry.euclidean.io.threed.text.TextBoundaryWriteHandler3D;
+import org.apache.commons.geometry.euclidean.io.threed.txt.TextBoundaryReadHandler3D;
+import org.apache.commons.geometry.euclidean.io.threed.txt.TextBoundaryWriteHandler3D;
 
 /** {@link BoundaryIOManager3D} subclass that automatically registers handlers
- * for internally supported format types.
+ * for internally supported format types. The following formats are supported:
+ * <ul>
+ *  <li>{@link IO3D#OBJ OBJ}</li>
+ *  <li>{@link IO3D#TXT TXT}</li>
+ *  <li>{@link IO3D#CSV CSV}</li>
+ * </ul>
+ * The UTF-8 charset is used to read and write the OBJ, TXT, and CSV data formats.
  */
 public class DefaultBoundaryIOManager3D extends BoundaryIOManager3D {
 
@@ -35,7 +40,7 @@ public class DefaultBoundaryIOManager3D extends BoundaryIOManager3D {
         registerWriteHandler(IO3D.TXT, new TextBoundaryWriteHandler3D());
 
         registerReadHandler(IO3D.CSV, new TextBoundaryReadHandler3D());
-        registerWriteHandler(IO3D.CSV, new CSVBoundaryWriteHandler3D());
+        registerWriteHandler(IO3D.CSV, TextBoundaryWriteHandler3D.csvFormat());
 
         registerReadHandler(IO3D.OBJ, new OBJBoundaryReadHandler3D());
         registerWriteHandler(IO3D.OBJ, new OBJBoundaryWriteHandler3D());

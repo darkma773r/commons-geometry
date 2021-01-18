@@ -27,18 +27,33 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 
-public class OBJTriangleMeshReader extends AbstractOBJReader {
+/** Class for reading OBJ content as a {@link TriangleMesh triangle mesh}.
+ */
+public class OBJTriangleMeshReader extends AbstractOBJPolygonReader {
 
+    /** Object used to construct the mesh. */
     private final SimpleTriangleMesh.Builder meshBuilder;
 
+    /** List of normals discovered in the input. */
     private final List<Vector3D> normals = new ArrayList<>();
 
+    /** Construct a new instance that reads OBJ content from the given reader.
+     * @param reader reader to read from
+     * @param precision precision context used to compare floating point numbers
+     */
     public OBJTriangleMeshReader(final Reader reader, final DoublePrecisionContext precision) {
         super(reader);
 
         this.meshBuilder = SimpleTriangleMesh.builder(precision);
     }
 
+    /** Return a {@link TriangleMesh triangle mesh} constructed from all of the OBJ content
+     * from the underlying reader. Non-triangle faces are converted to triangles using a simple
+     * triangle fan. All vertices present in the OBJ content are also present in the returned mesh,
+     * regardless of whether or not they are used in a face.
+     * @return triangle mesh containing all data from the OBJ content
+     * @throws IOException if an I/O or data format error occurs
+     */
     public TriangleMesh readTriangleMesh() throws IOException {
         PolygonOBJParser.Face face;
         Vector3D definedNormal;
