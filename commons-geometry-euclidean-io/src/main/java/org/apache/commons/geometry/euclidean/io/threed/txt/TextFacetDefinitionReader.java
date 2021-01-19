@@ -279,7 +279,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
      * @return true if {@code str} contains any whitespace characters
      */
     private static boolean containsWhitespace(final String str) {
-        for (char ch : str.toCharArray()) {
+        for (final char ch : str.toCharArray()) {
             if (Character.isWhitespace(ch)) {
                 return true;
             }

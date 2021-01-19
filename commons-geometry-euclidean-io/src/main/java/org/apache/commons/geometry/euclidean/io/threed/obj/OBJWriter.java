@@ -122,8 +122,10 @@ public final class OBJWriter extends AbstractTextFormatWriter {
 
     /** Write a face with the given 0-based vertex indices.
      * @param vertexIndices 0-based vertex indices for the face
+     * @throws IllegalArgumentException if fewer than 3 vertex indices are given
+     * @throws IndexOutOfBoundsException if any vertex index is computed to be outside of
+     *      the bounds of the elements written so far
      * @throws IOException if an I/O error occurs
-     * @throw IllegalArgumentException if fewer than 3 vertex indices are given
      */
     public void writeFace(final int... vertexIndices) throws IOException {
         writeFaceWithOffsets(0, vertexIndices, 0, null);
@@ -133,6 +135,8 @@ public final class OBJWriter extends AbstractTextFormatWriter {
      * index is applied to all face vertices.
      * @param vertexIndices 0-based vertex indices
      * @param normalIndex 0-based normal index
+     * @throws IndexOutOfBoundsException if any vertex or normal index is computed to be outside of
+     *      the bounds of the elements written so far
      * @throws IOException if an I/O error occurs
      */
     public void writeFace(final int[] vertexIndices, final int normalIndex) throws IOException {
@@ -148,9 +152,11 @@ public final class OBJWriter extends AbstractTextFormatWriter {
      * @param vertexIndices 0-based vertex indices; may not be null
      * @param normalIndices 0-based normal indices; may be null but if present must contain
      *      the same number of indices as {@code vertexIndices}
-     * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if fewer than 3 vertex indices are given or {@code normalIndices}
      *      is not null but has a different length than {@code vertexIndices}
+     * @throws IndexOutOfBoundsException if any vertex or normal index is computed to be outside of
+     *      the bounds of the elements written so far
+     * @throws IOException if an I/O error occurs
      */
     public void writeFace(final int[] vertexIndices, final int[] normalIndices) throws IOException {
         writeFaceWithOffsets(0, vertexIndices, 0, normalIndices);
@@ -239,9 +245,11 @@ public final class OBJWriter extends AbstractTextFormatWriter {
      * @param normalOffset normal offset value
      * @param normalIndices 0-based normal indices for the face; may be null if no normal are
      *      defined for the face
-     * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if fewer than 3 vertex indices are given or {@code normalIndices}
      *      is not null but has a different length than {@code vertexIndices}
+     * @throws IndexOutOfBoundsException if any vertex or normal index is computed to be outside of
+     *      the bounds of the elements written so far
+     * @throws IOException if an I/O error occurs
      */
     private void writeFaceWithOffsets(final int vertexOffset, final int[] vertexIndices,
             final int normalOffset, final int[] normalIndices) throws IOException {
@@ -254,16 +262,28 @@ public final class OBJWriter extends AbstractTextFormatWriter {
 
         write(OBJConstants.FACE_KEYWORD);
 
+        int vertexIdx;
+        int normalIdx;
         for (int i = 0; i < vertexIndices.length; ++i) {
+            vertexIdx = vertexIndices[i] + vertexOffset;
+            if (vertexIdx < 0 || vertexIdx >= vertexCount) {
+                throw new IndexOutOfBoundsException("Vertex index out of bounds: " + vertexIdx);
+            }
+
             write(SPACE);
-            write(vertexIndices[i] + vertexOffset + 1); // convert to OBJ 1-based convention
+            write(vertexIdx + 1); // convert to OBJ 1-based convention
 
             if (normalIndices != null) {
+                normalIdx = normalIndices[i] + normalOffset;
+                if (normalIdx < 0 || normalIdx >= normalCount) {
+                    throw new IndexOutOfBoundsException("Normal index out of bounds: " + normalIdx);
+                }
+
                 // two separator chars since there is no texture coordinate
                 write(OBJConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR);
                 write(OBJConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR);
 
-                write(normalIndices[i] + normalOffset + 1); // convert to OBJ 1-based convention
+                write(normalIdx + 1); // convert to OBJ 1-based convention
             }
         }
 

@@ -275,6 +275,62 @@ public class OBJWriterTest {
     }
 
     @Test
+    public void testWriteFace_vertexIndexOutOfBounds() throws IOException {
+        // arrange
+        final StringWriter writer = new StringWriter();
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+                meshWriter.writeVertex(Vector3D.ZERO);
+                meshWriter.writeVertex(Vector3D.of(1, 1, 1));
+
+                meshWriter.writeFace(0, 1, 2);
+            }
+        }, IndexOutOfBoundsException.class, "Vertex index out of bounds: 2");
+
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+                meshWriter.writeVertex(Vector3D.ZERO);
+                meshWriter.writeVertex(Vector3D.of(1, 1, 1));
+
+                meshWriter.writeFace(0, -1, 1);
+            }
+        }, IndexOutOfBoundsException.class, "Vertex index out of bounds: -1");
+    }
+
+    @Test
+    public void testWriteFace_normalIndexOutOfBounds() throws IOException {
+        // arrange
+        final StringWriter writer = new StringWriter();
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+                meshWriter.writeVertex(Vector3D.ZERO);
+                meshWriter.writeVertex(Vector3D.of(1, 1, 1));
+                meshWriter.writeVertex(Vector3D.of(0, 2, 0));
+
+                meshWriter.writeVertexNormal(Vector3D.Unit.PLUS_Z);
+
+                meshWriter.writeFace(new int[] {0, 1, 2}, 1);
+            }
+        }, IndexOutOfBoundsException.class, "Normal index out of bounds: 1");
+
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+                meshWriter.writeVertex(Vector3D.ZERO);
+                meshWriter.writeVertex(Vector3D.of(1, 1, 1));
+                meshWriter.writeVertex(Vector3D.of(0, 2, 0));
+
+                meshWriter.writeVertexNormal(Vector3D.Unit.PLUS_Z);
+
+                meshWriter.writeFace(new int[] {0, 1, 2}, -1);
+            }
+        }, IndexOutOfBoundsException.class, "Normal index out of bounds: -1");
+    }
+
+    @Test
     public void testWriteFace_invalidVertexAndNormalCountMismatch() throws IOException {
         // arrange
         final StringWriter writer = new StringWriter();

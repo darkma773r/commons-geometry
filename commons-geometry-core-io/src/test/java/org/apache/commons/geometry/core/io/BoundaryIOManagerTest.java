@@ -222,6 +222,22 @@ public class BoundaryIOManagerTest {
     }
 
     @Test
+    public void testRead_urlFromJar() throws IOException {
+        // arrange
+        final URL url = BoundaryIOManager.class.getResource("/java/lang/String.class");
+
+        final StubReadHandler readHandler = new StubReadHandler();
+        manager.registerReadHandler("CLASS", readHandler);
+
+        // act
+        final TestBoundaryList result = manager.read(url, TEST_PRECISION);
+
+        // assert
+        Assertions.assertSame(BOUNDARY_LIST, result);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
+    }
+
+    @Test
     public void testRead_url_noFileExtension() throws IOException {
         // arrange
         final Path file = tempDir.resolve("input");
