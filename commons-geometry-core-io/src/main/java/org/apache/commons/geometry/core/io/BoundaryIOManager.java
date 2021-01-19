@@ -207,7 +207,7 @@ public class BoundaryIOManager<
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param path file path to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the boundary information from the file at the given path
+     * @return stream providing access to the boundaries in the specified file
      * @throws IllegalArgumentException if the path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
@@ -231,7 +231,7 @@ public class BoundaryIOManager<
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param url URL to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the boundary information from the given URL
+     * @return stream providing access to the boundaries from the specified URL
      * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
@@ -252,7 +252,7 @@ public class BoundaryIOManager<
      * @param in input stream containing data in the specified format
      * @param formatName data format of the input
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the boundary information from the given input stream
+     * @return stream providing access to the boundaries in the input stream
      * @throws IllegalArgumentException if no read handler is registered for the given format
      * @throws IOException if stream creation fails
      */

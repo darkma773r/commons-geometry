@@ -102,7 +102,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param path file path to read from
-     * @return stream providing access to the facets contained in the argument
+     * @return stream providing access to the facets in the specified file
      * @throws IllegalArgumentException if the path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
@@ -124,7 +124,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param url URL to read from
-     * @return stream providing access to the facets contained in the argument
+     * @return stream providing access to the facets in the specified URL
      * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
@@ -144,7 +144,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * @param in input stream containing data in the specified format; this is <em>not</em> closed when
      *      the returned stream is closed
      * @param formatName data format of the input
-     * @return stream providing access to the facets contained in the argument
+     * @return stream providing access to the facets from the input stream
      * @throws IllegalArgumentException if no read handler is registered for the given format
      * @throws IOException if stream creation fails
      */
@@ -167,7 +167,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param path file path to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the triangles contained in the argument
+     * @return stream providing access to the triangles in the specified file path
      * @throws IllegalArgumentException if the file path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
@@ -191,7 +191,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param url URL to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the triangles contained in the argument
+     * @return stream providing access to the triangles in the specified URL
      * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a registered data format
      * @throws IOException if stream creation fails
@@ -210,7 +210,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      *      the returned stream is closed
      * @param formatName data format of the input
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the triangle information from the given input stream
+     * @return stream providing access to the triangles in the input stream
      * @throws IllegalArgumentException if no read handler is registered for the given format
      * @throws IOException if stream creation fails
      */

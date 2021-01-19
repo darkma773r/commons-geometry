@@ -31,13 +31,13 @@ import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 
 /** Utility class providing convenient access to 3D IO functionality. The static read and write functions delegate
- * to a default {@link #getDefaultManager() DefaultBoundaryIOManager3D} instance. The default configuration values
- * should be suitable for most standard operations. If customization is required, consider configuring and using a
+ * to a default {@link #getDefaultManager() DefaultBoundaryIOManager3D} instance. The default configuration should
+ * be suitable for most purposes. If customization is required, consider directly creating and configuring and a
  * {@link BoundaryIOManager3D} instance instead.
  *
  * <p><strong>Examples</strong></p>
  * <p>The example below reads an OBJ file as a stream of triangles, transforms each triangle, and writes the
- * results to a CSV file.
+ * result to a CSV file.
  * <pre>
  * Path origFile = Paths.get("orig.obj");
  * Path scaledFile = Paths.get("scaled.csv");
@@ -74,7 +74,7 @@ public final class IO3D {
      * {@link org.apache.commons.geometry.euclidean.io.threed.text.TextFacetDefinitionWriter#csvFormat(java.io.Writer)
      * TextFacetDefinitionWriter}. When used to represent 3D geometry information, the coordinates of the vertices of
      * the facets are listed in order, with one facet defined per row. This is similar to the {@link #TXT} format
-     * with the exception that facets are are converted to triangles before writing so that all rows have the same
+     * with the exception that facets are converted to triangles before writing so that all rows have the same
      * number of columns.
      */
     public static final String CSV = "csv";
@@ -89,6 +89,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if no handler has been registered with the
      *      {@link #getDefaultManager() default manager} for the indicated format
      * @throws IOException if an I/O or data format error occurs
+     * @see BoundaryIOManager3D#facetDefinitionReader(Path)
      */
     public static FacetDefinitionReader facetDefinitionReader(final Path path) throws IOException {
         return getDefaultManager().facetDefinitionReader(path);
@@ -101,6 +102,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if no handler has been registered with the
      *      {@link #getDefaultManager() default manager} for the indicated format
      * @throws IOException if an I/O or data format error occurs
+     * @see BoundaryIOManager3D#facetDefinitionReader(URL)
      */
     public static FacetDefinitionReader facetDefinitionReader(final URL url) throws IOException {
         return getDefaultManager().facetDefinitionReader(url);
@@ -114,6 +116,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if no handler has been registered with the
      *      {@link #getDefaultManager() default manager} for the given format
      * @throws IOException if an I/O or data format error occurs
+     * @see BoundaryIOManager3D#facetDefinitionReader(InputStream, String)
      */
     public static FacetDefinitionReader facetDefinitionReader(final InputStream in, final String formatName)
             throws IOException {
@@ -133,10 +136,11 @@ public final class IO3D {
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param path file path to read from
-     * @return stream providing access to the facets contained in the argument
+     * @return stream providing access to the facets in the specified file
      * @throws IllegalArgumentException if the path does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if stream creation fails
+     * @see BoundaryIOManager3D#facets(Path)
      */
     public static Stream<FacetDefinition> facets(final Path path) throws IOException {
         return getDefaultManager().facets(path);
@@ -155,10 +159,11 @@ public final class IO3D {
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param url URL to read from
-     * @return stream providing access to the facets contained in the argument
+     * @return stream providing access to the facets from the specified URL
      * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if stream creation fails
+     * @see BoundaryIOManager3D#facets(URL)
      */
     public static Stream<FacetDefinition> facets(final URL url) throws IOException {
         return getDefaultManager().facets(url);
@@ -171,10 +176,11 @@ public final class IO3D {
      * @param in input stream containing data in the specified format; this is <em>not</em> closed when
      *      the returned stream is closed
      * @param formatName data format of the input
-     * @return stream providing access to the facets contained in the argument
+     * @return stream providing access to the facets in the input stream
      * @throws IllegalArgumentException if no read handler has been registered with the
      *      {@link #getDefaultManager() default manager} for the given format
      * @throws IOException if stream creation fails
+     * @see BoundaryIOManager3D#facets(InputStream, String)
      */
     public static Stream<FacetDefinition> facets(final InputStream in, final String formatName)
             throws IOException {
@@ -195,10 +201,11 @@ public final class IO3D {
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param path file path to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the triangles contained in the argument
+     * @return stream providing access to the boundaries in the specified file
      * @throws IllegalArgumentException if the file path does not have a file extension or the file
      *      extension does not match a data format with the {@link #getDefaultManager() default manager}
      * @throws IOException if stream creation fails
+     * @see BoundaryIOManager3D#boundaries(Path, DoublePrecisionContext)
      */
     public static Stream<PlaneConvexSubset> boundaries(final Path path, final DoublePrecisionContext precision)
             throws IOException {
@@ -219,10 +226,11 @@ public final class IO3D {
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param url URL to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the triangles contained in the argument
+     * @return stream providing access to the boundaries in the specified URL
      * @throws IllegalArgumentException if the URL path does not have a file extension or the file
-     *      extension does not match a data format registerd with the {@link #getDefaultManager() default manager}
+     *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if stream creation fails
+     * @see BoundaryIOManager3D#boundaries(URL, DoublePrecisionContext)
      */
     public static Stream<PlaneConvexSubset> boundaries(final URL url, final DoublePrecisionContext precision)
             throws IOException {
@@ -237,10 +245,11 @@ public final class IO3D {
      *      the returned stream is closed
      * @param formatName data format of the input
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the triangle information from the given input stream
+     * @return stream providing access to the boundaries in the input stream
      * @throws IllegalArgumentException if no read handler is registered with the
      *      {@link #getDefaultManager() default manager} for the given format
      * @throws IOException if stream creation fails
+     * @see BoundaryIOManager3D#boundaries(InputStream, String, DoublePrecisionContext)
      */
     public static Stream<PlaneConvexSubset> boundaries(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
@@ -261,10 +270,11 @@ public final class IO3D {
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param path file path to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the triangles contained in the argument
+     * @return stream providing access to the triangles in the specified file
      * @throws IllegalArgumentException if the file path does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if stream creation fails
+     * @see BoundaryIOManager3D#triangles(Path, DoublePrecisionContext)
      */
     public static Stream<Triangle3D> triangles(final Path path, final DoublePrecisionContext precision)
             throws IOException {
@@ -285,10 +295,11 @@ public final class IO3D {
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
      * @param url URL to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the triangles contained in the argument
+     * @return stream providing access to the triangles from the specified URL
      * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if stream creation fails
+     * @see BoundaryIOManager3D#triangles(URL, DoublePrecisionContext)
      */
     public static Stream<Triangle3D> triangles(final URL url, final DoublePrecisionContext precision)
             throws IOException {
@@ -303,10 +314,11 @@ public final class IO3D {
      *      the returned stream is closed
      * @param formatName data format of the input
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the triangle information from the given input stream
+     * @return stream providing access to the triangles in the input stream
      * @throws IllegalArgumentException if no read handler is registered the
      *      {@link #getDefaultManager() default manager}for the given format
      * @throws IOException if stream creation fails
+     * @see BoundaryIOManager3D#triangles(InputStream, String, DoublePrecisionContext)
      */
     public static Stream<Triangle3D> triangles(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
@@ -321,6 +333,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if the file does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if an I/O or data format error occurs
+     * @see BoundaryIOManager3D#read(Path, DoublePrecisionContext)
      */
     public static BoundarySource3D read(final Path path, final DoublePrecisionContext precision)
             throws IOException {
@@ -335,6 +348,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if an I/O or data format error occurs
+     * @see BoundaryIOManager3D#read(URL, DoublePrecisionContext)
      */
     public static BoundarySource3D read(final URL url, final DoublePrecisionContext precision)
             throws IOException {
@@ -346,10 +360,11 @@ public final class IO3D {
      * @param in input stream containing data in the specified format
      * @param formatName data format of the input
      * @param precision precision context used for floating point comparisons
-     * @return a boundary source containing the boundary information from the input stream
+     * @return object containing all boundaries from the input stream
      * @throws IllegalArgumentException if no read handler is registered with the
      *      {@link #getDefaultManager() default manager} for the given format
      * @throws IOException if an I/O or data format error occurs
+     * @see BoundaryIOManager3D#read(InputStream, String, DoublePrecisionContext)
      */
     public static BoundarySource3D read(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
@@ -364,6 +379,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if the file path does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if an I/O or data format error occurs
+     * @see BoundaryIOManager3D#readTriangleMesh(Path, DoublePrecisionContext)
      */
     public static TriangleMesh readTriangleMesh(final Path path, final DoublePrecisionContext precision)
             throws IOException {
@@ -378,6 +394,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if the URL path does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if an I/O or data format error occurs
+     * @see BoundaryIOManager3D#readTriangleMesh(URL, DoublePrecisionContext)
      */
     public static TriangleMesh readTriangleMesh(final URL url, final DoublePrecisionContext precision)
             throws IOException {
@@ -393,6 +410,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if no read handler is registered with the
      *      {@link #getDefaultManager() default manager} for the given format
      * @throws IOException if an I/O or data format error occurs
+     * @see BoundaryIOManager3D#readTriangleMesh(Path, DoublePrecisionContext)
      */
     public static TriangleMesh readTriangleMesh(final InputStream in, final String formatName,
             final DoublePrecisionContext precision) throws IOException {
@@ -402,13 +420,14 @@ public final class IO3D {
     /** Write all boundaries in the stream to given file path. The data format is determined by
      * the file extension of the target path. If the target path already exists, it is overwritten.
      *
-     * <p>This method does not explicitly close the {@code boundaries} stream. If callers need to ensure that
-     * the stream is closed, they should use it in a try-with-resources statement outside of this method.</p>
+     * <p>This method does not explicitly close the {@code boundaries} stream. Callers should use the stream
+     * in a try-with-resources statement outside of this method if the stream is required to be closed.</p>
      * @param boundaries stream containing boundaries to write
      * @param path file path to write to
      * @throws IllegalArgumentException if the target file does not have a file extension or the file
      *      extension does not match data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if an I/O error occurs
+     * @see BoundaryIOManager3D#write(Stream, Path)
      */
     public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final Path path) throws IOException {
         getDefaultManager().write(boundaries, path);
@@ -416,14 +435,15 @@ public final class IO3D {
 
     /** Write all boundaries in the stream to the output stream. The output stream is <em>not</em> closed.
      *
-     * <p>This method does not explicitly close the {@code boundaries} stream. If callers need to ensure that
-     * the stream is closed, they should use it in a try-with-resources statement outside of this method.</p>
+     * <p>This method does not explicitly close the {@code boundaries} stream. Callers should use the stream
+     * in a try-with-resources statement outside of this method if the stream is required to be closed.</p>
      * @param boundaries stream containing boundaries to write
      * @param out output stream to write to
      * @param formatName format name
      * @throws IllegalArgumentException if no write handler is registered with the
      *      {@link #getDefaultManager() default manager} for the given format name
      * @throws IOException if an I/O error occurs
+     * @see BoundaryIOManager3D#write(Stream, OutputStream, String)
      */
     public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out,
             final String formatName) throws IOException {
@@ -438,6 +458,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if the target file does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if an I/O error occurs
+     * @see BoundaryIOManager3D#write(BoundarySource3D, Path)
      */
     public static void write(final BoundarySource3D src, final Path path)
             throws IOException {
@@ -452,6 +473,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if no write handler is registered with the
      *      {@link #getDefaultManager() default manager} for the given format name
      * @throws IOException if an I/O error occurs
+     * @see BoundaryIOManager3D#write(BoundarySource3D, OutputStream, String)
      */
     public static void write(final BoundarySource3D src, final OutputStream out, final String formatName)
             throws IOException {
@@ -465,6 +487,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if the target file does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if an I/O error occurs
+     * @see BoundaryIOManager3D#writeFacets(Collection, Path)
      */
     public static void writeFacets(final Collection<? extends FacetDefinition> facets, final Path path)
             throws IOException {
@@ -479,6 +502,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if no write handler is registered with the
      *      {@link #getDefaultManager() default manager} for the given format name
      * @throws IOException if an I/O error occurs
+     * @see BoundaryIOManager3D#writeFacets(Collection, OutputStream, String)
      */
     public static void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out,
             final String formatName) throws IOException {
@@ -488,13 +512,14 @@ public final class IO3D {
     /** Write all facets in the stream to the file path. The data format is determined by the file
      * extension of the target path. If the target path already exists, it is overwritten.
      *
-     * <p>This method does not explicitly close the {@code facets} stream. If callers need to ensure that
-     * the stream is closed, they should use it in a try-with-resources statement outside of this method.</p>
+     * <p>This method does not explicitly close the {@code facets} stream. Callers should use the stream
+     * in a try-with-resources statement outside of this method if the stream is required to be closed.</p>
      * @param facets stream containing facets to write
      * @param path path to write to
      * @throws IllegalArgumentException if the target file does not have a file extension or the file
      *      extension does not match data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if an I/O error occurs
+     * @see BoundaryIOManager3D#writeFacets(Stream, Path)
      */
     public static void writeFacets(final Stream<? extends FacetDefinition> facets, final Path path) throws IOException {
         getDefaultManager().writeFacets(facets, path);
@@ -502,14 +527,15 @@ public final class IO3D {
 
     /** Write all facets in the stream to the output stream. The output stream is <em>not</em> closed.
      *
-     * <p>This method does not explicitly close the {@code facets} stream. If callers need to ensure that
-     * the stream is closed, they should use it in a try-with-resources statement outside of this method.</p>
+     * <p>This method does not explicitly close the {@code facets} stream. Callers should use the stream
+     * in a try-with-resources statement outside of this method if the stream is required to be closed.</p>
      * @param facets stream containing facets to write
      * @param out output stream to write to
      * @param formatName format name
      * @throws IllegalArgumentException if no write handler is registered with the
      *      {@link #getDefaultManager() default manager} for the given format name
      * @throws IOException if an I/O error occurs
+     * @see BoundaryIOManager3D#writeFacets(Collection, OutputStream, String)
      */
     public static void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out,
             final String formatName) throws IOException {
