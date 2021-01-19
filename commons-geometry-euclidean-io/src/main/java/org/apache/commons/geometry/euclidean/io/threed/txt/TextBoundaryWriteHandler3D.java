@@ -20,12 +20,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
-import java.util.Collection;
+import java.util.Iterator;
+import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.io.internal.GeometryIOUtils;
-import org.apache.commons.geometry.euclidean.io.threed.BoundaryWriteHandler3D;
+import org.apache.commons.geometry.euclidean.io.threed.AbstractBoundaryWriteHandler3D;
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinition;
-import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
+import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 
 /** {@link BoundaryWriteHandler3D} implementation designed to write simple text data
  * formats using {@link TextFacetDefinitionWriter}. Output is written using the UTF-8 charset
@@ -33,7 +34,7 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
  * @see BoundaryWriteHandler3D
  * @see TextFacetDefinitionWriter
  */
-public class TextBoundaryWriteHandler3D implements BoundaryWriteHandler3D {
+public class TextBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** The default line separator value. */
     private static final String DEFAULT_LINE_SEPARATOR = "\n";
@@ -154,19 +155,24 @@ public class TextBoundaryWriteHandler3D implements BoundaryWriteHandler3D {
 
     /** {@inheritDoc} */
     @Override
-    public void write(final BoundarySource3D src, final OutputStream out) throws IOException {
+    public void write(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
+            throws IOException {
         try (TextFacetDefinitionWriter writer = getFacetDefinitionWriter(out)) {
-            writer.write(src);
+            final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
+            while (it.hasNext()) {
+                writer.write(it.next());
+            }
         }
     }
 
     /** {@inheritDoc} */
     @Override
-    public void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out)
+    public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
             throws IOException {
         try (TextFacetDefinitionWriter writer = getFacetDefinitionWriter(out)) {
-            for (final FacetDefinition facet : facets) {
-                writer.write(facet);
+            final Iterator<? extends FacetDefinition> it = facets.iterator();
+            while (it.hasNext()) {
+                writer.write(it.next());
             }
         }
     }

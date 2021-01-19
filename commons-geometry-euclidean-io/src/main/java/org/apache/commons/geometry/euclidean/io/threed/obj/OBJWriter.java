@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.apache.commons.geometry.core.io.internal.AbstractTextFormatWriter;
+import org.apache.commons.geometry.core.io.utils.AbstractTextFormatWriter;
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinition;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;

@@ -30,6 +30,7 @@ import org.apache.commons.geometry.euclidean.io.threed.FacetDefinitions;
 import org.apache.commons.geometry.euclidean.io.threed.SimpleFacetDefinition;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -144,5 +145,26 @@ public class OBJBoundaryWriteHandler3DTest {
                 "v 0.0 -1.0 0.0\r\n" +
                 "v 0.3 0.0 0.0\r\n" +
                 "f 5 6 7\r\n", new String(out.toByteArray(), StandardCharsets.UTF_16));
+    }
+
+    @Test
+    public void testWrite_mesh() throws IOException {
+        // arrange
+        final SimpleTriangleMesh.Builder builder = SimpleTriangleMesh.builder(TEST_PRECISION);
+        builder.addFaceAndVertices(Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(0, 1, 0));
+        builder.addVertex(Vector3D.of(2, 3, 4)); // extra, unused vertex
+
+        final BoundarySource3D src = builder.build();
+
+        // act
+        handler.write(src, out);
+
+        // assert
+        Assertions.assertEquals(
+                "v 0 0 0\n" +
+                "v 1 0 0\n" +
+                "v 0 1 0\n" +
+                "v 2 3 4\n" +
+                "f 1 2 3\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
 }

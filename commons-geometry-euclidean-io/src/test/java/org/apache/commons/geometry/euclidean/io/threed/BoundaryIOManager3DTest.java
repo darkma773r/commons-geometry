@@ -39,6 +39,7 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
+import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
@@ -72,6 +73,9 @@ public class BoundaryIOManager3DTest {
     private static final List<FacetDefinition> FACET_LIST = Arrays.asList(FACET);
 
     private static final TriangleMesh TRI_MESH = SimpleTriangleMesh.builder(TEST_PRECISION).build();
+
+    private static final List<Triangle3D> TRI_LIST = Arrays.asList(Planes.triangleFromVertices(
+            Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0), TEST_PRECISION));
 
     @TempDir
     public Path tempDir;
@@ -580,6 +584,200 @@ public class BoundaryIOManager3DTest {
                 IllegalArgumentException.class, expectedMsgPattern);
     }
 
+    @Test
+    public void testWriteFacets_outputStream_streamArg() throws IOException {
+        // arrange
+        final StubWriteHandler3D writeHandler = new StubWriteHandler3D();
+        manager.registerWriteHandler("TEST", writeHandler);
+
+        final CloseCountOutputStream out = new CloseCountOutputStream(new ByteArrayOutputStream());
+
+        // act
+        manager.writeFacets(FACET_LIST.stream(), out, "test");
+
+        // assert
+        Assertions.assertNotSame(FACET_LIST, writeHandler.facets);
+        Assertions.assertEquals(FACET_LIST, writeHandler.facets);
+        Assertions.assertSame(out, writeHandler.out);
+
+        Assertions.assertEquals(0, out.getCloseCount());
+    }
+
+    @Test
+    public void testWriteFacets_outputStream_streamArg_unknownFormat() throws IOException {
+        // arrange
+        final CloseCountOutputStream out = new CloseCountOutputStream(new ByteArrayOutputStream());
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.writeFacets(FACET_LIST.stream(), out, "test"),
+                IllegalArgumentException.class, "No write handler registered for format \"test\"");
+
+        Assertions.assertEquals(0, out.getCloseCount());
+    }
+
+    @Test
+    public void testWriteFacets_path_streamArg() throws IOException {
+        // arrange
+        final Path path = tempDir.resolve("output.test");
+
+        final StubWriteHandler3D writeHandler = new StubWriteHandler3D();
+        manager.registerWriteHandler("TEST", writeHandler);
+
+        // act
+        manager.writeFacets(FACET_LIST.stream(), path);
+
+        // assert
+        Assertions.assertNotSame(FACET_LIST, writeHandler.facets);
+        Assertions.assertEquals(FACET_LIST, writeHandler.facets);
+        Assertions.assertNotNull(writeHandler.out);
+
+        Assertions.assertTrue(Files.exists(path));
+    }
+
+    @Test
+    public void testWriteFacets_path_overwritesExisting_streamArg() throws IOException {
+        // arrange
+        final Path path = tempDir.resolve("output.test");
+        Files.write(path, new byte[8]);
+
+        final StubWriteHandler3D writeHandler = new StubWriteHandler3D();
+        manager.registerWriteHandler("TEST", writeHandler);
+
+        // act
+        manager.writeFacets(FACET_LIST.stream(), path);
+
+        // assert
+        Assertions.assertNotSame(FACET_LIST, writeHandler.facets);
+        Assertions.assertEquals(FACET_LIST, writeHandler.facets);
+        Assertions.assertNotNull(writeHandler.out);
+
+        Assertions.assertTrue(Files.exists(path));
+        Assertions.assertEquals(0L, Files.size(path));
+    }
+
+    @Test
+    public void testWriteFacets_path_streamArg_unknownFormat() throws IOException {
+        // arrange
+        final Path path = tempDir.resolve("output.test");
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.writeFacets(FACET_LIST.stream(), path),
+                IllegalArgumentException.class, "No write handler registered for format \"test\"");
+    }
+
+    @Test
+    public void testWriteFacets_path_streamArg_noFileExtension() throws IOException {
+        // arrange
+        final Path path = tempDir.resolve("output");
+
+        final Pattern expectedMsgPattern = Pattern.compile(
+                "^Cannot determine file data format: file name \".*output\" does not have a file extension$");
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.writeFacets(FACET_LIST.stream(), path),
+                IllegalArgumentException.class, expectedMsgPattern);
+    }
+
+    @Test
+    public void testWrite_outputStream_streamArg() throws IOException {
+        // arrange
+        final StubWriteHandler3D writeHandler = new StubWriteHandler3D();
+        manager.registerWriteHandler("TEST", writeHandler);
+
+        final CloseCountOutputStream out = new CloseCountOutputStream(new ByteArrayOutputStream());
+
+        // act
+        manager.write(TRI_LIST.stream(), out, "test");
+
+        // assert
+        Assertions.assertNotSame(TRI_LIST, writeHandler.boundaries);
+        Assertions.assertEquals(TRI_LIST, writeHandler.boundaries);
+        Assertions.assertSame(out, writeHandler.out);
+
+        Assertions.assertEquals(0, out.getCloseCount());
+    }
+
+    @Test
+    public void testWrite_outputStream_streamArg_unknownFormat() throws IOException {
+        // arrange
+        final CloseCountOutputStream out = new CloseCountOutputStream(new ByteArrayOutputStream());
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.write(TRI_LIST.stream(), out, "test"),
+                IllegalArgumentException.class, "No write handler registered for format \"test\"");
+
+        Assertions.assertEquals(0, out.getCloseCount());
+    }
+
+    @Test
+    public void testWrite_path_streamArg() throws IOException {
+        // arrange
+        final Path path = tempDir.resolve("output.test");
+
+        final StubWriteHandler3D writeHandler = new StubWriteHandler3D();
+        manager.registerWriteHandler("TEST", writeHandler);
+
+        // act
+        manager.write(TRI_LIST.stream(), path);
+
+        // assert
+        Assertions.assertNotSame(TRI_LIST, writeHandler.boundaries);
+        Assertions.assertEquals(TRI_LIST, writeHandler.boundaries);
+        Assertions.assertNotNull(writeHandler.out);
+
+        Assertions.assertTrue(Files.exists(path));
+    }
+
+    @Test
+    public void testWrite_path_overwritesExisting_streamArg() throws IOException {
+        // arrange
+        final Path path = tempDir.resolve("output.test");
+        Files.write(path, new byte[8]);
+
+        final StubWriteHandler3D writeHandler = new StubWriteHandler3D();
+        manager.registerWriteHandler("TEST", writeHandler);
+
+        // act
+        manager.write(TRI_LIST.stream(), path);
+
+        // assert
+        Assertions.assertNotSame(TRI_LIST, writeHandler.boundaries);
+        Assertions.assertEquals(TRI_LIST, writeHandler.boundaries);
+        Assertions.assertNotNull(writeHandler.out);
+
+        Assertions.assertTrue(Files.exists(path));
+        Assertions.assertEquals(0L, Files.size(path));
+    }
+
+    @Test
+    public void testWrite_path_streamArg_unknownFormat() throws IOException {
+        // arrange
+        final Path path = tempDir.resolve("output.test");
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.write(TRI_LIST.stream(), path),
+                IllegalArgumentException.class, "No write handler registered for format \"test\"");
+    }
+
+    @Test
+    public void testWrite_path_streamArg_noFileExtension() throws IOException {
+        // arrange
+        final Path path = tempDir.resolve("output");
+
+        final Pattern expectedMsgPattern = Pattern.compile(
+                "^Cannot determine file data format: file name \".*output\" does not have a file extension$");
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.write(TRI_LIST.stream(), path),
+                IllegalArgumentException.class, expectedMsgPattern);
+    }
+
     private static final class TestManager3D extends BoundaryIOManager3D {
 
         /** If true, an exception will be thrown when close is called on input streams created by the registry. */
@@ -688,19 +886,39 @@ public class BoundaryIOManager3DTest {
 
     private static final class StubWriteHandler3D implements BoundaryWriteHandler3D {
 
+        private Collection<? extends PlaneConvexSubset> boundaries;
+
         private Collection<? extends FacetDefinition> facets;
 
         private OutputStream out;
 
         /** {@inheritDoc} */
         @Override
-        public void write(final BoundarySource3D boundarySource, final OutputStream out) throws IOException {
+        public void write(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
+                throws IOException {
+            this.boundaries = boundaries.collect(Collectors.toList());
+            this.out = out;
+
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public void write(final BoundarySource3D src, final OutputStream out) throws IOException {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
         @Override
-        public void writeFacets(Collection<? extends FacetDefinition> facets, OutputStream out) throws IOException {
+        public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
+                throws IOException {
+            this.facets = facets.collect(Collectors.toList());
+            this.out = out;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out)
+                throws IOException {
             this.facets = facets;
             this.out = out;
         }

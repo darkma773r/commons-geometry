@@ -379,6 +379,37 @@ public final class IO3D {
         return getDefaultManager().readTriangleMesh(in, formatName, precision);
     }
 
+    /** Write all boundaries in the stream to given file path. The data format is determined by
+     * the file extension of the target path. If the target path already exists, it is overwritten.
+     *
+     * <p>This method does not explicitly close the {@code boundaries} stream. If callers need to ensure that
+     * the stream is closed, they should use it in a try-with-resources statement outside of this method.</p>
+     * @param boundaries stream containing boundaries to write
+     * @param path file path to write to
+     * @throws IllegalArgumentException if the target file does not have a file extension or the file
+     *      extension does not match data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if an I/O error occurs
+     */
+    public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final Path path) throws IOException {
+        getDefaultManager().write(boundaries, path);
+    }
+
+    /** Write all boundaries in the stream to the output stream. The output stream is <em>not</em> closed.
+     *
+     * <p>This method does not explicitly close the {@code boundaries} stream. If callers need to ensure that
+     * the stream is closed, they should use it in a try-with-resources statement outside of this method.</p>
+     * @param boundaries stream containing boundaries to write
+     * @param out output stream to write to
+     * @param formatName format name
+     * @throws IllegalArgumentException if no write handler is registered with the
+     *      {@link #getDefaultManager() default manager} for the given format name
+     * @throws IOException if an I/O error occurs
+     */
+    public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out,
+            final String formatName) throws IOException {
+        getDefaultManager().write(boundaries, out, formatName);
+    }
+
     /** Write all boundaries from {@code src} to the given file path. The data format
      * is determined by the file extension of the target path. If the target path already exists,
      * it is overwritten.
@@ -430,6 +461,37 @@ public final class IO3D {
      * @throws IOException if an I/O error occurs
      */
     public static void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out,
+            final String formatName) throws IOException {
+        getDefaultManager().writeFacets(facets, out, formatName);
+    }
+
+    /** Write all facets in the stream to the file path. The data format is determined by the file
+     * extension of the target path. If the target path already exists, it is overwritten.
+     *
+     * <p>This method does not explicitly close the {@code facets} stream. If callers need to ensure that
+     * the stream is closed, they should use it in a try-with-resources statement outside of this method.</p>
+     * @param facets stream containing facets to write
+     * @param path path to write to
+     * @throws IllegalArgumentException if the target file does not have a file extension or the file
+     *      extension does not match data format registered with the {@link #getDefaultManager() default manager}
+     * @throws IOException if an I/O error occurs
+     */
+    public static void writeFacets(final Stream<? extends FacetDefinition> facets, final Path path) throws IOException {
+        getDefaultManager().writeFacets(facets, path);
+    }
+
+    /** Write all facets in the stream to the output stream. The output stream is <em>not</em> closed.
+     *
+     * <p>This method does not explicitly close the {@code facets} stream. If callers need to ensure that
+     * the stream is closed, they should use it in a try-with-resources statement outside of this method.</p>
+     * @param facets stream containing facets to write
+     * @param out output stream to write to
+     * @param formatName format name
+     * @throws IllegalArgumentException if no write handler is registered with the
+     *      {@link #getDefaultManager() default manager} for the given format name
+     * @throws IOException if an I/O error occurs
+     */
+    public static void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out,
             final String formatName) throws IOException {
         getDefaultManager().writeFacets(facets, out, formatName);
     }

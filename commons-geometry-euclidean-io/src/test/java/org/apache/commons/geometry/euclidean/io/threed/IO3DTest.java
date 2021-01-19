@@ -37,10 +37,14 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.io.EuclideanIOTestUtils;
+import org.apache.commons.geometry.euclidean.threed.AffineTransformMatrix3D;
 import org.apache.commons.geometry.euclidean.threed.BoundaryList3D;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
+import org.apache.commons.geometry.euclidean.threed.Triangle3D;
+import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -63,10 +67,27 @@ public class IO3DTest {
     public Path tempDir;
 
     @Test
-    public void scratch() {
-        System.out.println(IO3D.class);
-        System.out.println("--");
-        System.out.println(IO3D.getDefaultManager());
+    public void testStreamExample() throws IOException {
+        final Path origFile = tempDir.resolve("orig.obj");
+        final Path scaledFile = tempDir.resolve("scaled.csv");
+
+        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-10);
+        final BoundarySource3D src = Parallelepiped.unitCube(precision);
+
+        IO3D.write(src, origFile);
+
+        final AffineTransformMatrix3D transform = AffineTransformMatrix3D
+                .createScale(2)
+                .translate(Vector3D.of(1, 2, 3));
+
+        try (Stream<Triangle3D> stream = IO3D.triangles(origFile, precision)) {
+            IO3D.write(stream.map(t -> t.transform(transform)), scaledFile);
+        }
+
+        final RegionBSPTree3D result = IO3D.read(scaledFile, precision).toTree();
+
+        Assertions.assertEquals(8, result.getSize(), TEST_EPS);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1, 2, 3), result.getCentroid(), TEST_EPS);
     }
 
     @Test
@@ -78,7 +99,7 @@ public class IO3DTest {
         testReadWriteWithUrl(
                 (fmt, url) -> readerToBoundaryList(IO3D.facetDefinitionReader(url)),
                 (src, fmt, path) -> IO3D.writeFacets(boundarySourceToFacets(src), path));
-        testReadWriteWithStreams(
+        testReadWriteWithInputOutputStreams(
                 (fmt, in) -> readerToBoundaryList(IO3D.facetDefinitionReader(in, fmt)),
                 (src, fmt, out) -> IO3D.writeFacets(boundarySourceToFacets(src), out, fmt));
     }
@@ -92,7 +113,7 @@ public class IO3DTest {
         testReadWriteWithUrl(
                 (fmt, url) -> facetsToBoundaryList(IO3D.facets(url)),
                 (src, fmt, path) -> IO3D.writeFacets(boundarySourceToFacets(src), path));
-        testReadWriteWithStreams(
+        testReadWriteWithInputOutputStreams(
                 (fmt, in) -> facetsToBoundaryList(IO3D.facets(in, fmt)),
                 (src, fmt, out) -> IO3D.writeFacets(boundarySourceToFacets(src), out, fmt));
     }
@@ -106,7 +127,7 @@ public class IO3DTest {
         testReadWriteWithUrl(
                 (fmt, url) -> IO3D.read(url, MODEL_PRECISION),
                 (src, fmt, path) -> IO3D.write(src, path));
-        testReadWriteWithStreams(
+        testReadWriteWithInputOutputStreams(
                 (fmt, in) -> IO3D.read(in, fmt, MODEL_PRECISION),
                 (src, fmt, out) -> IO3D.write(src, out, fmt));
     }
@@ -120,7 +141,7 @@ public class IO3DTest {
         testReadWriteWithUrl(
                 (fmt, url) -> IO3D.readTriangleMesh(url, MODEL_PRECISION),
                 (src, fmt, path) -> IO3D.write(src.toTriangleMesh(MODEL_PRECISION), path));
-        testReadWriteWithStreams(
+        testReadWriteWithInputOutputStreams(
                 (fmt, in) -> IO3D.readTriangleMesh(in, fmt, MODEL_PRECISION),
                 (src, fmt, out) -> IO3D.write(src.toTriangleMesh(MODEL_PRECISION), out, fmt));
     }
@@ -134,7 +155,7 @@ public class IO3DTest {
         testReadWriteWithUrl(
                 (fmt, url) -> boundariesToBoundaryList(IO3D.boundaries(url, MODEL_PRECISION)),
                 (src, fmt, path) -> IO3D.write(src, path));
-        testReadWriteWithStreams(
+        testReadWriteWithInputOutputStreams(
                 (fmt, in) -> boundariesToBoundaryList(IO3D.boundaries(in, fmt, MODEL_PRECISION)),
                 (src, fmt, out) -> IO3D.write(src, out, fmt));
     }
@@ -148,9 +169,37 @@ public class IO3DTest {
         testReadWriteWithUrl(
                 (fmt, url) -> boundariesToBoundaryList(IO3D.triangles(url, MODEL_PRECISION)),
                 (src, fmt, path) -> IO3D.write(src, path));
-        testReadWriteWithStreams(
+        testReadWriteWithInputOutputStreams(
                 (fmt, in) -> boundariesToBoundaryList(IO3D.triangles(in, fmt, MODEL_PRECISION)),
                 (src, fmt, out) -> IO3D.write(src, out, fmt));
+    }
+
+    @Test
+    public void testWriteBoundaryStream() throws Exception {
+        // act/assert
+        testReadWriteWithPath(
+                (fmt, path) -> boundariesToBoundaryList(IO3D.triangles(path, MODEL_PRECISION)),
+                (src, fmt, path) -> IO3D.write(src.boundaryStream(), path));
+        testReadWriteWithUrl(
+                (fmt, url) -> boundariesToBoundaryList(IO3D.triangles(url, MODEL_PRECISION)),
+                (src, fmt, path) -> IO3D.write(src.boundaryStream(), path));
+        testReadWriteWithInputOutputStreams(
+                (fmt, in) -> boundariesToBoundaryList(IO3D.triangles(in, fmt, MODEL_PRECISION)),
+                (src, fmt, out) -> IO3D.write(src.boundaryStream(), out, fmt));
+    }
+
+    @Test
+    public void testWriteFacetStream() throws Exception {
+        // act/assert
+        testReadWriteWithPath(
+                (fmt, path) -> boundariesToBoundaryList(IO3D.triangles(path, MODEL_PRECISION)),
+                (src, fmt, path) -> IO3D.writeFacets(boundarySourceToFacets(src).stream(), path));
+        testReadWriteWithUrl(
+                (fmt, url) -> boundariesToBoundaryList(IO3D.triangles(url, MODEL_PRECISION)),
+                (src, fmt, path) -> IO3D.writeFacets(boundarySourceToFacets(src).stream(), path));
+        testReadWriteWithInputOutputStreams(
+                (fmt, in) -> boundariesToBoundaryList(IO3D.triangles(in, fmt, MODEL_PRECISION)),
+                (src, fmt, out) -> IO3D.writeFacets(boundarySourceToFacets(src).stream(), out, fmt));
     }
 
     private void testReadWriteWithPath(final ReadFn<Path> readFn, final WriteFn<Path> writeFn)
@@ -220,7 +269,7 @@ public class IO3DTest {
         assertRegion(expected, result, eps);
     }
 
-    private void testReadWriteWithStreams(final ReadFn<InputStream> readFn, final WriteFn<OutputStream> writeFn)
+    private void testReadWriteWithInputOutputStreams(final ReadFn<InputStream> readFn, final WriteFn<OutputStream> writeFn)
             throws Exception {
         String baseName;
         RegionBSPTree3D expected;

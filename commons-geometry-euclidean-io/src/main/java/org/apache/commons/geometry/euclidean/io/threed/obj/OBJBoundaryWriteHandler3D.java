@@ -20,17 +20,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
-import java.util.Collection;
+import java.util.Iterator;
+import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.io.internal.GeometryIOUtils;
-import org.apache.commons.geometry.euclidean.io.threed.BoundaryWriteHandler3D;
+import org.apache.commons.geometry.euclidean.io.threed.AbstractBoundaryWriteHandler3D;
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinition;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
+import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
+import org.apache.commons.geometry.euclidean.threed.mesh.Mesh;
 
 /** {@link BoundaryWriteHandler3D} implementation for writing OBJ content.
  * Output is written using the UTF-8 charset by default.
  */
-public class OBJBoundaryWriteHandler3D implements BoundaryWriteHandler3D {
+public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** The default line separator value. */
     private static final String DEFAULT_LINE_SEPARATOR = "\n";
@@ -118,20 +121,42 @@ public class OBJBoundaryWriteHandler3D implements BoundaryWriteHandler3D {
     @Override
     public void write(final BoundarySource3D src, final OutputStream out)
             throws IOException {
-        try (OBJWriter writer = createOBJWriter(out)) {
-            writer.writeBoundaries(src, meshBufferBatchSize);
+        // write meshes directly instead of iterating through boundaries
+        if (src instanceof Mesh) {
+            try (OBJWriter writer = createOBJWriter(out)) {
+                writer.writeMesh((Mesh<?>) src);
+            }
+        } else {
+            super.write(src, out);
         }
     }
 
     /** {@inheritDoc} */
     @Override
-    public void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out)
+    public void write(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
             throws IOException {
         try (OBJWriter writer = createOBJWriter(out)) {
             final OBJWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
 
-            for (final FacetDefinition facet : facets) {
-                meshBuffer.add(facet);
+            final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
+            while (it.hasNext()) {
+                meshBuffer.add(it.next());
+            }
+
+            meshBuffer.flush();
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
+            throws IOException {
+        try (OBJWriter writer = createOBJWriter(out)) {
+            final OBJWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
+
+            final Iterator<? extends FacetDefinition> it = facets.iterator();
+            while (it.hasNext()) {
+                meshBuffer.add(it.next());
             }
 
             meshBuffer.flush();
