@@ -76,9 +76,7 @@ public class IO3DTest {
 
         IO3D.write(src, origFile);
 
-        final AffineTransformMatrix3D transform = AffineTransformMatrix3D
-                .createScale(2)
-                .translate(Vector3D.of(1, 2, 3));
+        final AffineTransformMatrix3D transform = AffineTransformMatrix3D.createScale(2);
 
         try (Stream<Triangle3D> stream = IO3D.triangles(origFile, precision)) {
             IO3D.write(stream.map(t -> t.transform(transform)), scaledFile);
@@ -86,8 +84,9 @@ public class IO3DTest {
 
         final RegionBSPTree3D result = IO3D.read(scaledFile, precision).toTree();
 
+        // assert
         Assertions.assertEquals(8, result.getSize(), TEST_EPS);
-        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1, 2, 3), result.getCentroid(), TEST_EPS);
+        EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, result.getCentroid(), TEST_EPS);
     }
 
     @Test

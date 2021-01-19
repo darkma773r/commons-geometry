@@ -31,7 +31,27 @@ import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 
 /** Utility class providing convenient access to 3D IO functionality. The static read and write functions delegate
- * to a default {@link #getDefaultManager() DefaultBoundaryIOManager3D} instance.
+ * to a default {@link #getDefaultManager() DefaultBoundaryIOManager3D} instance. The default configuration values
+ * should be suitable for most standard operations. If customization is required, consider configuring and using a
+ * {@link BoundaryIOManager3D} instance instead.
+ *
+ * <p><strong>Examples</strong></p>
+ * <p>The example below reads an OBJ file as a stream of triangles, transforms each triangle, and writes the
+ * results to a CSV file.
+ * <pre>
+ * Path origFile = Paths.get("orig.obj");
+ * Path scaledFile = Paths.get("scaled.csv");
+ * AffineTransformMatrix3D transform = AffineTransformMatrix3D.createScale(2);
+ *
+ * // use the input triangle stream in a try-with-resources statement to ensure
+ * // all resources are properly closed.
+ * try (Stream&lt;Triangle3D&gt; stream = IO3D.triangles(origFile, precision)) {
+ *      IO3D.write(stream.map(t -> t.transform(transform)), scaledFile);
+ * }
+ * </pre>
+ * </p>
+ *
+ * @see DefaultBoundaryIOManager3D
  */
 public final class IO3D {
 
