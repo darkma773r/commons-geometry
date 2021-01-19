@@ -66,7 +66,7 @@ public class AbstractBoundaryReadHandler3DTest {
         final BoundarySource3D result = handler.read(in, TEST_PRECISION);
 
         // assert
-        Assertions.assertNotNull(handler.in);
+        Assertions.assertNotNull(handler.inArg);
 
         Assertions.assertEquals(BoundaryList3D.class, result.getClass());
         Assertions.assertEquals(2, result.toList().getBoundaries().size());
@@ -86,7 +86,7 @@ public class AbstractBoundaryReadHandler3DTest {
         final TriangleMesh result = handler.readTriangleMesh(in, TEST_PRECISION);
 
         // assert
-        Assertions.assertNotNull(handler.in);
+        Assertions.assertNotNull(handler.inArg);
 
         Assertions.assertEquals(SimpleTriangleMesh.class, result.getClass());
         Assertions.assertEquals(6, result.getVertexCount());
@@ -110,7 +110,7 @@ public class AbstractBoundaryReadHandler3DTest {
         }
 
         // assert
-        Assertions.assertSame(in, handler.in);
+        Assertions.assertSame(in, handler.inArg);
 
         Assertions.assertEquals(2, list.size());
         Assertions.assertEquals(0, in.getCloseCount());
@@ -131,7 +131,7 @@ public class AbstractBoundaryReadHandler3DTest {
         }
 
         // assert
-        Assertions.assertSame(in, handler.in);
+        Assertions.assertSame(in, handler.inArg);
 
         Assertions.assertEquals(2, list.size());
         Assertions.assertEquals(0, in.getCloseCount());
@@ -171,7 +171,7 @@ public class AbstractBoundaryReadHandler3DTest {
 
         private final Collection<FacetDefinition> facets;
 
-        private InputStream in;
+        private InputStream inArg;
 
         TestReadHandler3D(final Collection<FacetDefinition> facets) {
             this.facets = facets;
@@ -180,7 +180,7 @@ public class AbstractBoundaryReadHandler3DTest {
         /** {@inheritDoc} */
         @Override
         public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
-            this.in = in;
+            this.inArg = in;
 
             return new StubFacetDefinitionReader(facets);
         }

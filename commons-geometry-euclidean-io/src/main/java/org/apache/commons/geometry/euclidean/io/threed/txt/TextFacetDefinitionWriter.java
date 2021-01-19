@@ -231,7 +231,7 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
      * @throws IOException if an I/O error occurs
      */
     public void write(final BoundarySource3D src) throws IOException {
-        try (final Stream<PlaneConvexSubset> stream = src.boundaryStream()) {
+        try (Stream<PlaneConvexSubset> stream = src.boundaryStream()) {
             final Iterator<PlaneConvexSubset> it = stream.iterator();
             while (it.hasNext()) {
                 write(it.next());

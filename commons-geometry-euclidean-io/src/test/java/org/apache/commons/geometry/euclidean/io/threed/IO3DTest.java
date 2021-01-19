@@ -357,7 +357,7 @@ public class IO3DTest {
     }
 
     private static BoundaryList3D facetsToBoundaryList(final Stream<FacetDefinition> stream) throws IOException {
-        try (final Stream<FacetDefinition> facetStream = stream) {
+        try (Stream<FacetDefinition> facetStream = stream) {
             final List<PlaneConvexSubset> list = facetStream
                     .map(f -> FacetDefinitions.toPolygon(f, MODEL_PRECISION))
                     .collect(Collectors.toList());
@@ -368,7 +368,7 @@ public class IO3DTest {
 
     private static <T extends PlaneConvexSubset> BoundaryList3D boundariesToBoundaryList(final Stream<T> stream)
             throws IOException {
-        try (final Stream<T> boundaryStream = stream) {
+        try (Stream<T> boundaryStream = stream) {
             final List<PlaneConvexSubset> list = boundaryStream.collect(Collectors.toList());
 
             return new BoundaryList3D(list);

@@ -42,11 +42,14 @@ public class SimpleTextParser {
     /** Default value for the max string length property. */
     private static final int DEFAULT_MAX_STRING_LENGTH = 1024;
 
+    /** Error message used when a string exceeds the configured maximum length. */
+    private static final String STRING_LENGTH_ERR_MSG = "String length exceeds maximum value of ";
+
     /** Initial token position number. */
     private static final int INITIAL_TOKEN_POS = -1;
 
     /** Int consumer that does nothing. */
-    private static final IntConsumer NOOP_CONSUMER = ch -> {};
+    private static final IntConsumer NOOP_CONSUMER = ch -> { };
 
     /** Current line number; line numbers start counting at 1. */
     private int lineNumber = 1;
@@ -248,8 +251,8 @@ public class SimpleTextParser {
      */
     public int readChar() throws IOException {
         final int value = buffer.read();
-        if ((value == LF ||
-                (value == CR && peekChar() != LF))) {
+        if (value == LF ||
+                (value == CR && peekChar() != LF)) {
             ++lineNumber;
             columnNumber = 1;
         } else if (value != EOF) {
@@ -677,7 +680,7 @@ public class SimpleTextParser {
                 sb.append((char) ch);
 
                 if (i > maxStringLength) {
-                    throw new IllegalStateException("String length exceeds maximum value of " + maxStringLength);
+                    throw new IllegalStateException(STRING_LENGTH_ERR_MSG + maxStringLength);
                 }
 
                 ch = buffer.charAt(++i);
@@ -1051,7 +1054,7 @@ public class SimpleTextParser {
      */
     private void validateStringLength(final int len) {
         if (len > maxStringLength) {
-            throw new IllegalStateException("String length exceeds maximum value of " + maxStringLength);
+            throw new IllegalStateException(STRING_LENGTH_ERR_MSG + maxStringLength);
         }
     }
 

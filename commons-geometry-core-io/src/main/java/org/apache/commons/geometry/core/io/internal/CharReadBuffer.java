@@ -193,9 +193,9 @@ public class CharReadBuffer {
         final int contiguous = Math.min(buffer.length - head, resultLen);
         final int remaining = resultLen - contiguous;
 
-        String result = new String(buffer, head, contiguous);
+        String result = String.valueOf(buffer, head, contiguous);
         if (remaining > 0) {
-            result += new String(buffer, 0, remaining);
+            result += String.valueOf(buffer, 0, remaining);
         }
 
         return result;

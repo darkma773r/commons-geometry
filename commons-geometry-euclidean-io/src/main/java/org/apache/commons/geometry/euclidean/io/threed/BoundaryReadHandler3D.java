@@ -57,7 +57,6 @@ public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSu
      *
      * <p>The input stream is <em>not</em> closed when the returned stream is closed.</p>
      * @param in input stream to read from; this is <em>not</em> closed when the returned stream is closed
-     * @param precision precision context used for floating point comparisons
      * @return stream providing access to the facet information from the given input stream
      * @throws IOException if an I/O or data format error occurs during stream creation
      */

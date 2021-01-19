@@ -40,7 +40,7 @@ public final class GeometryIOUtils {
     private GeometryIOUtils() {}
 
     /** Get the part of the file name after the last dot.
-     * @param name file name to get the extension for
+     * @param fileName file name to get the extension for
      * @return the extension of the file name, the empty string if no extension is found, or
      *      null if the argument is null
      */
@@ -125,7 +125,7 @@ public final class GeometryIOUtils {
         try {
             closeable = closeableSupplier.get();
             return function.apply(closeable);
-        } catch (IOException|RuntimeException exc) {
+        } catch (IOException | RuntimeException exc) {
             if (closeable != null) {
                 try {
                     closeable.close();

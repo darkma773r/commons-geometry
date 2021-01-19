@@ -47,7 +47,7 @@ public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandl
         // read the input as a simple list of boundaries
         final List<PlaneConvexSubset> list = new ArrayList<>();
 
-        try (final FacetDefinitionReader reader =
+        try (FacetDefinitionReader reader =
                 facetDefinitionReader(GeometryIOUtils.createCloseShieldInputStream(in))) {
 
             FacetDefinition facet;
@@ -65,16 +65,16 @@ public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandl
             throws IOException {
         final SimpleTriangleMesh.Builder meshBuilder = SimpleTriangleMesh.builder(precision);
 
-        try (final FacetDefinitionReader reader =
+        try (FacetDefinitionReader reader =
                 facetDefinitionReader(GeometryIOUtils.createCloseShieldInputStream(in))) {
             FacetDefinition facet;
             while ((facet = reader.readFacet()) != null) {
                 for (final Triangle3D tri : FacetDefinitions.toPolygon(facet, precision).toTriangles()) {
                     meshBuilder.addFaceUsingVertices(
-                                tri.getPoint1(),
-                                tri.getPoint2(),
-                                tri.getPoint3()
-                            );
+                        tri.getPoint1(),
+                        tri.getPoint2(),
+                        tri.getPoint3()
+                    );
                 }
             }
         }

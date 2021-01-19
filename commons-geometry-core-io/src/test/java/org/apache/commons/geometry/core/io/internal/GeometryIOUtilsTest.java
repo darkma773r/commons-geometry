@@ -66,7 +66,7 @@ public class GeometryIOUtilsTest {
     @Test
     public void testCreateCloseShieldInputStream() throws IOException {
         // arrange
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[] { 1 }));
+        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[] {1}));
 
         // act
         final InputStream result = GeometryIOUtils.createCloseShieldInputStream(in);
@@ -81,7 +81,7 @@ public class GeometryIOUtilsTest {
     @Test
     public void testCreateCloseShieldReader() throws IOException {
         // arrange
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[] { 10 }));
+        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[] {10}));
 
         // act
         final Reader result = GeometryIOUtils.createCloseShieldReader(in, StandardCharsets.US_ASCII);
@@ -144,11 +144,13 @@ public class GeometryIOUtilsTest {
     @Test
     public void testTryApplyCloseable_supplierThrows() throws IOException {
         // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> GeometryIOUtils.tryApplyCloseable(
-                        i -> { throw new IOException("fn"); },
-                        () -> { throw new IOException("supplier"); }),
-                IOException.class, "supplier");
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            GeometryIOUtils.tryApplyCloseable(i -> {
+                throw new IOException("fn");
+            }, () -> {
+                throw new IOException("supplier");
+            });
+        }, IOException.class, "supplier");
     }
 
     @Test
@@ -157,11 +159,11 @@ public class GeometryIOUtilsTest {
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
 
         // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> GeometryIOUtils.tryApplyCloseable(
-                        i -> { throw new IOException("fn"); },
-                        () -> in),
-                IOException.class, "fn");
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            GeometryIOUtils.tryApplyCloseable(i -> {
+                throw new IOException("fn");
+            }, () -> in);
+        }, IOException.class, "fn");
 
         Assertions.assertEquals(1, in.getCloseCount());
     }
@@ -172,9 +174,11 @@ public class GeometryIOUtilsTest {
         final CloseCountInputStream in = new CloseCountInputStream(new CloseFailByteArrayInputStream(new byte[0]));
 
         // act/assert
-        final Throwable thr = Assertions.assertThrows(
-                IOException.class,
-                () -> GeometryIOUtils.tryApplyCloseable(i -> { throw new IOException("fn"); },() -> in));
+        final Throwable thr = Assertions.assertThrows(IOException.class, () -> {
+            GeometryIOUtils.tryApplyCloseable(i -> {
+                throw new IOException("fn");
+            }, () -> in);
+        });
 
         Assertions.assertEquals(IOException.class, thr.getClass());
         Assertions.assertEquals("close", thr.getSuppressed()[0].getMessage());
@@ -209,7 +213,7 @@ public class GeometryIOUtilsTest {
 
     private static final class CloseFailByteArrayInputStream extends ByteArrayInputStream {
 
-        public CloseFailByteArrayInputStream(final byte[] buf) {
+        CloseFailByteArrayInputStream(final byte[] buf) {
             super(buf);
         }
 

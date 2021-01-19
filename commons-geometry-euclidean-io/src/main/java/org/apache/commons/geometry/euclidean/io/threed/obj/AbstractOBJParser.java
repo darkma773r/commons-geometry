@@ -30,8 +30,8 @@ public abstract class AbstractOBJParser {
     /** Text parser instance. */
     private final SimpleTextParser parser;
 
-    /** Most recently encountered keyword. */
-    private String keyword;
+    /** The current (most recently parsed) keyword. */
+    private String currentKeyword;
 
     /** Construct a new instance for parsing OBJ content from the given text parser.
      * @param parser text parser to read content from
@@ -40,14 +40,13 @@ public abstract class AbstractOBJParser {
         this.parser = parser;
     }
 
-    /** Get the keyword most recently parsed via the {@link #nextKeyword()} method.
-     * Null is returned if parsing has not started or the end of the content has been
-     * reached.
+    /** Get the current keyword, meaning the keyword most recently parsed via the {@link #nextKeyword()}
+     * method. Null is returned if parsing has not started or the end of the content has been reached.
      * @return the current keyword or null if parsing has not started or the end
      *      of the content has been reached
      */
-    public String getKeyword() {
-        return keyword;
+    public String getCurrentKeyword() {
+        return currentKeyword;
     }
 
     /** Advance the parser to the next keyword, returning true if a keyword has been found
@@ -58,7 +57,7 @@ public abstract class AbstractOBJParser {
      * @throws IllegalStateException if invalid content is found
      */
     public boolean nextKeyword() throws IOException {
-        keyword = null;
+        currentKeyword = null;
 
         // advance to the next line if not at the start of a line
         if (parser.getColumnNumber() != 1) {
@@ -66,7 +65,7 @@ public abstract class AbstractOBJParser {
         }
 
         // search for the next keyword
-        while (keyword == null && parser.hasMoreCharacters()) {
+        while (currentKeyword == null && parser.hasMoreCharacters()) {
             if (!nextDataLineContent() ||
                     parser.peekChar() == OBJConstants.COMMENT_CHAR) {
                 // use a standard line discard here so we don't interpret line continuations
@@ -82,14 +81,14 @@ public abstract class AbstractOBJParser {
 
                 handleKeyword(keywordValue);
 
-                keyword = keywordValue;
+                currentKeyword = keywordValue;
 
                 // advance past whitespace to the next data value
                 discardDataLineWhitespace();
             }
         }
 
-        return keyword != null;
+        return currentKeyword != null;
     }
 
     /** Read the remaining content on the current data line, taking line continuation characters into
@@ -98,7 +97,7 @@ public abstract class AbstractOBJParser {
      *      been reached
      * @throws IOException if an I/O error occurs
      */
-    public String readDataLine() throws IOException{
+    public String readDataLine() throws IOException {
         parser.nextWithLineContinuation(
                 OBJConstants.LINE_CONTINUATION_CHAR,
                 SimpleTextParser::isNotNewLinePart)
@@ -169,7 +168,7 @@ public abstract class AbstractOBJParser {
      * @throws IOException if an I/O error occurs
      * @throws IllegalStateException if the given keyword is invalid
      */
-    protected abstract void handleKeyword(final String keyword) throws IOException;
+    protected abstract void handleKeyword(String keyword) throws IOException;
 
     /** Discard whitespace on the current data line, taking line continuation characters into account.
      * @return text parser instance

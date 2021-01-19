@@ -73,19 +73,18 @@ public abstract class AbstractOBJPolygonReader implements Closeable {
      * @throws IOException if an I/O or data format error occurs
      */
     protected PolygonOBJParser.Face readFace() throws IOException {
-        String keyword;
         while (parser.nextKeyword()) {
-            keyword = parser.getKeyword();
-
-            switch (keyword) {
-                case OBJConstants.VERTEX_KEYWORD:
-                    handleVertex(parser.readVector());
-                    break;
-                case OBJConstants.VERTEX_NORMAL_KEYWORD:
-                    handleNormal(parser.readVector());
-                    break;
-                case OBJConstants.FACE_KEYWORD:
-                    return parser.readFace();
+            switch (parser.getCurrentKeyword()) {
+            case OBJConstants.VERTEX_KEYWORD:
+                handleVertex(parser.readVector());
+                break;
+            case OBJConstants.VERTEX_NORMAL_KEYWORD:
+                handleNormal(parser.readVector());
+                break;
+            case OBJConstants.FACE_KEYWORD:
+                return parser.readFace();
+            default:
+                break;
             }
         }
 
@@ -95,10 +94,10 @@ public abstract class AbstractOBJPolygonReader implements Closeable {
     /** Method called when a vertex is found in the OBJ content.
      * @param vertex vertex value
      */
-    protected abstract void handleVertex(final Vector3D vertex);
+    protected abstract void handleVertex(Vector3D vertex);
 
     /** Method called when a normal is found in the OBJ content.
      * @param normal normal value
      */
-    protected abstract void handleNormal(final Vector3D normal);
+    protected abstract void handleNormal(Vector3D normal);
 }

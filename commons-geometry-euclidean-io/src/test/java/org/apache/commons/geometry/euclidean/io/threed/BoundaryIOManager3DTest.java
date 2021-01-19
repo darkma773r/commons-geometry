@@ -95,7 +95,7 @@ public class BoundaryIOManager3DTest {
 
         // assert
         Assertions.assertSame(FACET_DEF_READER, reader);
-        Assertions.assertSame(in, readHandler.in);
+        Assertions.assertSame(in, readHandler.inArg);
 
         Assertions.assertEquals(0, in.getCloseCount());
     }
@@ -126,7 +126,7 @@ public class BoundaryIOManager3DTest {
         try (FacetDefinitionReader reader = manager.facetDefinitionReader(path)) {
             // assert
             Assertions.assertSame(FACET_DEF_READER, reader);
-            Assertions.assertNotNull(readHandler.in);
+            Assertions.assertNotNull(readHandler.inArg);
         }
     }
 
@@ -192,7 +192,7 @@ public class BoundaryIOManager3DTest {
         final Stream<FacetDefinition> stream = manager.facets(in, "test");
 
         // assert
-        Assertions.assertSame(in, readHandler.in);
+        Assertions.assertSame(in, readHandler.inArg);
 
         Assertions.assertEquals(1, stream.collect(Collectors.toList()).size());
 
@@ -227,7 +227,7 @@ public class BoundaryIOManager3DTest {
 
             // assert
             Assertions.assertEquals(1, result.size());
-            Assertions.assertNotNull(readHandler.in);
+            Assertions.assertNotNull(readHandler.inArg);
             Assertions.assertEquals(0, manager.inputCloseCount);
         }
 
@@ -296,7 +296,7 @@ public class BoundaryIOManager3DTest {
         final Stream<Triangle3D> stream = manager.triangles(in, "test", TEST_PRECISION);
 
         // assert
-        Assertions.assertSame(in, readHandler.in);
+        Assertions.assertSame(in, readHandler.inArg);
 
         Assertions.assertEquals(2, stream.collect(Collectors.toList()).size());
 
@@ -331,7 +331,7 @@ public class BoundaryIOManager3DTest {
 
             // assert
             Assertions.assertEquals(2, result.size());
-            Assertions.assertNotNull(readHandler.in);
+            Assertions.assertNotNull(readHandler.inArg);
             Assertions.assertEquals(0, manager.inputCloseCount);
         }
 
@@ -401,8 +401,8 @@ public class BoundaryIOManager3DTest {
 
         // assert
         Assertions.assertSame(TRI_MESH, mesh);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
-        Assertions.assertSame(in, readHandler.in);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
+        Assertions.assertSame(in, readHandler.inArg);
 
         Assertions.assertEquals(0, in.getCloseCount());
     }
@@ -434,8 +434,8 @@ public class BoundaryIOManager3DTest {
 
         // assert
         Assertions.assertSame(TRI_MESH, mesh);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
-        Assertions.assertNotNull(readHandler.in);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
+        Assertions.assertNotNull(readHandler.inArg);
 
         Assertions.assertEquals(1, manager.inputCloseCount);
     }
@@ -502,8 +502,8 @@ public class BoundaryIOManager3DTest {
         manager.writeFacets(FACET_LIST, out, "test");
 
         // assert
-        Assertions.assertSame(FACET_LIST, writeHandler.facets);
-        Assertions.assertSame(out, writeHandler.out);
+        Assertions.assertSame(FACET_LIST, writeHandler.facetsArg);
+        Assertions.assertSame(out, writeHandler.outArg);
 
         Assertions.assertEquals(0, out.getCloseCount());
     }
@@ -533,8 +533,8 @@ public class BoundaryIOManager3DTest {
         manager.writeFacets(FACET_LIST, path);
 
         // assert
-        Assertions.assertSame(FACET_LIST, writeHandler.facets);
-        Assertions.assertNotNull(writeHandler.out);
+        Assertions.assertSame(FACET_LIST, writeHandler.facetsArg);
+        Assertions.assertNotNull(writeHandler.outArg);
 
         Assertions.assertTrue(Files.exists(path));
     }
@@ -552,8 +552,8 @@ public class BoundaryIOManager3DTest {
         manager.writeFacets(FACET_LIST, path);
 
         // assert
-        Assertions.assertSame(FACET_LIST, writeHandler.facets);
-        Assertions.assertNotNull(writeHandler.out);
+        Assertions.assertSame(FACET_LIST, writeHandler.facetsArg);
+        Assertions.assertNotNull(writeHandler.outArg);
 
         Assertions.assertTrue(Files.exists(path));
         Assertions.assertEquals(0L, Files.size(path));
@@ -596,9 +596,9 @@ public class BoundaryIOManager3DTest {
         manager.writeFacets(FACET_LIST.stream(), out, "test");
 
         // assert
-        Assertions.assertNotSame(FACET_LIST, writeHandler.facets);
-        Assertions.assertEquals(FACET_LIST, writeHandler.facets);
-        Assertions.assertSame(out, writeHandler.out);
+        Assertions.assertNotSame(FACET_LIST, writeHandler.facetsArg);
+        Assertions.assertEquals(FACET_LIST, writeHandler.facetsArg);
+        Assertions.assertSame(out, writeHandler.outArg);
 
         Assertions.assertEquals(0, out.getCloseCount());
     }
@@ -628,9 +628,9 @@ public class BoundaryIOManager3DTest {
         manager.writeFacets(FACET_LIST.stream(), path);
 
         // assert
-        Assertions.assertNotSame(FACET_LIST, writeHandler.facets);
-        Assertions.assertEquals(FACET_LIST, writeHandler.facets);
-        Assertions.assertNotNull(writeHandler.out);
+        Assertions.assertNotSame(FACET_LIST, writeHandler.facetsArg);
+        Assertions.assertEquals(FACET_LIST, writeHandler.facetsArg);
+        Assertions.assertNotNull(writeHandler.outArg);
 
         Assertions.assertTrue(Files.exists(path));
     }
@@ -648,9 +648,9 @@ public class BoundaryIOManager3DTest {
         manager.writeFacets(FACET_LIST.stream(), path);
 
         // assert
-        Assertions.assertNotSame(FACET_LIST, writeHandler.facets);
-        Assertions.assertEquals(FACET_LIST, writeHandler.facets);
-        Assertions.assertNotNull(writeHandler.out);
+        Assertions.assertNotSame(FACET_LIST, writeHandler.facetsArg);
+        Assertions.assertEquals(FACET_LIST, writeHandler.facetsArg);
+        Assertions.assertNotNull(writeHandler.outArg);
 
         Assertions.assertTrue(Files.exists(path));
         Assertions.assertEquals(0L, Files.size(path));
@@ -693,9 +693,9 @@ public class BoundaryIOManager3DTest {
         manager.write(TRI_LIST.stream(), out, "test");
 
         // assert
-        Assertions.assertNotSame(TRI_LIST, writeHandler.boundaries);
-        Assertions.assertEquals(TRI_LIST, writeHandler.boundaries);
-        Assertions.assertSame(out, writeHandler.out);
+        Assertions.assertNotSame(TRI_LIST, writeHandler.boundariesArg);
+        Assertions.assertEquals(TRI_LIST, writeHandler.boundariesArg);
+        Assertions.assertSame(out, writeHandler.outArg);
 
         Assertions.assertEquals(0, out.getCloseCount());
     }
@@ -725,9 +725,9 @@ public class BoundaryIOManager3DTest {
         manager.write(TRI_LIST.stream(), path);
 
         // assert
-        Assertions.assertNotSame(TRI_LIST, writeHandler.boundaries);
-        Assertions.assertEquals(TRI_LIST, writeHandler.boundaries);
-        Assertions.assertNotNull(writeHandler.out);
+        Assertions.assertNotSame(TRI_LIST, writeHandler.boundariesArg);
+        Assertions.assertEquals(TRI_LIST, writeHandler.boundariesArg);
+        Assertions.assertNotNull(writeHandler.outArg);
 
         Assertions.assertTrue(Files.exists(path));
     }
@@ -745,9 +745,9 @@ public class BoundaryIOManager3DTest {
         manager.write(TRI_LIST.stream(), path);
 
         // assert
-        Assertions.assertNotSame(TRI_LIST, writeHandler.boundaries);
-        Assertions.assertEquals(TRI_LIST, writeHandler.boundaries);
-        Assertions.assertNotNull(writeHandler.out);
+        Assertions.assertNotSame(TRI_LIST, writeHandler.boundariesArg);
+        Assertions.assertEquals(TRI_LIST, writeHandler.boundariesArg);
+        Assertions.assertNotNull(writeHandler.outArg);
 
         Assertions.assertTrue(Files.exists(path));
         Assertions.assertEquals(0L, Files.size(path));
@@ -821,9 +821,9 @@ public class BoundaryIOManager3DTest {
 
     private static final class StubReadHandler3D implements BoundaryReadHandler3D {
 
-        private InputStream in;
+        private InputStream inArg;
 
-        private DoublePrecisionContext precision;
+        private DoublePrecisionContext precisionArg;
 
         private boolean fail;
 
@@ -838,7 +838,7 @@ public class BoundaryIOManager3DTest {
         @Override
         public Stream<PlaneConvexSubset> boundaries(final InputStream in,
                 final DoublePrecisionContext precision) throws IOException {
-            this.in = in;
+            this.inArg = in;
 
             checkFail();
 
@@ -848,7 +848,7 @@ public class BoundaryIOManager3DTest {
         /** {@inheritDoc} */
         @Override
         public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
-            this.in = in;
+            this.inArg = in;
 
             checkFail();
 
@@ -858,7 +858,7 @@ public class BoundaryIOManager3DTest {
         /** {@inheritDoc} */
         @Override
         public Stream<FacetDefinition> facets(final InputStream in) throws IOException {
-            this.in = in;
+            this.inArg = in;
 
             checkFail();
 
@@ -869,8 +869,8 @@ public class BoundaryIOManager3DTest {
         @Override
         public TriangleMesh readTriangleMesh(final InputStream in, final DoublePrecisionContext precision)
                 throws IOException {
-            this.in = in;
-            this.precision = precision;
+            this.inArg = in;
+            this.precisionArg = precision;
 
             checkFail();
 
@@ -886,18 +886,18 @@ public class BoundaryIOManager3DTest {
 
     private static final class StubWriteHandler3D implements BoundaryWriteHandler3D {
 
-        private Collection<? extends PlaneConvexSubset> boundaries;
+        private Collection<? extends PlaneConvexSubset> boundariesArg;
 
-        private Collection<? extends FacetDefinition> facets;
+        private Collection<? extends FacetDefinition> facetsArg;
 
-        private OutputStream out;
+        private OutputStream outArg;
 
         /** {@inheritDoc} */
         @Override
         public void write(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
                 throws IOException {
-            this.boundaries = boundaries.collect(Collectors.toList());
-            this.out = out;
+            this.boundariesArg = boundaries.collect(Collectors.toList());
+            this.outArg = out;
 
         }
 
@@ -911,16 +911,16 @@ public class BoundaryIOManager3DTest {
         @Override
         public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
                 throws IOException {
-            this.facets = facets.collect(Collectors.toList());
-            this.out = out;
+            this.facetsArg = facets.collect(Collectors.toList());
+            this.outArg = out;
         }
 
         /** {@inheritDoc} */
         @Override
         public void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out)
                 throws IOException {
-            this.facets = facets;
-            this.out = out;
+            this.facetsArg = facets;
+            this.outArg = out;
         }
     }
 }

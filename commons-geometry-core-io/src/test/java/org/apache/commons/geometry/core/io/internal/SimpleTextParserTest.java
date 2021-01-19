@@ -22,8 +22,8 @@ import java.io.StringReader;
 import java.util.function.IntPredicate;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class SimpleTextParserTest {
 
@@ -235,7 +235,7 @@ public class SimpleTextParserTest {
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsDouble();
-        }, IllegalStateException.class,"No token has been read from the character stream");
+        }, IllegalStateException.class, "No token has been read from the character stream");
 
         p.next(SimpleTextParser::isNotNewLinePart);
         GeometryTestUtils.assertThrowsWithMessage(() -> {
@@ -310,7 +310,7 @@ public class SimpleTextParserTest {
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(() -> {
             p.getCurrentTokenAsInt();
-        }, IllegalStateException.class,"No token has been read from the character stream");
+        }, IllegalStateException.class, "No token has been read from the character stream");
 
         p.next(SimpleTextParser::isNotNewLinePart);
         GeometryTestUtils.assertThrowsWithMessage(() -> {
@@ -1393,16 +1393,16 @@ public class SimpleTextParserTest {
 
     private static String describeChar(final int ch) {
         switch (ch) {
-            case '\n':
-                return "\\n";
-            case '\r':
-                return "\\r";
-            case '\t':
-                return "\\t";
-            case EOF:
-                return "EOF";
-            default:
-                return String.valueOf((char) ch);
+        case '\n':
+            return "\\n";
+        case '\r':
+            return "\\r";
+        case '\t':
+            return "\\t";
+        case EOF:
+            return "EOF";
+        default:
+            return String.valueOf((char) ch);
         }
     }
 

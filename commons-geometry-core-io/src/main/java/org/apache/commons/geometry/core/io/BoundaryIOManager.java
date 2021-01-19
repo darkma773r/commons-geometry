@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -302,7 +303,8 @@ public class BoundaryIOManager<
     protected R requireReadHandler(final String formatName) {
         final R reader = getReadHandler(formatName);
         if (reader == null) {
-            throw new IllegalArgumentException("No read handler registered for format \"" + formatName + "\"");
+            throw new IllegalArgumentException(
+                    MessageFormat.format("No read handler registered for format \"{0}\"", formatName));
         }
         return reader;
     }
@@ -327,7 +329,8 @@ public class BoundaryIOManager<
     protected W requireWriteHandler(final String formatName) {
         final W writer = getWriteHandler(formatName);
         if (writer == null) {
-            throw new IllegalArgumentException("No write handler registered for format \"" + formatName + "\"");
+            throw new IllegalArgumentException(
+                    MessageFormat.format("No write handler registered for format \"{0}\"", formatName));
         }
         return writer;
     }
@@ -352,8 +355,8 @@ public class BoundaryIOManager<
     protected String getFormatForFileName(final String name) {
         final String ext = GeometryIOUtils.getFileExtension(name);
         if (ext == null || ext.length() < 1) {
-            throw new IllegalArgumentException("Cannot determine file data format: file name \"" + name +
-                    "\" does not have a file extension");
+            throw new IllegalArgumentException(MessageFormat.format(
+                    "Cannot determine file data format: file name \"{0}\" does not have a file extension", name));
         }
 
         return ext;

@@ -38,8 +38,10 @@
             >commons-numbers</a>)</li>
       </ul>
 
-      <p>The code below gives a small sample of the API by computing the difference of cube and an approximation
-      of a sphere. See the <a href="userguide/index.html">user guide</a> for more details.
+      <p>The code below gives a small sample of the API by computing the difference of a cube and an approximation
+      of a sphere and writing the result to a file using the 
+      <a href="https://en.wikipedia.org/wiki/Wavefront_.obj_file">OBJ</a> data format. See the 
+      <a href="userguide/index.html">user guide</a> for more details.
       </p>
 <source class="prettyprint">
 // construct a precision context to handle floating-point comparisons

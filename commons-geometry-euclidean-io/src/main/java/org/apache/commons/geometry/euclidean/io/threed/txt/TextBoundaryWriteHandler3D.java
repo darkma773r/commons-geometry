@@ -52,7 +52,7 @@ public class TextBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     private String vertexComponentSeparator = TextFacetDefinitionWriter.DEFAULT_VERTEX_COMPONENT_SEPARATOR;
 
     /** String used to separate vertices. */
-    private String vertexSeparator = TextFacetDefinitionWriter. DEFAULT_VERTEX_SEPARATOR;
+    private String vertexSeparator = TextFacetDefinitionWriter.DEFAULT_VERTEX_SEPARATOR;
 
     /** Number of vertices required per facet; will be -1 if disabled. */
     private int facetVertexCount = TextFacetDefinitionWriter.DEFAULT_FACET_VERTEX_COUNT;

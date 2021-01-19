@@ -188,7 +188,7 @@ public final class OBJWriter extends AbstractTextFormatWriter {
             throws IOException {
         final MeshBuffer buffer = meshBuffer(batchSize);
 
-        try (final Stream<PlaneConvexSubset> stream = src.boundaryStream()) {
+        try (Stream<PlaneConvexSubset> stream = src.boundaryStream()) {
             final Iterator<PlaneConvexSubset> it = stream.iterator();
             while (it.hasNext()) {
                 buffer.add(it.next());

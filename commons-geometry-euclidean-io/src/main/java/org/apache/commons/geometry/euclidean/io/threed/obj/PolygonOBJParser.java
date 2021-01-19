@@ -162,15 +162,17 @@ public class PolygonOBJParser extends AbstractOBJParser {
 
         // update counts in order to validate face vertex attributes
         switch (keywordValue) {
-            case OBJConstants.VERTEX_KEYWORD:
-                ++vertexCount;
-                break;
-            case OBJConstants.VERTEX_NORMAL_KEYWORD:
-                ++vertexNormalCount;
-                break;
-            case OBJConstants.TEXTURE_COORDINATE_KEYWORD:
-                ++textureCoordinateCount;
-                break;
+        case OBJConstants.VERTEX_KEYWORD:
+            ++vertexCount;
+            break;
+        case OBJConstants.VERTEX_NORMAL_KEYWORD:
+            ++vertexNormalCount;
+            break;
+        case OBJConstants.TEXTURE_COORDINATE_KEYWORD:
+            ++textureCoordinateCount;
+            break;
+        default:
+            break;
         }
     }
 
@@ -385,9 +387,9 @@ public class PolygonOBJParser extends AbstractOBJParser {
          * @see #getOrientedVertexAttributes(Vector3D, IntFunction)
          */
         public List<Vector3D> getCounterClockwiseVertices(final Vector3D normal,
-                final IntFunction<Vector3D> modelVerticesFn) {
-            return getCounterClockwiseVertexAttributes(normal, modelVerticesFn).stream()
-                    .map(v -> modelVerticesFn.apply(v.getVertexIndex()))
+                final IntFunction<Vector3D> modelVertexFn) {
+            return getCounterClockwiseVertexAttributes(normal, modelVertexFn).stream()
+                    .map(v -> modelVertexFn.apply(v.getVertexIndex()))
                     .collect(Collectors.toList());
         }
 

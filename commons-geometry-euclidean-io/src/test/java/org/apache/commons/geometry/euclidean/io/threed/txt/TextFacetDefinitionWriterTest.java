@@ -32,9 +32,9 @@ import org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TextFacetDefinitionWriterTest {
 
@@ -47,7 +47,7 @@ public class TextFacetDefinitionWriterTest {
 
     private TextFacetDefinitionWriter fdWriter;
 
-    @Before
+    @BeforeEach
     public void setup() {
         writer = new StringWriter();
         fdWriter = new TextFacetDefinitionWriter(writer);

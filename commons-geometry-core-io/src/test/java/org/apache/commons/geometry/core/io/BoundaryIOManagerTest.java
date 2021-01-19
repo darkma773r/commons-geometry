@@ -58,7 +58,7 @@ public class BoundaryIOManagerTest {
     private static final TestBoundaryList BOUNDARY_LIST = new TestBoundaryList(Collections.singletonList(SEGMENT));
 
     @TempDir
-    public Path tempDir;
+    Path tempDir;
 
     private final TestManager manager = new TestManager();
 
@@ -128,8 +128,8 @@ public class BoundaryIOManagerTest {
 
         Assertions.assertEquals(0, in.getCloseCount());
 
-        Assertions.assertSame(in, readHandler.in);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
+        Assertions.assertSame(in, readHandler.inArg);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
     }
 
     @Test
@@ -159,7 +159,7 @@ public class BoundaryIOManagerTest {
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, result);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
     }
 
     @Test
@@ -205,7 +205,7 @@ public class BoundaryIOManagerTest {
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, result);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
     }
 
     @Test
@@ -234,7 +234,7 @@ public class BoundaryIOManagerTest {
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, result);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
     }
 
     @Test
@@ -271,8 +271,8 @@ public class BoundaryIOManagerTest {
 
         Assertions.assertEquals(0, in.getCloseCount());
 
-        Assertions.assertSame(in, readHandler.in);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
+        Assertions.assertSame(in, readHandler.inArg);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
     }
 
     @Test
@@ -305,7 +305,7 @@ public class BoundaryIOManagerTest {
 
         // assert
         Assertions.assertEquals(BOUNDARY_LIST.getBoundaries(), segments);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
 
         Assertions.assertEquals(1, manager.inputCloseCount);
     }
@@ -403,7 +403,7 @@ public class BoundaryIOManagerTest {
 
         // assert
         Assertions.assertEquals(BOUNDARY_LIST.getBoundaries(), segments);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precision);
+        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
 
         Assertions.assertEquals(1, manager.inputCloseCount);
     }
@@ -502,7 +502,7 @@ public class BoundaryIOManagerTest {
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, writeHandler.list);
-        Assertions.assertSame(out, writeHandler.out);
+        Assertions.assertSame(out, writeHandler.outArg);
 
         Assertions.assertEquals(0, out.getCloseCount());
     }
@@ -533,7 +533,7 @@ public class BoundaryIOManagerTest {
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, writeHandler.list);
-        Assertions.assertNotNull(writeHandler.out);
+        Assertions.assertNotNull(writeHandler.outArg);
 
         Assertions.assertTrue(Files.exists(path));
     }
@@ -552,7 +552,7 @@ public class BoundaryIOManagerTest {
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, writeHandler.list);
-        Assertions.assertNotNull(writeHandler.out);
+        Assertions.assertNotNull(writeHandler.outArg);
 
         Assertions.assertTrue(Files.exists(path));
         Assertions.assertEquals(0L, Files.size(path));
@@ -634,9 +634,9 @@ public class BoundaryIOManagerTest {
 
     private static final class StubReadHandler implements BoundaryReadHandler<TestLineSegment, TestBoundaryList> {
 
-        private InputStream in;
+        private InputStream inArg;
 
-        private DoublePrecisionContext precision;
+        private DoublePrecisionContext precisionArg;
 
         private boolean boundariesFail = false;
 
@@ -644,8 +644,8 @@ public class BoundaryIOManagerTest {
         @Override
         public TestBoundaryList read(final InputStream in, final DoublePrecisionContext precision)
                 throws IOException {
-            this.in = in;
-            this.precision = precision;
+            this.inArg = in;
+            this.precisionArg = precision;
 
             return BOUNDARY_LIST;
         }
@@ -654,8 +654,8 @@ public class BoundaryIOManagerTest {
         @Override
         public Stream<TestLineSegment> boundaries(final InputStream in,
                 final DoublePrecisionContext precision) throws IOException {
-            this.in = in;
-            this.precision = precision;
+            this.inArg = in;
+            this.precisionArg = precision;
 
             if (boundariesFail) {
                 throw new IOException("Test boundaries() failure");
@@ -669,13 +669,13 @@ public class BoundaryIOManagerTest {
 
         private TestBoundaryList list;
 
-        private OutputStream out;
+        private OutputStream outArg;
 
         /** {@inheritDoc} */
         @Override
         public void write(final TestBoundaryList boundarySource, final OutputStream out) throws IOException {
             this.list = boundarySource;
-            this.out = out;
+            this.outArg = out;
         }
     }
 }

@@ -40,7 +40,7 @@ public class PolygonOBJParserTest {
         final PolygonOBJParser p = parser("");
 
         // assert
-        Assertions.assertNull(p.getKeyword());
+        Assertions.assertNull(p.getCurrentKeyword());
         Assertions.assertEquals(0, p.getVertexCount());
         Assertions.assertEquals(0, p.getVertexNormalCount());
         Assertions.assertEquals(0, p.getTextureCoordinateCount());
@@ -251,21 +251,21 @@ public class PolygonOBJParserTest {
 
         // act/assert
         Assertions.assertArrayEquals(new double[] {
-                0.1, 0.2, 3e2, 4e2, 500.01
+            0.1, 0.2, 3e2, 4e2, 500.01
         }, p.readDoubles(), EPS);
-        Assertions.assertArrayEquals(new double[] { }, p.readDoubles(), EPS);
+        Assertions.assertArrayEquals(new double[0], p.readDoubles(), EPS);
 
         p.readDataLine();
 
-        Assertions.assertArrayEquals(new double[] { 12.001 }, p.readDoubles(), EPS);
+        Assertions.assertArrayEquals(new double[] {12.001}, p.readDoubles(), EPS);
 
         p.readDataLine();
 
-        Assertions.assertArrayEquals(new double[] { }, p.readDoubles(), EPS);
+        Assertions.assertArrayEquals(new double[0], p.readDoubles(), EPS);
 
         p.readDataLine();
 
-        Assertions.assertArrayEquals(new double[] { }, p.readDoubles(), EPS);
+        Assertions.assertArrayEquals(new double[0], p.readDoubles(), EPS);
     }
 
     @Test
@@ -323,73 +323,73 @@ public class PolygonOBJParserTest {
 
         // act/assert
         assertFace(new int[][] {
-            { 0, -1, -1 },
-            { 1, -1, -1 },
-            { 2, -1, -1 },
-            { 3, -1, -1 },
+            {0, -1, -1},
+            {1, -1, -1},
+            {2, -1, -1},
+            {3, -1, -1},
         }, p.readFace());
 
         nextFace(p);
 
         assertFace(new int[][] {
-            { 0, -1, -1 },
-            { 1, -1, -1 },
-            { 2, -1, -1 },
-            { 3, -1, -1 },
+            {0, -1, -1},
+            {1, -1, -1},
+            {2, -1, -1},
+            {3, -1, -1},
         }, p.readFace());
 
         nextFace(p);
 
         assertFace(new int[][] {
-            { 0, -1, 0 },
-            { 1, -1, 1 },
-            { 2, -1, 0 },
-            { 3, -1, 1 },
+            {0, -1, 0},
+            {1, -1, 1},
+            {2, -1, 0},
+            {3, -1, 1},
         }, p.readFace());
 
         nextFace(p);
 
         assertFace(new int[][] {
-            { 0, -1, 0 },
-            { 1, -1, 1 },
-            { 2, -1, 0 },
-            { 3, -1, 1 },
+            {0, -1, 0},
+            {1, -1, 1},
+            {2, -1, 0},
+            {3, -1, 1},
         }, p.readFace());
 
         nextFace(p);
 
         assertFace(new int[][] {
-            { 0, 3, 0 },
-            { 1, 2, 1 },
-            { 2, 1, 0 },
-            { 3, 0, 1 },
+            {0, 3, 0},
+            {1, 2, 1},
+            {2, 1, 0},
+            {3, 0, 1},
         }, p.readFace());
 
         nextFace(p);
 
         assertFace(new int[][] {
-            { 0, 4, 0 },
-            { 1, 3, 1 },
-            { 2, 2, 0 },
-            { 3, 1, 1 },
+            {0, 4, 0},
+            {1, 3, 1},
+            {2, 2, 0},
+            {3, 1, 1},
         }, p.readFace());
 
         nextFace(p);
 
         assertFace(new int[][] {
-            { 0, 3, -1 },
-            { 1, 2, -1 },
-            { 2, 1, -1 },
-            { 3, 0, -1 },
+            {0, 3, -1},
+            {1, 2, -1},
+            {2, 1, -1},
+            {3, 0, -1},
         }, p.readFace());
 
         nextFace(p);
 
         assertFace(new int[][] {
-            { 0, 4, -1 },
-            { 1, 3, -1 },
-            { 2, 2, -1 },
-            { 3, 1, -1 },
+            {0, 4, -1},
+            {1, 3, -1},
+            {2, 2, -1},
+            {3, 1, -1},
         }, p.readFace());
     }
 
@@ -596,29 +596,29 @@ public class PolygonOBJParserTest {
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.Unit.PLUS_Y, p.readVector(), EPS);
 
         assertNextKeyword("vt", p);
-        Assertions.assertArrayEquals(new double[] { 0, 0 }, p.readDoubles(),  EPS);
+        Assertions.assertArrayEquals(new double[] {0, 0}, p.readDoubles(),  EPS);
 
         assertNextKeyword("vt", p);
-        Assertions.assertArrayEquals(new double[] { 1, 0 }, p.readDoubles(),  EPS);
+        Assertions.assertArrayEquals(new double[] {1, 0}, p.readDoubles(),  EPS);
 
         assertNextKeyword("vt", p);
-        Assertions.assertArrayEquals(new double[] { 1, 1 }, p.readDoubles(),  EPS);
+        Assertions.assertArrayEquals(new double[] {1, 1}, p.readDoubles(),  EPS);
 
         assertNextKeyword("vn", p);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.Unit.PLUS_Z, p.readVector(), EPS);
 
         assertNextKeyword("f", p);
         assertFace(new int[][] {
-            { 0, -1, -1 },
-            { 1, -1, -1 },
-            { 3, -1, -1 },
+            {0, -1, -1},
+            {1, -1, -1},
+            {3, -1, -1},
         }, p.readFace());
 
         assertNextKeyword("f", p);
         assertFace(new int[][] {
-            { 0, 0, 0 },
-            { 1, 1, 0 },
-            { 2, 2, 0 },
+            {0, 0, 0},
+            {1, 1, 0},
+            {2, 2, 0},
         }, p.readFace());
 
         Assertions.assertEquals(4, p.getVertexCount());
@@ -810,7 +810,7 @@ public class PolygonOBJParserTest {
     }
 
     private static String lines(final String... lines) {
-        final String[] newlineOptions = { "\n", "\r", "\r\n" };
+        final String[] newlineOptions = {"\n", "\r", "\r\n"};
 
         final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < lines.length; ++i) {
@@ -826,13 +826,16 @@ public class PolygonOBJParserTest {
     }
 
     private static void nextMatchingKeyword(final String keyword, final PolygonOBJParser parser) throws IOException {
-        while (parser.nextKeyword() && !keyword.equals(parser.getKeyword())) {
+        while (parser.nextKeyword()) {
+            if (keyword.equals(parser.getCurrentKeyword())) {
+                return;
+            }
         }
     }
 
     private static void assertNextKeyword(final String expected, final PolygonOBJParser parser) throws IOException {
         Assertions.assertEquals(expected != null, parser.nextKeyword());
-        Assertions.assertEquals(expected, parser.getKeyword());
+        Assertions.assertEquals(expected, parser.getCurrentKeyword());
     }
 
     private static void assertFace(final int[][] vertexAttributes, final PolygonOBJParser.Face face) {
