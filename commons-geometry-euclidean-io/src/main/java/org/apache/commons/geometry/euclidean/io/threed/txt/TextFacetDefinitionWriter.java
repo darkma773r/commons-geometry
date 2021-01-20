@@ -49,27 +49,25 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
  * <p>The default writer configuration uses distinct vertex and vertex component separators to make it
  * easier to visually distinguish vertices. Comments are supported and facets are allowed to have
  * any geometrically valid number of vertices. This format is designed for human readability and ease
- * of editing.
+ * of editing.</p>
  * <pre>
  * # two square facets
  * 0 0 0; 1 0 0; 1 1 0; 0 1 0
  * 0 0 0; 0 1 0; 0 1 1; 0 0 1
  * </pre>
- * </p>
  *
  * <p><em>CSV</em></p>
  * <p>The example below uses a comma as both the vertex and vertex component separators to produce
  * a standard CSV format. The facet vertex count is set to 3 to ensure that each row has the same number
  * of columns and all numbers are written with at least a single fraction digit to ensure proper interpretation
  * as floating point data. Comments are not supported. This configuration is produced by the
- * {@link #csvFormat(Writer)} factory method.
+ * {@link #csvFormat(Writer)} factory method.</p>
  * <pre>
  * 0.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0,0.0
  * 0.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0
  * 0.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0
  * 0.0,0.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0
  * </pre>
- * </p>
  *
  * @see TextFacetDefinitionReader
  */

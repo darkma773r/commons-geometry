@@ -66,7 +66,7 @@ public class PolygonOBJParser extends AbstractOBJParser {
     private int textureCoordinateCount;
 
     /** If true, parsing will fail when non-polygon keywords are encountered in the OBJ content. */
-    private boolean failOnNonPolygonKeywords = false;
+    private boolean failOnNonPolygonKeywords;
 
     /** Construct a new instance for parsing OBJ content from the given reader.
      * @param reader reader to parser content from
@@ -273,12 +273,14 @@ public class PolygonOBJParser extends AbstractOBJParser {
     }
 
     /** Class representing an OBJ face definition. Faces are defined with the format
-     * <pre>
-     * f v<sub>1</sub>/vt<sub>1</sub>/vn<sub>1</sub> v<sub>2</sub>/vt<sub>2</sub>/vn<sub>2</sub> v<sub>3</sub>/vt<sub>3</sub>/vn<sub>3</sub> ...
-     * </pre>
-     * where the {@code v} elements are indices into the model vertices, the {@code vt}
+     * <p>
+     *  <code>
+     *      f v<sub>1</sub>/vt<sub>1</sub>/vn<sub>1</sub> v<sub>2</sub>/vt<sub>2</sub>/vn<sub>2</sub> v<sub>3</sub>/vt<sub>3</sub>/vn<sub>3</sub> ...
+     *  </code>
+     * </p>
+     * <p>where the {@code v} elements are indices into the model vertices, the {@code vt}
      * elements are indices into the model texture coordinates, and the {@code vn} elements
-     * are indices into the model normal coordinates. Only the vertex indices are required.
+     * are indices into the model normal coordinates. Only the vertex indices are required.</p>
      *
      * <p>All vertex attribute indices are normalized to be 0-based and positive and all
      * faces are assumed to define geometrically valid convex polygons.</p>
@@ -350,7 +352,7 @@ public class PolygonOBJParser extends AbstractOBJParser {
          * @return list of vertex attributes for the face, oriented to correspond with the given
          *      face normal
          */
-        public List<VertexAttributes> getCounterClockwiseVertexAttributes(final Vector3D normal,
+        public List<VertexAttributes> getVertexAttributesCounterClockwise(final Vector3D normal,
                 final IntFunction<Vector3D> modelVertexFn) {
             List<VertexAttributes> result = vertexAttributes;
 
@@ -384,11 +386,11 @@ public class PolygonOBJParser extends AbstractOBJParser {
          *      callers are responsible for storing these values as they are passed
          * @return face vertices in the order that produces a counter-clockwise winding when viewed
          *      looking down the given normal
-         * @see #getOrientedVertexAttributes(Vector3D, IntFunction)
+         * @see #getVertexAttributesCounterClockwise(Vector3D, IntFunction)
          */
-        public List<Vector3D> getCounterClockwiseVertices(final Vector3D normal,
+        public List<Vector3D> getVerticesCounterClockwise(final Vector3D normal,
                 final IntFunction<Vector3D> modelVertexFn) {
-            return getCounterClockwiseVertexAttributes(normal, modelVertexFn).stream()
+            return getVertexAttributesCounterClockwise(normal, modelVertexFn).stream()
                     .map(v -> modelVertexFn.apply(v.getVertexIndex()))
                     .collect(Collectors.toList());
         }

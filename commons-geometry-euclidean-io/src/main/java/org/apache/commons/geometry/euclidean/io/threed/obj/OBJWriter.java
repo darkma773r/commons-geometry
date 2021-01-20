@@ -43,10 +43,10 @@ public final class OBJWriter extends AbstractTextFormatWriter {
     private static final char SPACE = ' ';
 
     /** Number of vertices written to the output. */
-    private int vertexCount = 0;
+    private int vertexCount;
 
     /** Number of normals written to the output. */
-    private int normalCount = 0;
+    private int normalCount;
 
     /** Create a new instance that writes output with the given writer.
      * @param writer writer used to write output

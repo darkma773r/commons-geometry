@@ -54,9 +54,8 @@ public final class FacetDefinitions {
     }
 
     /** Construct a {@link ConvexPolygon3D} from the vertices of the given facet. This method
-     * attempts to honor any {@link #getDefinedNormal() defined normal} for the facet by making the
-     * polygon point in a similar (but not necessarily equal) direction, reversing the
-     * order of vertices if needed.
+     * attempts to honor any normal defined for the facet by making the polygon point in a similar
+     * (but not necessarily equal) direction by reversing the order of vertices if needed.
      * @param facet facet to convert to a polygon instance
      * @param precision precision context used for floating point comparisons
      * @return convex polygon constructed from the facet

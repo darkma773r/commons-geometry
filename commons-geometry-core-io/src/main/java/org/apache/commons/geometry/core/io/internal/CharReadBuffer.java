@@ -245,8 +245,8 @@ public class CharReadBuffer {
         return skipped;
     }
 
-    /** Push a character back onto the read buffer. The character will
-     * be the next character returned by {@link #getChar(boolean)}.
+    /** Push a character back onto the read buffer. The argument will
+     * be the next character returned by {@link #read()} or {@link #peek()}.
      * @param ch character to push onto the read buffer
      */
     public void push(final char ch) {
@@ -256,7 +256,7 @@ public class CharReadBuffer {
 
     /** Push a string back onto the read buffer. The first character
      * of the string will be the next character returned by
-     * {@link #getChar(boolean)}.
+     * {@link #read()} or {@link #peek()}.
      * @param str string to push onto the read buffer
      */
     public void pushString(final String str) {

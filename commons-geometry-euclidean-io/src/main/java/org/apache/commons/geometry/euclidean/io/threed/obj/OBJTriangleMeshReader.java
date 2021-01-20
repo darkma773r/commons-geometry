@@ -61,10 +61,10 @@ public class OBJTriangleMeshReader extends AbstractOBJPolygonReader {
         while ((face = readFace()) != null) {
             // get the face attributes in the proper counter-clockwise orientation
             definedNormal = face.getDefinedCompositeNormal(normals::get);
-            attrs = face.getCounterClockwiseVertexAttributes(definedNormal, meshBuilder::getVertex).iterator();
+            attrs = face.getVertexAttributesCounterClockwise(definedNormal, meshBuilder::getVertex).iterator();
 
             // add the face vertices using a triangle fan
-            int p0 = attrs.next().getVertexIndex();
+            final int p0 = attrs.next().getVertexIndex();
             int p1 = attrs.next().getVertexIndex();
             int p2;
 

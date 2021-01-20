@@ -41,7 +41,7 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSubset, BoundarySource3D> {
 
     /** Return a {@link FacetDefinitionReader} for reading raw
-     * {@link org.apache.commons.geometry.euclidean.io.threed.facet.FacetDefinition facets} from the given
+     * {@link org.apache.commons.geometry.euclidean.io.threed.FacetDefinition facets} from the given
      * input stream.
      * @param in input stream to read from
      * @return facet definition reader instance

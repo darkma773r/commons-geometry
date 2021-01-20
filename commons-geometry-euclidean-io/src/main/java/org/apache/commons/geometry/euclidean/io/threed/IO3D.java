@@ -37,7 +37,7 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
  *
  * <p><strong>Examples</strong></p>
  * <p>The example below reads an OBJ file as a stream of triangles, transforms each triangle, and writes the
- * result to a CSV file.
+ * result to a CSV file.</p>
  * <pre>
  * Path origFile = Paths.get("orig.obj");
  * Path scaledFile = Paths.get("scaled.csv");
@@ -46,11 +46,9 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
  * // use the input triangle stream in a try-with-resources statement to ensure
  * // all resources are properly closed.
  * try (Stream&lt;Triangle3D&gt; stream = IO3D.triangles(origFile, precision)) {
- *      IO3D.write(stream.map(t -> t.transform(transform)), scaledFile);
+ *      IO3D.write(stream.map(t -&gt; t.transform(transform)), scaledFile);
  * }
  * </pre>
- * </p>
- *
  * @see DefaultBoundaryIOManager3D
  */
 public final class IO3D {
@@ -61,9 +59,9 @@ public final class IO3D {
     public static final String OBJ = "obj";
 
     /** String representing the simple text format described by
-     * {@link org.apache.commons.geometry.euclidean.io.threed.text.TextFacetDefinitionReader TextFacetDefinitionReader}
+     * {@link org.apache.commons.geometry.euclidean.io.threed.txt.TextFacetDefinitionReader TextFacetDefinitionReader}
      * and
-     * {@link org.apache.commons.geometry.euclidean.io.threed.text.TextFacetDefinitionWriter TextFacetDefinitionWriter}.
+     * {@link org.apache.commons.geometry.euclidean.io.threed.txt.TextFacetDefinitionWriter TextFacetDefinitionWriter}.
      * This format describes facets by listing the coordinates of its vertices in order, with one facet
      * described per line. Facets may have 3 or more vertices and do not need to all have the same
      * number of vertices.
@@ -71,7 +69,7 @@ public final class IO3D {
     public static final String TXT = "txt";
 
     /** String representing the CSV file format as described by
-     * {@link org.apache.commons.geometry.euclidean.io.threed.text.TextFacetDefinitionWriter#csvFormat(java.io.Writer)
+     * {@link org.apache.commons.geometry.euclidean.io.threed.txt.TextFacetDefinitionWriter#csvFormat(java.io.Writer)
      * TextFacetDefinitionWriter}. When used to represent 3D geometry information, the coordinates of the vertices of
      * the facets are listed in order, with one facet defined per row. This is similar to the {@link #TXT} format
      * with the exception that facets are converted to triangles before writing so that all rows have the same
@@ -458,7 +456,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if the target file does not have a file extension or the file
      *      extension does not match a data format registered with the {@link #getDefaultManager() default manager}
      * @throws IOException if an I/O error occurs
-     * @see BoundaryIOManager3D#write(BoundarySource3D, Path)
+     * @see org.apache.commons.geometry.core.io.BoundaryIOManager#write(org.apache.commons.geometry.core.partitioning.BoundarySource, Path)
      */
     public static void write(final BoundarySource3D src, final Path path)
             throws IOException {
@@ -473,7 +471,7 @@ public final class IO3D {
      * @throws IllegalArgumentException if no write handler is registered with the
      *      {@link #getDefaultManager() default manager} for the given format name
      * @throws IOException if an I/O error occurs
-     * @see BoundaryIOManager3D#write(BoundarySource3D, OutputStream, String)
+     * @see org.apache.commons.geometry.core.io.BoundaryIOManager#write(org.apache.commons.geometry.core.partitioning.BoundarySource, OutputStream, String)
      */
     public static void write(final BoundarySource3D src, final OutputStream out, final String formatName)
             throws IOException {

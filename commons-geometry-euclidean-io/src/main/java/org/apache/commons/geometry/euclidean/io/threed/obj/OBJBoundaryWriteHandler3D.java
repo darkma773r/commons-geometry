@@ -30,8 +30,8 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.mesh.Mesh;
 
-/** {@link BoundaryWriteHandler3D} implementation for writing OBJ content.
- * Output is written using the UTF-8 charset by default.
+/** {@link org.apache.commons.geometry.euclidean.io.threed.BoundaryWriteHandler3D BoundaryWriteHandler3D}
+ * implementation for writing OBJ content. Output is written using the UTF-8 charset by default.
  */
 public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 

@@ -70,7 +70,7 @@ public class SimpleTextParser {
     private int currentTokenColumnNumber = INITIAL_TOKEN_POS;
 
     /** Flag used to indicate that at least one token has been read from the stream. */
-    private boolean hasSetToken = false;
+    private boolean hasSetToken;
 
     /** Character read buffer used to access the character stream. */
     private final CharReadBuffer buffer;
@@ -106,7 +106,7 @@ public class SimpleTextParser {
     }
 
     /** Get the current column number. This indicates the column position of the
-     * character that will returned by the next call to {@link #next()}. The first
+     * character that will returned by the next call to {@link #readChar()}. The first
      * character of each line has a column number of 1.
      * @return the current column number; column numbers start at 1
      */
@@ -115,7 +115,7 @@ public class SimpleTextParser {
     }
 
     /** Set the current column number. This does not affect the character stream position,
-     * only the value returned by {@link #getColumn()}.
+     * only the value returned by {@link #getColumnNumber()}.
      * @param column the column number to set; column numbers start at 1
      */
     public void setColumnNumber(final int column) {
@@ -494,7 +494,7 @@ public class SimpleTextParser {
     }
 
     /** Discard the next whitespace characters on the current line. The next call to
-     * {@link #next()} will return either a non-whitespace character on the current line,
+     * {@link #readChar()} will return either a non-whitespace character on the current line,
      * the newline character sequence (indicating the end of the line), or -1 (indicating the
      * end of the stream). The parser position is updated but the current token is not changed.
      * @return this instance

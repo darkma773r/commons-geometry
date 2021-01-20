@@ -33,14 +33,16 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
  * defining the vertices of each facet, with one facet defined per line.
  * Facet vertices are defined by listing their {@code x}, {@code y}, and {@code z}
  * components in that order. The format can be described as follows:
- * <pre>
+ * <p>
+ * <code>
  *      p1<sub>x</sub> p1<sub>y</sub> p1<sub>z</sub> p2<sub>x</sub> p2<sub>y</sub> p2<sub>z</sub> p3<sub>x</sub> p3<sub>y</sub> p3<sub>z</sub> ...
- * </pre>
- * where the <em>p1</em> elements contain the coordinates of the first facet vertex,
+ * </code>
+ * </p>
+ * <p>where the <em>p1</em> elements contain the coordinates of the first facet vertex,
  * <em>p2</em> those of the second, and so on. At least 3 vertices are required for each
  * facet but more can be specified as long as all {@code x, y, z} components are provided
  * for each vertex. The facet normal is defined implicitly from the facet vertices using
- * the right-hand rule (i.e. vertices are arranged counter-clockwise).
+ * the right-hand rule (i.e. vertices are arranged counter-clockwise).</p>
  *
  * <p><strong>Delimiters</strong></p>
  * <p>Vertex coordinate values may be separated by any character that is
@@ -166,7 +168,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
         discardNonData();
         final Vector3D p3 = readVector();
 
-        List<Vector3D> vertices;
+        final List<Vector3D> vertices;
 
         discardNonData();
         if (parser.hasMoreCharactersOnLine()) {

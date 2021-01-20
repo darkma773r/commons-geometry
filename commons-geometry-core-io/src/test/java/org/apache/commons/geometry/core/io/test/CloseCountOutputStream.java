@@ -30,7 +30,7 @@ public class CloseCountOutputStream extends FilterOutputStream {
 
     /** Construct a new instance that delegates all calls to the
      * given output stream.
-     * @param in underlying output stream
+     * @param out underlying output stream
      */
     public CloseCountOutputStream(final OutputStream out) {
         super(out);

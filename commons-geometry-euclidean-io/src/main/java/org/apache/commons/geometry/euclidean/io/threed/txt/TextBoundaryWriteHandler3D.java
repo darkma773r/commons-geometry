@@ -28,10 +28,10 @@ import org.apache.commons.geometry.euclidean.io.threed.AbstractBoundaryWriteHand
 import org.apache.commons.geometry.euclidean.io.threed.FacetDefinition;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 
-/** {@link BoundaryWriteHandler3D} implementation designed to write simple text data
- * formats using {@link TextFacetDefinitionWriter}. Output is written using the UTF-8 charset
- * by default.
- * @see BoundaryWriteHandler3D
+/** {@link org.apache.commons.geometry.euclidean.io.threed.BoundaryWriteHandler3D BoundaryWriteHandler3D}
+ * implementation designed to write simple text data formats using {@link TextFacetDefinitionWriter}. Output is
+ * written using the UTF-8 charset by default.
+ * @see org.apache.commons.geometry.euclidean.io.threed.BoundaryWriteHandler3D
  * @see TextFacetDefinitionWriter
  */
 public class TextBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {

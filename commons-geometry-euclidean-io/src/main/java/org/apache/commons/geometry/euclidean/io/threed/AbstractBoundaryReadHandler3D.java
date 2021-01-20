@@ -157,7 +157,7 @@ public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandl
             ++loadCount;
             try {
                 next = reader.readFacet();
-            } catch (IOException exc) {
+            } catch (final IOException exc) {
                 throw GeometryIOUtils.createUnchecked(exc);
             }
         }

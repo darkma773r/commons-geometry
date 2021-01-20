@@ -706,7 +706,7 @@ public class PolygonOBJParserTest {
     }
 
     @Test
-    public void testFace_getOrientedVertexAttributes() throws IOException {
+    public void testFace_getVertexAttributesCounterClockwise() throws IOException {
         // arrange
         final PolygonOBJParser p = parser(lines(
                 "v 0 0 0",
@@ -731,14 +731,14 @@ public class PolygonOBJParserTest {
         Collections.reverse(reverseAttrs);
 
         // act/assert
-        Assertions.assertEquals(attrs, f.getCounterClockwiseVertexAttributes(null, vertexFn));
+        Assertions.assertEquals(attrs, f.getVertexAttributesCounterClockwise(null, vertexFn));
 
-        Assertions.assertEquals(attrs, f.getCounterClockwiseVertexAttributes(Vector3D.Unit.PLUS_Z, vertexFn));
-        Assertions.assertEquals(attrs, f.getCounterClockwiseVertexAttributes(Vector3D.of(1, 0, 0.1), vertexFn));
-        Assertions.assertEquals(attrs, f.getCounterClockwiseVertexAttributes(Vector3D.Unit.PLUS_X, vertexFn));
+        Assertions.assertEquals(attrs, f.getVertexAttributesCounterClockwise(Vector3D.Unit.PLUS_Z, vertexFn));
+        Assertions.assertEquals(attrs, f.getVertexAttributesCounterClockwise(Vector3D.of(1, 0, 0.1), vertexFn));
+        Assertions.assertEquals(attrs, f.getVertexAttributesCounterClockwise(Vector3D.Unit.PLUS_X, vertexFn));
 
-        Assertions.assertEquals(reverseAttrs, f.getCounterClockwiseVertexAttributes(Vector3D.Unit.MINUS_Z, vertexFn));
-        Assertions.assertEquals(reverseAttrs, f.getCounterClockwiseVertexAttributes(Vector3D.of(1, 0, -0.1), vertexFn));
+        Assertions.assertEquals(reverseAttrs, f.getVertexAttributesCounterClockwise(Vector3D.Unit.MINUS_Z, vertexFn));
+        Assertions.assertEquals(reverseAttrs, f.getVertexAttributesCounterClockwise(Vector3D.of(1, 0, -0.1), vertexFn));
     }
 
     @Test
@@ -770,7 +770,7 @@ public class PolygonOBJParserTest {
     }
 
     @Test
-    public void testFace_getOrientedVertices() throws IOException {
+    public void testFace_getVerticesCounterClockwise() throws IOException {
         // arrange
         final PolygonOBJParser p = parser(lines(
                 "v 0 0 0",
@@ -795,14 +795,14 @@ public class PolygonOBJParserTest {
         final PolygonOBJParser.Face f = p.readFace();
 
         // act/assert
-        Assertions.assertEquals(faceVertices, f.getCounterClockwiseVertices(null, vertexFn));
+        Assertions.assertEquals(faceVertices, f.getVerticesCounterClockwise(null, vertexFn));
 
-        Assertions.assertEquals(faceVertices, f.getCounterClockwiseVertices(Vector3D.Unit.PLUS_Z, vertexFn));
-        Assertions.assertEquals(faceVertices, f.getCounterClockwiseVertices(Vector3D.of(1, 0, 0.1), vertexFn));
-        Assertions.assertEquals(faceVertices, f.getCounterClockwiseVertices(Vector3D.Unit.PLUS_X, vertexFn));
+        Assertions.assertEquals(faceVertices, f.getVerticesCounterClockwise(Vector3D.Unit.PLUS_Z, vertexFn));
+        Assertions.assertEquals(faceVertices, f.getVerticesCounterClockwise(Vector3D.of(1, 0, 0.1), vertexFn));
+        Assertions.assertEquals(faceVertices, f.getVerticesCounterClockwise(Vector3D.Unit.PLUS_X, vertexFn));
 
-        Assertions.assertEquals(reverseFaceVertices, f.getCounterClockwiseVertices(Vector3D.Unit.MINUS_Z, vertexFn));
-        Assertions.assertEquals(reverseFaceVertices, f.getCounterClockwiseVertices(Vector3D.of(1, 0, -0.1), vertexFn));
+        Assertions.assertEquals(reverseFaceVertices, f.getVerticesCounterClockwise(Vector3D.Unit.MINUS_Z, vertexFn));
+        Assertions.assertEquals(reverseFaceVertices, f.getVerticesCounterClockwise(Vector3D.of(1, 0, -0.1), vertexFn));
     }
 
     private static PolygonOBJParser parser(final String content) {
