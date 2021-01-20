@@ -223,23 +223,26 @@ public class CharReadBuffer {
     /** Skip {@code n} characters from the stream. Characters are first skipped from the buffer
      * and then from the underlying reader using {@link Reader#skip(long)} if needed.
      * @param n number of character to skip
+     * @return the number of characters skipped
      * @throws IOException if an I/O error occurs
      * @throws IllegalArgumentException if {@code n} is negative
      */
-    public void skip(final int n) throws IOException {
+    public int skip(final int n) throws IOException {
         if (n < 0) {
             throw new IllegalArgumentException("Character skip count cannot be negative; was " + n);
         }
 
         // skip buffered content first
-        final int removeFromBuffer = Math.min(n, count);
-        charsRemoved(removeFromBuffer);
+        int skipped = Math.min(n, count);
+        charsRemoved(skipped);
 
         // skip from the reader if required
-        final int remaining = n - removeFromBuffer;
+        final int remaining = n - skipped;
         if (remaining > 0) {
-            reader.skip(remaining);
+            skipped += reader.skip(remaining);
         }
+
+        return skipped;
     }
 
     /** Push a character back onto the read buffer. The character will

@@ -173,22 +173,22 @@ public class CharReadBufferTest {
         buf.peekString(2);
 
         // act/assert
-        buf.skip(0);
+        Assertions.assertEquals(0, buf.skip(0));
         Assertions.assertEquals("a", buf.peekString(1));
 
-        buf.skip(1);
+        Assertions.assertEquals(1, buf.skip(1));
         Assertions.assertEquals("b", buf.peekString(1));
 
-        buf.skip(4);
+        Assertions.assertEquals(4, buf.skip(4));
         Assertions.assertEquals("f", buf.peekString(1));
 
-        buf.skip(1);
+        Assertions.assertEquals(1, buf.skip(1));
         Assertions.assertEquals("g", buf.peekString(1));
 
-        buf.skip(100);
+        Assertions.assertEquals(1, buf.skip(100));
         Assertions.assertNull(buf.peekString(1));
 
-        buf.skip(100);
+        Assertions.assertEquals(0, buf.skip(100));
         Assertions.assertNull(buf.peekString(1));
     }
 

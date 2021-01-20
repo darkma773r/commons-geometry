@@ -110,7 +110,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
         this.reader = reader;
         this.parser = new SimpleTextParser(reader);
 
-        setCommentToken(commentToken);
+        setCommentTokenInternal(commentToken);
     }
 
     /** Get the comment token string. If not null or empty, any characters from
@@ -129,16 +129,7 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
      * @throws IllegalArgumentException if the argument is non-null and contains whitespace
      */
     public void setCommentToken(final String commentToken) {
-        if (commentToken != null && containsWhitespace(commentToken)) {
-            throw new IllegalArgumentException("Comment token cannot contain whitespace; was [" +
-                    commentToken + "]");
-        }
-
-        this.commentToken = commentToken;
-        this.hasCommentToken = commentToken != null && commentToken.length() > 0;
-        this.commentStartChar = this.hasCommentToken ?
-                commentToken.charAt(0) :
-                -1;
+        setCommentTokenInternal(commentToken);
     }
 
     /** {@inheritDoc} */
@@ -259,6 +250,23 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
     private boolean foundComment() throws IOException {
         return hasCommentToken &&
                 commentToken.equals(parser.peek(commentToken.length()));
+    }
+
+    /** Internal method called to set the comment token state.
+     * @param commentTokenStr comment token to set
+     * @throws IllegalArgumentException if the argument is non-null and contains whitespace
+     */
+    private void setCommentTokenInternal(final String commentTokenStr) {
+        if (commentTokenStr != null && containsWhitespace(commentTokenStr)) {
+            throw new IllegalArgumentException("Comment token cannot contain whitespace; was [" +
+                    commentTokenStr + "]");
+        }
+
+        this.commentToken = commentTokenStr;
+        this.hasCommentToken = commentTokenStr != null && commentTokenStr.length() > 0;
+        this.commentStartChar = this.hasCommentToken ?
+                commentTokenStr.charAt(0) :
+                -1;
     }
 
     /** Return true if the given character is considered as part of a data token

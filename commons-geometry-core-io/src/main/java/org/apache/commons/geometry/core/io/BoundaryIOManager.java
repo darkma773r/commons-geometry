@@ -342,7 +342,7 @@ public class BoundaryIOManager<
      * @throws IllegalArgumentException if no handler has been registered for the indicated format
      */
     protected W requireWriteHandler(final Path path) {
-        final String formatName = getFormatForFileName(path.getFileName().toString());
+        final String formatName = getFormatForFileName(path.toString());
         return requireWriteHandler(formatName);
     }
 
