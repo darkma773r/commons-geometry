@@ -158,7 +158,7 @@ public final class EuclideanIOTestUtils {
     /** Assert that the facet definition contains the given vertices in order.
      * @param facet facet to test
      * @param expectedVertices expected vertices
-     * @param eps floating point comparision epsilon
+     * @param eps floating point comparison epsilon
      */
     public static void assertFacetVertices(final FacetDefinition facet, final List<Vector3D> expectedVertices,
             final double eps) {
@@ -167,6 +167,23 @@ public final class EuclideanIOTestUtils {
 
         for (int i = 0; i < expectedVertices.size(); ++i) {
             EuclideanTestUtils.assertCoordinatesEqual(expectedVertices.get(i), facet.getVertices().get(i), eps);
+        }
+    }
+
+    /** Assert that the facet definition contains the given vertices (in order) and normal.
+     * @param facet facet to test
+     * @param expectedVertices expected vertices
+     * @param expectedNormal expected normal; may be null
+     * @param eps floating point comparison epsilon
+     */
+    public static void assertFacetVerticesAndNormal(final FacetDefinition facet, final List<Vector3D> expectedVertices,
+            final Vector3D expectedNormal, final double eps) {
+        assertFacetVertices(facet, expectedVertices, eps);
+
+        if (expectedNormal == null) {
+            Assertions.assertNull(facet.getNormal(), "Expected facet normal to be null");
+        } else {
+            EuclideanTestUtils.assertCoordinatesEqual(expectedNormal, facet.getNormal(), eps);
         }
     }
 }
