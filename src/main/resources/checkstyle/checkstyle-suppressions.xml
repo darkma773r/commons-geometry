@@ -35,7 +35,7 @@
   <suppress checks="DesignForExtension" files=".*[/\\]twod[/\\]LineSubset" />
   <suppress checks="DesignForExtension" files=".*[/\\]threed[/\\]PlaneSubset" />
   <!-- allow catch and rethrow of RuntimeExceptions to ensure resource closure when execution exits the method -->
-  <suppress checks="IllegalCatch" files=".*[/\\]core[/\\]io[/\\]internal[/\\]GeometryIOUtils" />
+  <suppress checks="IllegalCatch" files=".*[/\\]io[/\\]core[/\\]internal[/\\]GeometryIOUtils" />
 
   <!-- Be more lenient on tests. -->
   <suppress checks="Javadoc" files=".*[/\\]test[/\\].*" />
