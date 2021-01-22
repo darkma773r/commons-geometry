@@ -29,7 +29,7 @@ import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 /** {@link FacetDefinitionReader} for reading the text (i.e., "ASCII") version of the STL file format.
  * @see <a href="https://en.wikipedia.org/wiki/STL_%28file_format%29#ASCII_STL">ASCII STL</a>
  */
-public class TextSTLFacetDefinitionReader implements FacetDefinitionReader {
+public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Underlying reader instance. */
     private Reader reader;
@@ -52,7 +52,7 @@ public class TextSTLFacetDefinitionReader implements FacetDefinitionReader {
     /** Construct a new instance for reading text STL content from the given reader.
      * @param reader reader to read characters from
      */
-    public TextSTLFacetDefinitionReader(final Reader reader) {
+    public TextStlFacetDefinitionReader(final Reader reader) {
         this(reader, false);
     }
 
@@ -62,14 +62,14 @@ public class TextSTLFacetDefinitionReader implements FacetDefinitionReader {
      *      of the STL content is skipped. This may be set to true in cases where the
      *      keyword was used to determine if the STL content was in text or binary format.
      */
-    TextSTLFacetDefinitionReader(final Reader reader, final boolean skipSolidKeyword) {
+    TextStlFacetDefinitionReader(final Reader reader, final boolean skipSolidKeyword) {
         this.reader = reader;
         this.parser = new SimpleTextParser(reader);
         this.skipSolidKeyword = skipSolidKeyword;
     }
 
-    /** Get the name of the STL solid being read.
-     * @return the name of the STL solid being read
+    /** Get the name of the STL solid being read or null if no name was specified.
+     * @return the name of the STL solid being read or null if no name was specified
      * @throws IOException if an I/O or data format error occurs
      */
     public String getSolidName() throws IOException {
@@ -87,8 +87,8 @@ public class TextSTLFacetDefinitionReader implements FacetDefinitionReader {
             nextWord();
 
             int choice = parser.chooseIgnoreCase(
-                    STLConstants.FACET_START_KEYWORD,
-                    STLConstants.SOLID_END_KEYWORD);
+                    StlConstants.FACET_START_KEYWORD,
+                    StlConstants.SOLID_END_KEYWORD);
 
             if (choice == 0) {
                 return readFacetInternal();
@@ -111,23 +111,23 @@ public class TextSTLFacetDefinitionReader implements FacetDefinitionReader {
      * @throws IOException if an I/O or data format exception occurs
      */
     private FacetDefinition readFacetInternal() throws IOException {
-        matchKeyword(STLConstants.NORMAL_KEYWORD);
+        matchKeyword(StlConstants.NORMAL_KEYWORD);
         final Vector3D normal = readVector();
 
-        matchKeyword(STLConstants.OUTER_KEYWORD);
-        matchKeyword(STLConstants.LOOP_START_KEYWORD);
+        matchKeyword(StlConstants.OUTER_KEYWORD);
+        matchKeyword(StlConstants.LOOP_START_KEYWORD);
 
-        matchKeyword(STLConstants.VERTEX_KEYWORD);
+        matchKeyword(StlConstants.VERTEX_KEYWORD);
         final Vector3D p1 = readVector();
 
-        matchKeyword(STLConstants.VERTEX_KEYWORD);
+        matchKeyword(StlConstants.VERTEX_KEYWORD);
         final Vector3D p2 = readVector();
 
-        matchKeyword(STLConstants.VERTEX_KEYWORD);
+        matchKeyword(StlConstants.VERTEX_KEYWORD);
         final Vector3D p3 = readVector();
 
-        matchKeyword(STLConstants.LOOP_END_KEYWORD);
-        matchKeyword(STLConstants.FACET_END_KEYWORD);
+        matchKeyword(StlConstants.LOOP_END_KEYWORD);
+        matchKeyword(StlConstants.FACET_END_KEYWORD);
 
         return new SimpleFacetDefinition(Arrays.asList(p1, p2, p3), normal);
     }
@@ -152,15 +152,11 @@ public class TextSTLFacetDefinitionReader implements FacetDefinitionReader {
         if (!skipSolidKeyword) {
             skipSolidKeyword = false;
 
-            matchKeyword(STLConstants.SOLID_START_KEYWORD);
+            matchKeyword(StlConstants.SOLID_START_KEYWORD);
         }
 
-        solidName = parser.nextLine()
-                .getCurrentToken();
-
-        if (solidName != null) {
-            solidName = solidName.trim();
-        }
+        solidName = trimmedOrNull(parser.nextLine()
+                .getCurrentToken());
     }
 
     /** Read the next word from the content, discarding preceding whitespace.
@@ -202,5 +198,22 @@ public class TextSTLFacetDefinitionReader implements FacetDefinitionReader {
                 .discardWhitespace()
                 .next(SimpleTextParser::isDecimalPart)
                 .getCurrentTokenAsDouble();
+    }
+
+    /** Return a trimmed version of the given string or null if the string contains
+     * only whitespace.
+     * @param str input stream
+     * @return a trimmed version of the given string or null if the string contains only
+     *      whitespace
+     */
+    private static String trimmedOrNull(final String str) {
+        if (str != null) {
+            final String trimmed = str.trim();
+            if (!trimmed.isEmpty()) {
+                return trimmed;
+            }
+        }
+
+        return null;
     }
 }

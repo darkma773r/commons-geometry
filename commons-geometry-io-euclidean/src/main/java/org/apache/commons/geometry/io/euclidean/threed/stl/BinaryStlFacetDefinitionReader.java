@@ -21,7 +21,7 @@ import java.io.IOException;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitionReader;
 
-public class BinarySTLFacetDefinitionReader implements FacetDefinitionReader {
+public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
 
     @Override
     public void close() throws IOException {

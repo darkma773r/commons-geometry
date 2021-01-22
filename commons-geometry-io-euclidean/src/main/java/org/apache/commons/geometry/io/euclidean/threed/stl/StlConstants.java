@@ -37,7 +37,7 @@ import java.nio.charset.StandardCharsets;
 
 /** Class containing constants for the STL file format.
  */
-public class STLConstants {
+public class StlConstants {
 
     /** Default STL charset. */
     static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
@@ -72,5 +72,5 @@ public class STLConstants {
     static final String VERTEX_KEYWORD = "vertex";
 
     /** Utility class; no instantiation. */
-    private STLConstants() {}
+    private StlConstants() {}
 }

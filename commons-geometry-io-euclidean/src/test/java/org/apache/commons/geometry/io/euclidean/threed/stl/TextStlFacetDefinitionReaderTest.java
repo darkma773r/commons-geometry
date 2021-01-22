@@ -24,19 +24,42 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.io.core.test.CloseCountReader;
 import org.apache.commons.geometry.io.euclidean.EuclideanIOTestUtils;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TextSTLFacetDefinitionReaderTest {
+public class TextStlFacetDefinitionReaderTest {
 
     private static final double TEST_EPS = 1e-10;
 
     @Test
+    public void testGetSolidName() throws IOException {
+        // act/assert
+        Assertions.assertEquals("Test Name", facetReader("solid    Test Name  \r\n").getSolidName());
+        Assertions.assertEquals("Test", facetReader("solid    Test  ").getSolidName());
+        Assertions.assertNull(facetReader("solid    ").getSolidName());
+        Assertions.assertNull(facetReader("solid").getSolidName());
+    }
+
+    @Test
+    public void testClose() throws IOException {
+        // arrange
+        final CloseCountReader countReader = new CloseCountReader(new StringReader(""));
+        final TextStlFacetDefinitionReader reader = new TextStlFacetDefinitionReader(countReader);
+
+        // act
+        reader.close();
+
+        // assert
+        Assertions.assertEquals(1, countReader.getCloseCount());
+    }
+
+    @Test
     public void testEmpty() throws IOException {
         // arrange
-        final TextSTLFacetDefinitionReader reader = facetReader(
+        final TextStlFacetDefinitionReader reader = facetReader(
                 "solid \n" +
                 "endsolid");
 
@@ -44,15 +67,16 @@ public class TextSTLFacetDefinitionReaderTest {
         final List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(reader);
 
         // assert
-        Assertions.assertEquals("", reader.getSolidName());
+        Assertions.assertNull(reader.getSolidName());
 
         Assertions.assertEquals(0, facets.size());
+        Assertions.assertNull(reader.readFacet());
     }
 
     @Test
     public void testSingleFacet() throws IOException {
         // arrange
-        final TextSTLFacetDefinitionReader reader = facetReader(
+        final TextStlFacetDefinitionReader reader = facetReader(
                 "solid test\n" +
                 "facet normal 1 2 3 " +
                     "outer loop " +
@@ -75,12 +99,14 @@ public class TextSTLFacetDefinitionReaderTest {
                 facets.get(0),
                 Arrays.asList(Vector3D.of(4, 5, 6), Vector3D.of(7, 8, 9), Vector3D.of(10, 11, 12)),
                 Vector3D.of(1, 2, 3), TEST_EPS);
+
+        Assertions.assertNull(reader.readFacet());
     }
 
     @Test
     public void testMultipleFacets() throws IOException {
         // arrange
-        final TextSTLFacetDefinitionReader reader = facetReader(
+        final TextStlFacetDefinitionReader reader = facetReader(
                 "solid test solid\r\n\n" +
                 "facet normal 1 2 3 " +
                     "outer loop " +
@@ -127,12 +153,14 @@ public class TextSTLFacetDefinitionReaderTest {
                 facets.get(2),
                 Arrays.asList(Vector3D.of(0.4, 0.5, 0.6), Vector3D.of(-0.07, -0.08, -0.09), Vector3D.of(1, 1.1, 1.2)),
                 Vector3D.of(0.1, 0.2, 0.3), TEST_EPS);
+
+        Assertions.assertNull(reader.readFacet());
     }
 
     @Test
     public void testSkipSolidKeyword() throws IOException {
         // arrange
-        final TextSTLFacetDefinitionReader reader = new TextSTLFacetDefinitionReader(new StringReader(
+        final TextStlFacetDefinitionReader reader = new TextStlFacetDefinitionReader(new StringReader(
                 " test\n" +
                 "facet normal 1 2 3 " +
                     "outer loop " +
@@ -155,6 +183,67 @@ public class TextSTLFacetDefinitionReaderTest {
                 facets.get(0),
                 Arrays.asList(Vector3D.of(4, 5, 6), Vector3D.of(7, 8, 9), Vector3D.of(10, 11, 12)),
                 Vector3D.of(1, 2, 3), TEST_EPS);
+
+        Assertions.assertNull(reader.readFacet());
+    }
+
+    @Test
+    public void testNoName() throws IOException {
+        // arrange
+        final TextStlFacetDefinitionReader reader = facetReader(
+                "solid\n" +
+                "facet normal 1 2 3 " +
+                    "outer loop " +
+                        "vertex 4 5 6 " +
+                        "vertex 7 8 9 " +
+                        "vertex 10 11 12 " +
+                    "endloop " +
+                "endfacet " +
+                "endsolid");
+
+        // act
+        final List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(reader);
+
+        // assert
+        Assertions.assertNull(reader.getSolidName());
+
+        Assertions.assertEquals(1, facets.size());
+
+        EuclideanIOTestUtils.assertFacetVerticesAndNormal(
+                facets.get(0),
+                Arrays.asList(Vector3D.of(4, 5, 6), Vector3D.of(7, 8, 9), Vector3D.of(10, 11, 12)),
+                Vector3D.of(1, 2, 3), TEST_EPS);
+
+        Assertions.assertNull(reader.readFacet());
+    }
+
+    @Test
+    public void testContentEndsEarly() throws IOException {
+        // arrange
+        final TextStlFacetDefinitionReader reader = facetReader(
+                "solid test\n" +
+                "facet normal 1 2 3 " +
+                    "outer loop " +
+                        "vertex 4 5 6 " +
+                        "vertex 7 8 9 " +
+                        "vertex 10 11 12 " +
+                    "endloop " +
+                "endfacet");
+
+        // act
+        final List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(reader);
+
+        // assert
+        Assertions.assertEquals("test", reader.getSolidName());
+
+        Assertions.assertEquals(1, facets.size());
+
+        EuclideanIOTestUtils.assertFacetVerticesAndNormal(
+                facets.get(0),
+                Arrays.asList(Vector3D.of(4, 5, 6), Vector3D.of(7, 8, 9), Vector3D.of(10, 11, 12)),
+                Vector3D.of(1, 2, 3), TEST_EPS);
+
+        Assertions.assertNull(reader.readFacet());
     }
 
     @Test
@@ -170,16 +259,26 @@ public class TextSTLFacetDefinitionReaderTest {
                     "endloop " +
                 "endfacet " +
                 "endsolid test");
+        assertParseError(
+                "solid test\n" +
+                "facet normal 1 2 3 " +
+                    "outer loop " +
+                        "vertex abc 5 6 " +
+                        "vertex 7 8 9 " +
+                        "vertex 10 11 12 " +
+                    "endloop " +
+                "endfacet " +
+                "endsolid test");
     }
 
-    private static TextSTLFacetDefinitionReader facetReader(final String content) {
-        return new TextSTLFacetDefinitionReader(new StringReader(content));
+    private static TextStlFacetDefinitionReader facetReader(final String content) {
+        return new TextStlFacetDefinitionReader(new StringReader(content));
     }
 
     private static void assertParseError(final String content) {
         GeometryTestUtils.assertThrowsWithMessage(
                 () -> EuclideanIOTestUtils.readAll(facetReader(content)),
                 IOException.class,
-                Pattern.compile("^Parse error:.*"));
+                Pattern.compile("^Parsing failed.*"));
     }
 }
