@@ -14,20 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.io.core.internal;
+package org.apache.commons.geometry.io.core.utils;
 
-import java.io.IOException;
-
-/** Functional interface similar to {@link java.util.function.Supplier} but allowing an
- * {@code IOException} to be thrown.
- * @param <T> Type returned by the supplier
+/** Interface used to create standard, non-localized decimal strings for use in
+ * text-based data output.
+ *
+ * <p><strong>Implementation Note:</strong> Implementations of this interface <em>must</em> be
+ * thread-safe.</p>
  */
 @FunctionalInterface
-public interface IOSupplier<T> {
+public interface DataDecimalFormat {
 
-    /** Get a result from the supplier.
-     * @return a result
-     * @throws IOException if an I/O error occurs
+    /** Return a string representation of the given double value.
+     * @param d double to obtain a string representation for
+     * @return string representation of the argument
      */
-    T get() throws IOException;
+    String format(double d);
 }

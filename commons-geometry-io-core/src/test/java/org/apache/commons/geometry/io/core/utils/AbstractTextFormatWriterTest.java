@@ -19,7 +19,6 @@ package org.apache.commons.geometry.io.core.utils;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.text.DecimalFormat;
 
 import org.apache.commons.geometry.io.core.test.CloseCountWriter;
 import org.junit.jupiter.api.Assertions;
@@ -35,34 +34,55 @@ public class AbstractTextFormatWriterTest {
         try (TestWriter writer = new TestWriter(out)) {
             // assert
             Assertions.assertEquals("\n", writer.getLineSeparator());
-            Assertions.assertEquals(0, writer.getDecimalFormat().getMinimumFractionDigits());
-            Assertions.assertEquals(6, writer.getDecimalFormat().getMaximumFractionDigits());
+            Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, writer.getDecimalFormat());
             Assertions.assertSame(out, writer.getWriter());
         }
     }
 
     @Test
-    public void testWrite() throws IOException {
+    public void testWrite_defaultConfig() throws IOException {
+        // arrange
+        final double n = 20000.0 / 3.0;
+        final CloseCountWriter closeCountWriter = new CloseCountWriter(out);
+        try (TestWriter writer = new TestWriter(closeCountWriter)) {
+            // act
+            writer.write('a');
+            writer.write("bc");
+            writer.writeNewLine();
+            writer.write(n);
+            writer.writeNewLine();
+            writer.write(Double.POSITIVE_INFINITY);
+            writer.writeNewLine();
+            writer.write(5);
+
+            // assert
+            Assertions.assertEquals("abc\n" + n + "\n5", out.toString());
+        }
+
+        Assertions.assertEquals(1, closeCountWriter.getCloseCount());
+    }
+
+    @Test
+    public void testWrite_customConfig() throws IOException {
         // arrange
         final CloseCountWriter closeCountWriter = new CloseCountWriter(out);
         try (TestWriter writer = new TestWriter(closeCountWriter)) {
 
             writer.setLineSeparator("\r\n");
 
-            final DecimalFormat df = new DecimalFormat();
-            df.setMinimumFractionDigits(2);
+            final DataDecimalFormat df = DataDecimalFormats.createDefault(-1, 2);
             writer.setDecimalFormat(df);
 
             // act
             writer.write('a');
             writer.write("bc");
             writer.writeNewLine();
-            writer.write(1.0);
+            writer.write(20000.0 / 3.0);
             writer.writeNewLine();
             writer.write(5);
 
             // assert
-            Assertions.assertEquals("abc\r\n1.00\r\n5", out.toString());
+            Assertions.assertEquals("abc\r\n6666.67\r\n5", out.toString());
         }
 
         Assertions.assertEquals(1, closeCountWriter.getCloseCount());

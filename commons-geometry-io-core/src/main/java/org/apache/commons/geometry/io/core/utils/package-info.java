@@ -16,8 +16,4 @@
  */
 /** This package contains public IO utilities.
  */
-<<<<<<< HEAD:commons-geometry-core-io/src/main/java/org/apache/commons/geometry/core/io/utils/package-info.java
-package org.apache.commons.geometry.core.io.utils;
-=======
 package org.apache.commons.geometry.io.core.utils;
->>>>>>> geometry-115-io-modules:commons-geometry-io-core/src/main/java/org/apache/commons/geometry/io/core/utils/package-info.java

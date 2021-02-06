@@ -18,15 +18,11 @@ package org.apache.commons.geometry.io.core.utils;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.text.DecimalFormat;
 
 /** Base type for classes that write text-based data formats. This class
  * provides a number of common configuration options and utility methods.
  */
 public abstract class AbstractTextFormatWriter implements AutoCloseable {
-
-    /** The default maximum number of fraction digits in formatted numbers. */
-    private static final int DEFAULT_MAXIMUM_FRACTION_DIGITS = 6;
 
     /** The default line separator value. */
     private static final String DEFAULT_LINE_SEPARATOR = "\n";
@@ -37,17 +33,24 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
     /** Line separator string. */
     private String lineSeparator = DEFAULT_LINE_SEPARATOR;
 
-    /** Decimal formatter. */
-    private DecimalFormat decimalFormat;
+    /** Data decimal formatter. */
+    private DataDecimalFormat decimalFormat;
 
     /** Construct a new instance that writes content to the given writer.
      * @param writer writer instance
      */
     protected AbstractTextFormatWriter(final Writer writer) {
-        this.writer = writer;
+        this(writer, DataDecimalFormats.DOUBLE_TO_STRING);
+    }
 
-        this.decimalFormat = new DecimalFormat();
-        this.decimalFormat.setMaximumFractionDigits(DEFAULT_MAXIMUM_FRACTION_DIGITS);
+    /** Construct a new instance that writes content to the given writer and uses the
+     * decimal format instance for creating floating-point string representations.
+     * @param writer writer instance
+     * @param decimalFormat decimal format instance
+     */
+    protected AbstractTextFormatWriter(final Writer writer, final DataDecimalFormat decimalFormat) {
+        this.writer = writer;
+        this.decimalFormat = decimalFormat;
     }
 
     /** Get the current line separator. This value defaults to {@value #DEFAULT_LINE_SEPARATOR}.
@@ -64,17 +67,17 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
         this.lineSeparator = lineSeparator;
     }
 
-    /** Get the {@link DecimalFormat} instance used to format floating point output.
+    /** Get the {@link DataDecimalFormat} instance used to format floating point output.
      * @return the decimal format instance
      */
-    public DecimalFormat getDecimalFormat() {
+    public DataDecimalFormat getDecimalFormat() {
         return decimalFormat;
     }
 
-    /** Set the {@link DecimalFormat} instance used to format floating point output.
+    /** Set the {@link DataDecimalFormat} instance used to format floating point output.
      * @param decimalFormat decimal format instance
      */
-    public void setDecimalFormat(final DecimalFormat decimalFormat) {
+    public void setDecimalFormat(final DataDecimalFormat decimalFormat) {
         this.decimalFormat = decimalFormat;
     }
 
@@ -91,12 +94,12 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
         return writer;
     }
 
-    /** Write a double value formatted using the configured decimal formatter.
-     * @param n value to write
+    /** Write a double value formatted using the configured decimal format instance.
+     * @param d value to write
      * @throws IOException if an I/O error occurs
      */
-    protected void write(final double n) throws IOException {
-        write(decimalFormat.format(n));
+    protected void write(final double d) throws IOException {
+        write(doubleToString(d));
     }
 
     /** Write an integer value.
@@ -128,5 +131,13 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
      */
     protected void writeNewLine() throws IOException {
         write(lineSeparator);
+    }
+
+    /** Get a string representation of the given double for use in writer output.
+     * @param n double to convert to a string
+     * @return string representation of the argument
+     */
+    protected String doubleToString(final double d) {
+        return decimalFormat.format(d);
     }
 }

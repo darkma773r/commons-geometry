@@ -18,19 +18,20 @@ package org.apache.commons.geometry.io.euclidean.threed.stl;
 
 import java.io.IOException;
 
-import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitionReader;
 
 public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
 
+    /** {@inheritDoc} */
+    @Override
+    public BinaryStlFacetDefinition readFacet() throws IOException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         // TODO Auto-generated method stub
-    }
-
-    @Override
-    public FacetDefinition readFacet() throws IOException {
-        // TODO Auto-generated method stub
-        return null;
     }
 }

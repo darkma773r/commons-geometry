@@ -98,6 +98,6 @@ public class SimpleFacetDefinitionTest {
 
         // assert
         GeometryTestUtils.assertContains("SimpleFacetDefinition[vertices= [(0", str);
-        GeometryTestUtils.assertContains(", definedNormal= (0", str);
+        GeometryTestUtils.assertContains(", normal= (0", str);
     }
 }

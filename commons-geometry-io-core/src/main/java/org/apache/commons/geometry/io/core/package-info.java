@@ -17,8 +17,4 @@
 /** This package contains the core interfaces and classes for <em>commons-geometry</em>
  * IO functionality.
  */
-<<<<<<< HEAD:commons-geometry-core-io/src/main/java/org/apache/commons/geometry/core/io/package-info.java
-package org.apache.commons.geometry.core.io;
-=======
 package org.apache.commons.geometry.io.core;
->>>>>>> geometry-115-io-modules:commons-geometry-io-core/src/main/java/org/apache/commons/geometry/io/core/package-info.java

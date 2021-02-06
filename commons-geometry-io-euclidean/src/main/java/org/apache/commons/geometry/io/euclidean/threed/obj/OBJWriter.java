@@ -18,7 +18,6 @@ package org.apache.commons.geometry.io.euclidean.threed.obj;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -295,14 +294,12 @@ public final class OBJWriter extends AbstractTextFormatWriter {
      * @return string representation of the given vector
      */
     private String createVectorString(final Vector3D vec) {
-        final DecimalFormat df = getDecimalFormat();
-
         final StringBuilder sb = new StringBuilder();
-        sb.append(df.format(vec.getX()))
+        sb.append(doubleToString(vec.getX()))
             .append(SPACE)
-            .append(df.format(vec.getY()))
+            .append(doubleToString(vec.getY()))
             .append(SPACE)
-            .append(df.format(vec.getZ()));
+            .append(doubleToString(vec.getZ()));
 
         return sb.toString();
     }

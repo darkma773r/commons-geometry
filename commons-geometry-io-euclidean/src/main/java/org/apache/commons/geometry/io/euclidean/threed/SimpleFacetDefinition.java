@@ -76,7 +76,7 @@ public class SimpleFacetDefinition implements FacetDefinition {
         sb.append(getClass().getSimpleName())
             .append("[vertices= ")
             .append(getVertices())
-            .append(", definedNormal= ")
+            .append(", normal= ")
             .append(getNormal())
             .append(']');
 

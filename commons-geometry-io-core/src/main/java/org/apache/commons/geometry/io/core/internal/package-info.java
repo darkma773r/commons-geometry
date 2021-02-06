@@ -17,8 +17,4 @@
 /** This package contains IO utilities intended for internal use only.
  * No guarantees are made for the stability of the contained APIs.
  */
-<<<<<<< HEAD:commons-geometry-core-io/src/main/java/org/apache/commons/geometry/core/io/internal/package-info.java
-package org.apache.commons.geometry.core.io.internal;
-=======
 package org.apache.commons.geometry.io.core.internal;
->>>>>>> geometry-115-io-modules:commons-geometry-io-core/src/main/java/org/apache/commons/geometry/io/core/internal/package-info.java
