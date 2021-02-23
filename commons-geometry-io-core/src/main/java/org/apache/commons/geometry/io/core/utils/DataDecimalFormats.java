@@ -30,6 +30,7 @@ public final class DataDecimalFormats {
      */
     public static final DataDecimalFormat FLOAT_TO_STRING = d -> Float.toString((float) d);
 
+    /** Minimum possible decimal exponent for double values. */
     private static final int MIN_DOUBLE_EXPONENT = -325;
 
     /** Utility class; no instantiation. */
@@ -67,6 +68,8 @@ public final class DataDecimalFormats {
         return new EngineeringFormat(precision, minExponent);
     }
 
+    /** Base class for standard {@link DataDecimalFormat} implementations.
+     */
     private static abstract class AbstractFormat implements DataDecimalFormat {
 
         /** Precision to use when formatting values. */
@@ -78,7 +81,7 @@ public final class DataDecimalFormats {
         private final int minExponent;
 
         AbstractFormat(final int precision, final int minExponent) {
-            this.precision = precision > 0 ? precision : Integer.MAX_VALUE;
+            this.precision = precision;
             this.minExponent = minExponent;
         }
 
@@ -86,10 +89,16 @@ public final class DataDecimalFormats {
         @Override
         public String format(final double d) {
             if (Double.isFinite(d)) {
-                final ParsedDouble n = ParsedDouble.from(d)
-                        .maxPrecision(precision)
-                        .round(minExponent);
-                return formatInternal(n);
+                final ParsedDouble n = ParsedDouble.from(d);
+
+                int roundExponent = Math.max(n.getExponent(), minExponent);
+                if (precision > 0) {
+                    roundExponent = Math.max(n.getScientificExponent() - precision + 1, roundExponent);
+                }
+
+                final ParsedDouble rounded = n.round(roundExponent);
+
+                return formatInternal(rounded);
             }
 
             return Double.toString(d); // NaN or infinite; use default Double toString() method
@@ -102,6 +111,9 @@ public final class DataDecimalFormats {
         protected abstract String formatInternal(ParsedDouble val);
     }
 
+    /** {@link DataDecimalFormat} that produces plain decimal strings that do not use
+     * scientific notation.
+     */
     private static class PlainFormat extends AbstractFormat {
 
         PlainFormat(final int precision, final int minExponent) {
@@ -115,6 +127,10 @@ public final class DataDecimalFormats {
         }
     }
 
+    /** {@link DataDecimalFormat} similar to {@link Double#toString()} that uses
+     * plain decimal notation for small numbers relatively close to zero and scientific
+     * notation otherwise.
+     */
     private static class DefaultFormat extends AbstractFormat {
 
         DefaultFormat(final int precision, final int minExponent) {
@@ -131,6 +147,8 @@ public final class DataDecimalFormats {
         }
     }
 
+    /** {@link DataDecimalFormat} that uses scientific notation for all values.
+     */
     private static class ScientificFormat extends AbstractFormat {
 
         ScientificFormat(final int precision, final int minExponent) {
@@ -144,6 +162,8 @@ public final class DataDecimalFormats {
         }
     }
 
+    /** {@link DataDecimalFormat} that uses engineering notation for all values.
+     */
     private static class EngineeringFormat extends AbstractFormat {
 
         EngineeringFormat(final int precision, final int minExponent) {
