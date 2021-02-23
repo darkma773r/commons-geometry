@@ -30,185 +30,130 @@ public final class DataDecimalFormats {
      */
     public static final DataDecimalFormat FLOAT_TO_STRING = d -> Float.toString((float) d);
 
-    private static final double MIN_PLAIN = 1e-3;
-
-    private static final double MAX_PLAIN = 1e7;
+    private static final int MIN_DOUBLE_EXPONENT = -325;
 
     /** Utility class; no instantiation. */
     private DataDecimalFormats() {}
 
-    public static DataDecimalFormat createDefault(final int precision, final int maxFractionDigits) {
-        return createDefault(precision, maxFractionDigits, true);
+    public static DataDecimalFormat createDefault(final int precision) {
+        return createDefault(precision, MIN_DOUBLE_EXPONENT);
     }
 
-    public static DataDecimalFormat createDefault(final int precision, final int maxFractionDigits,
-            final boolean includeDecimalPlaceholder) {
-        final DataDecimalFormat plain = new PlainFormat(precision, maxFractionDigits, includeDecimalPlaceholder);
-        final DataDecimalFormat scientific =
-                new ScientificFormat(precision, maxFractionDigits, includeDecimalPlaceholder);
-
-        return d ->  {
-            final double abs = Math.abs(d);
-            return (Double.compare(abs, 0.0) != 0 && (abs < MIN_PLAIN || abs >= MAX_PLAIN)) ?
-                    scientific.format(d) :
-                    plain.format(d);
-        };
+    public static DataDecimalFormat createDefault(final int precision, final int minExponent) {
+        return new DefaultFormat(precision, minExponent);
     }
 
-    public static DataDecimalFormat createPlain(final int precision, final int maxFractionDigits) {
-        return createPlain(precision, maxFractionDigits, true);
+    public static DataDecimalFormat createPlain(final int precision) {
+        return createPlain(precision, MIN_DOUBLE_EXPONENT);
     }
 
-    public static DataDecimalFormat createPlain(final int precision, final int maxFractionDigits,
-            final boolean includeDecimalPlaceholder) {
-        return new PlainFormat(precision, maxFractionDigits, includeDecimalPlaceholder);
+    public static DataDecimalFormat createPlain(final int precision, final int minExponent) {
+        return new PlainFormat(precision, minExponent);
     }
 
     public static DataDecimalFormat createScientific(final int precision) {
-        return createScientific(precision, true);
+        return createScientific(precision, MIN_DOUBLE_EXPONENT);
     }
 
-    public static DataDecimalFormat createScientific(final int precision, final boolean includeDecimalPlaceholder) {
-        return new ScientificFormat(precision, -1, includeDecimalPlaceholder);
+    public static DataDecimalFormat createScientific(final int precision, final int minExponent) {
+        return new ScientificFormat(precision, minExponent);
     }
 
-    public static DataDecimalFormat createEngineering(final int precision, final int maxFractionDigits) {
-        return createEngineering(precision, maxFractionDigits, true);
+    public static DataDecimalFormat createEngineering(final int precision) {
+        return createEngineering(precision, MIN_DOUBLE_EXPONENT);
     }
 
-    public static DataDecimalFormat createEngineering(final int precision, final int maxFractionDigits,
-            final boolean includeDecimalPlaceholder) {
-        return new EngineeringFormat(precision, maxFractionDigits, includeDecimalPlaceholder);
+    public static DataDecimalFormat createEngineering(final int precision, final int minExponent) {
+        return new EngineeringFormat(precision, minExponent);
     }
 
     private static abstract class AbstractFormat implements DataDecimalFormat {
 
+        /** Precision to use when formatting values. */
         private final int precision;
 
-        private final int maxFractionDigits;
+        /** The minimum exponent to allow in the result. Value with exponents less than this are
+         * rounded to positive zero.
+         */
+        private final int minExponent;
 
-        private final boolean includeDecimalPlaceholder;
-
-        AbstractFormat(final int precision, final int maxFractionDigits, final boolean includeDecimalPlaceholder) {
-            this.precision = precision;
-            this.maxFractionDigits = maxFractionDigits;
-            this.includeDecimalPlaceholder = includeDecimalPlaceholder;
+        AbstractFormat(final int precision, final int minExponent) {
+            this.precision = precision > 0 ? precision : Integer.MAX_VALUE;
+            this.minExponent = minExponent;
         }
 
         /** {@inheritDoc} */
         @Override
         public String format(final double d) {
             if (Double.isFinite(d)) {
-                final ParsedDouble raw = ParsedDouble.from(d);
-                final int targetPrecision = determinePrecision(raw, getWholeDigits(raw));
-                final ParsedDouble scaled = raw.withPrecision(targetPrecision);
-
-                return formatInternal(scaled, includeDecimalPlaceholder);
+                final ParsedDouble n = ParsedDouble.from(d)
+                        .maxPrecision(precision)
+                        .round(minExponent);
+                return formatInternal(n);
             }
 
-            return Double.toString(d);
+            return Double.toString(d); // NaN or infinite; use default Double toString() method
         }
 
-        /** Determine the precision that should be used for {@code val} when creating a
-         * string representation with the given number of whole digits.
-         * @param val value to determine the target precision for
-         * @param wholeDigits number of whole digits to be included in the magnitude of
-         *      the string representation of the value
-         * @return target precision for the value
-         */
-        private int determinePrecision(final ParsedDouble val, final int wholeDigits) {
-            final int digits = val.getDigits().length();
-
-            if (precision > -1 || maxFractionDigits > -1) {
-                int targetPrecision = digits;
-
-                final int fractionDigits = digits - wholeDigits;
-                if (maxFractionDigits > -1 && fractionDigits > maxFractionDigits) {
-                    targetPrecision -= fractionDigits - maxFractionDigits;
-                }
-
-                targetPrecision = precision > 0 ?
-                        Math.min(precision, targetPrecision) :
-                        targetPrecision;
-
-                // precision must always be at least one since we need to have at least
-                // a single digit to display
-                return Math.max(1, targetPrecision);
-            }
-
-            return digits;
-        }
-
-        /** Get the number of whole (non-fraction) digits to be placed in the magnitude
-         * portion of the formatted string.
-         * @param val value to get the number of whole digits for
-         * @return the number of whole digits to be used for the argument
-         */
-        protected abstract int getWholeDigits(ParsedDouble val);
-
-        /** Format the given double value.
+        /** Format the given parsed double value.
          * @param val value to format
-         * @param includeDecimalPlaceholder if true, a decimal placeholder should be added if
-         *      no fractional component is needed
          * @return formatted double value
          */
-        protected abstract String formatInternal(ParsedDouble val, boolean includeDecimalPlaceholder);
+        protected abstract String formatInternal(ParsedDouble val);
     }
 
     private static class PlainFormat extends AbstractFormat {
 
-        PlainFormat(final int precision, final int maxFractionDigits, final boolean includeDecimalPlaceholder) {
-            super(precision, maxFractionDigits, includeDecimalPlaceholder);
+        PlainFormat(final int precision, final int minExponent) {
+            super(precision, minExponent);
         }
 
         /** {@inheritDoc} */
         @Override
-        protected int getWholeDigits(final ParsedDouble val) {
-            return Math.max(0, val.getDigits().length() + val.getExponent());
+        protected String formatInternal(final ParsedDouble val) {
+            return val.toPlainString(true);
+        }
+    }
+
+    private static class DefaultFormat extends AbstractFormat {
+
+        DefaultFormat(final int precision, final int minExponent) {
+            super(precision, minExponent);
         }
 
         /** {@inheritDoc} */
         @Override
-        public String formatInternal(final ParsedDouble val, final boolean includeDecimalPlaceholder) {
-            return val.toPlainString(includeDecimalPlaceholder);
+        protected String formatInternal(final ParsedDouble val) {
+            final int sciExp = val.getScientificExponent();
+            return sciExp < 7 && sciExp > -4 ?
+                    val.toPlainString(true) :
+                    val.toScientificString(true);
         }
     }
 
     private static class ScientificFormat extends AbstractFormat {
 
-        ScientificFormat(final int precision, final int maxFractionDigits, final boolean includeDecimalPlaceholder) {
-            super(precision, maxFractionDigits, includeDecimalPlaceholder);
+        ScientificFormat(final int precision, final int minExponent) {
+            super(precision, minExponent);
         }
 
         /** {@inheritDoc} */
         @Override
-        protected int getWholeDigits(final ParsedDouble val) {
-            return 1;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public String formatInternal(final ParsedDouble val, final boolean includeDecimalPlaceholder) {
-            return val.toScientificString(includeDecimalPlaceholder);
+        public String formatInternal(final ParsedDouble val) {
+            return val.toScientificString(true);
         }
     }
 
     private static class EngineeringFormat extends AbstractFormat {
 
-        EngineeringFormat(final int precision, final int maxFractionDigits, final boolean includeDecimalPlaceholder) {
-            super(precision, maxFractionDigits, includeDecimalPlaceholder);
+        EngineeringFormat(final int precision, final int minExponent) {
+            super(precision, minExponent);
         }
 
         /** {@inheritDoc} */
         @Override
-        protected int getWholeDigits(final ParsedDouble val) {
-            return 1 + Math.floorMod(val.getExponent() + val.getDigits().length() - 1, 3);
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public String formatInternal(final ParsedDouble val, boolean includeDecimalPlaceholder) {
-            return val.toEngineeringString(includeDecimalPlaceholder);
+        public String formatInternal(final ParsedDouble val) {
+            return val.toEngineeringString(true);
         }
     }
 }

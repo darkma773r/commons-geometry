@@ -56,7 +56,7 @@ public class AbstractTextFormatWriterTest {
             writer.write(5);
 
             // assert
-            Assertions.assertEquals("abc\n" + n + "\n5", out.toString());
+            Assertions.assertEquals("abc\n" + n + "\nInfinity\n5", out.toString());
         }
 
         Assertions.assertEquals(1, closeCountWriter.getCloseCount());
@@ -70,7 +70,7 @@ public class AbstractTextFormatWriterTest {
 
             writer.setLineSeparator("\r\n");
 
-            final DataDecimalFormat df = DataDecimalFormats.createDefault(-1, 2);
+            final DataDecimalFormat df = DataDecimalFormats.createPlain(-1, -2);
             writer.setDecimalFormat(df);
 
             // act

@@ -102,69 +102,143 @@ public class ParsedDoubleTest {
     }
 
     @Test
-    public void testWithPrecision() {
+    public void testRound_one() {
+        // arrange
+        final ParsedDouble a = ParsedDouble.from(1e-10);
+        final ParsedDouble b = ParsedDouble.from(-1);
+        final ParsedDouble c = ParsedDouble.from(1e10);
+
+        // act/assert
+        assertParsedDouble(a.round(-11), false, "1", -10);
+        assertParsedDouble(a.round(-10), false, "1", -10);
+        assertParsedDouble(a.round(-9), false, "0", 0);
+
+        assertParsedDouble(b.round(-1), true, "1", 0);
+        assertParsedDouble(b.round(0), true, "1", 0);
+        assertParsedDouble(b.round(1), false, "0", 0);
+
+        assertParsedDouble(c.round(9), false, "1", 10);
+        assertParsedDouble(c.round(10), false, "1", 10);
+        assertParsedDouble(c.round(11), false, "0", 0);
+    }
+
+    @Test
+    public void testRound_nine() {
+        // arrange
+        final ParsedDouble a = ParsedDouble.from(9e-10);
+        final ParsedDouble b = ParsedDouble.from(-9);
+        final ParsedDouble c = ParsedDouble.from(9e10);
+
+        // act/assert
+        assertParsedDouble(a.round(-11), false, "9", -10);
+        assertParsedDouble(a.round(-10), false, "9", -10);
+        assertParsedDouble(a.round(-9), false, "1", -9);
+
+        assertParsedDouble(b.round(-1), true, "9", 0);
+        assertParsedDouble(b.round(0), true, "9", 0);
+        assertParsedDouble(b.round(1), true, "1", 1);
+
+        assertParsedDouble(c.round(9), false, "9", 10);
+        assertParsedDouble(c.round(10), false, "9", 10);
+        assertParsedDouble(c.round(11), false, "1", 11);
+    }
+
+    @Test
+    public void testRound_mixed() {
+        // arrange
+        final ParsedDouble a = ParsedDouble.from(9.94e-10);
+        final ParsedDouble b = ParsedDouble.from(-3.1415);
+        final ParsedDouble c = ParsedDouble.from(5.55e10);
+
+        // act/assert
+        assertParsedDouble(a.round(-13), false, "994", -12);
+        assertParsedDouble(a.round(-12), false, "994", -12);
+        assertParsedDouble(a.round(-11), false, "99", -11);
+        assertParsedDouble(a.round(-10), false, "1", -9);
+        assertParsedDouble(a.round(-9), false, "1", -9);
+        assertParsedDouble(a.round(-8), false, "0", 0);
+
+        assertParsedDouble(b.round(-5), true, "31415", -4);
+        assertParsedDouble(b.round(-4), true, "31415", -4);
+        assertParsedDouble(b.round(-3), true, "3142", -3);
+        assertParsedDouble(b.round(-2), true, "314", -2);
+        assertParsedDouble(b.round(-1), true, "31", -1);
+        assertParsedDouble(b.round(0), true, "3", 0);
+        assertParsedDouble(b.round(1), false, "0", 0);
+        assertParsedDouble(b.round(2), false, "0", 0);
+
+        assertParsedDouble(c.round(7), false, "555", 8);
+        assertParsedDouble(c.round(8), false, "555", 8);
+        assertParsedDouble(c.round(9), false, "56", 9);
+        assertParsedDouble(c.round(10), false, "6", 10);
+        assertParsedDouble(c.round(11), false, "1", 11);
+        assertParsedDouble(c.round(12), false, "0", 0);
+    }
+
+    @Test
+    public void testMaxPrecision() {
         // arrange
         final ParsedDouble d = ParsedDouble.from(1.02576552);
 
         // act
-        assertParsedDouble(d.withPrecision(10), false, "102576552", -8);
-        assertParsedDouble(d.withPrecision(9), false, "102576552", -8);
-        assertParsedDouble(d.withPrecision(8), false, "10257655", -7);
-        assertParsedDouble(d.withPrecision(7), false, "1025766", -6);
-        assertParsedDouble(d.withPrecision(6), false, "102577", -5);
-        assertParsedDouble(d.withPrecision(5), false, "10258", -4);
-        assertParsedDouble(d.withPrecision(4), false, "1026", -3);
-        assertParsedDouble(d.withPrecision(3), false, "103", -2);
-        assertParsedDouble(d.withPrecision(2), false, "1", 0);
-        assertParsedDouble(d.withPrecision(1), false, "1", 0);
+        assertParsedDouble(d.maxPrecision(10), false, "102576552", -8);
+        assertParsedDouble(d.maxPrecision(9), false, "102576552", -8);
+        assertParsedDouble(d.maxPrecision(8), false, "10257655", -7);
+        assertParsedDouble(d.maxPrecision(7), false, "1025766", -6);
+        assertParsedDouble(d.maxPrecision(6), false, "102577", -5);
+        assertParsedDouble(d.maxPrecision(5), false, "10258", -4);
+        assertParsedDouble(d.maxPrecision(4), false, "1026", -3);
+        assertParsedDouble(d.maxPrecision(3), false, "103", -2);
+        assertParsedDouble(d.maxPrecision(2), false, "1", 0);
+        assertParsedDouble(d.maxPrecision(1), false, "1", 0);
     }
 
     @Test
-    public void testWithPrecision_carry() {
+    public void testMaxPrecision_carry() {
         // arrange
         final ParsedDouble d = ParsedDouble.from(-999.0999e50);
 
         // act
-        assertParsedDouble(d.withPrecision(8), true, "9990999", 46);
-        assertParsedDouble(d.withPrecision(7), true, "9990999", 46);
-        assertParsedDouble(d.withPrecision(6), true, "9991", 49);
-        assertParsedDouble(d.withPrecision(5), true, "9991", 49);
-        assertParsedDouble(d.withPrecision(4), true, "9991", 49);
-        assertParsedDouble(d.withPrecision(3), true, "999", 50);
-        assertParsedDouble(d.withPrecision(2), true, "1", 53);
-        assertParsedDouble(d.withPrecision(1), true, "1", 53);
+        assertParsedDouble(d.maxPrecision(8), true, "9990999", 46);
+        assertParsedDouble(d.maxPrecision(7), true, "9990999", 46);
+        assertParsedDouble(d.maxPrecision(6), true, "9991", 49);
+        assertParsedDouble(d.maxPrecision(5), true, "9991", 49);
+        assertParsedDouble(d.maxPrecision(4), true, "9991", 49);
+        assertParsedDouble(d.maxPrecision(3), true, "999", 50);
+        assertParsedDouble(d.maxPrecision(2), true, "1", 53);
+        assertParsedDouble(d.maxPrecision(1), true, "1", 53);
     }
 
     @Test
-    public void testWithPrecision_halfEvenRounding() {
+    public void testMaxPrecision_halfEvenRounding() {
         // act/assert
         // Test values taken from RoundingMode.HALF_EVEN javadocs
-        assertParsedDouble(ParsedDouble.from(5.5).withPrecision(1), false, "6", 0);
-        assertParsedDouble(ParsedDouble.from(2.5).withPrecision(1), false, "2", 0);
-        assertParsedDouble(ParsedDouble.from(1.6).withPrecision(1), false, "2", 0);
-        assertParsedDouble(ParsedDouble.from(1.1).withPrecision(1), false, "1", 0);
-        assertParsedDouble(ParsedDouble.from(1.0).withPrecision(1), false, "1", 0);
+        assertParsedDouble(ParsedDouble.from(5.5).maxPrecision(1), false, "6", 0);
+        assertParsedDouble(ParsedDouble.from(2.5).maxPrecision(1), false, "2", 0);
+        assertParsedDouble(ParsedDouble.from(1.6).maxPrecision(1), false, "2", 0);
+        assertParsedDouble(ParsedDouble.from(1.1).maxPrecision(1), false, "1", 0);
+        assertParsedDouble(ParsedDouble.from(1.0).maxPrecision(1), false, "1", 0);
 
-        assertParsedDouble(ParsedDouble.from(-1.0).withPrecision(1), true, "1", 0);
-        assertParsedDouble(ParsedDouble.from(-1.1).withPrecision(1), true, "1", 0);
-        assertParsedDouble(ParsedDouble.from(-1.6).withPrecision(1), true, "2", 0);
-        assertParsedDouble(ParsedDouble.from(-2.5).withPrecision(1), true, "2", 0);
-        assertParsedDouble(ParsedDouble.from(-5.5).withPrecision(1), true, "6", 0);
+        assertParsedDouble(ParsedDouble.from(-1.0).maxPrecision(1), true, "1", 0);
+        assertParsedDouble(ParsedDouble.from(-1.1).maxPrecision(1), true, "1", 0);
+        assertParsedDouble(ParsedDouble.from(-1.6).maxPrecision(1), true, "2", 0);
+        assertParsedDouble(ParsedDouble.from(-2.5).maxPrecision(1), true, "2", 0);
+        assertParsedDouble(ParsedDouble.from(-5.5).maxPrecision(1), true, "6", 0);
     }
 
     @Test
-    public void testWithPrecision_singleDigits() {
+    public void testMaxPrecision_singleDigits() {
         // act
-        assertParsedDouble(ParsedDouble.from(9.0).withPrecision(1), false, "9", 0);
-        assertParsedDouble(ParsedDouble.from(1.0).withPrecision(1), false, "1", 0);
-        assertParsedDouble(ParsedDouble.from(0.0).withPrecision(1), false, "0", 0);
-        assertParsedDouble(ParsedDouble.from(-0.0).withPrecision(1), true, "0", 0);
-        assertParsedDouble(ParsedDouble.from(-1.0).withPrecision(1), true, "1", 0);
-        assertParsedDouble(ParsedDouble.from(-9.0).withPrecision(1), true, "9", 0);
+        assertParsedDouble(ParsedDouble.from(9.0).maxPrecision(1), false, "9", 0);
+        assertParsedDouble(ParsedDouble.from(1.0).maxPrecision(1), false, "1", 0);
+        assertParsedDouble(ParsedDouble.from(0.0).maxPrecision(1), false, "0", 0);
+        assertParsedDouble(ParsedDouble.from(-0.0).maxPrecision(1), true, "0", 0);
+        assertParsedDouble(ParsedDouble.from(-1.0).maxPrecision(1), true, "1", 0);
+        assertParsedDouble(ParsedDouble.from(-9.0).maxPrecision(1), true, "9", 0);
     }
 
     @Test
-    public void testWithPrecision_random() {
+    public void testMaxPrecision_random() {
         // arrange
         final UniformRandomProvider rand = RandomSource.create(RandomSource.XO_RO_SHI_RO_128_PP, 0L);
 
@@ -178,7 +252,7 @@ public class ParsedDoubleTest {
             ctx = new MathContext(precision, RoundingMode.HALF_EVEN);
 
             // act
-            result = ParsedDouble.from(d).withPrecision(precision);
+            result = ParsedDouble.from(d).maxPrecision(precision);
 
             // assert
             Assertions.assertEquals(new BigDecimal(Double.toString(d), ctx).doubleValue(),
@@ -187,16 +261,16 @@ public class ParsedDoubleTest {
     }
 
     @Test
-    public void testWithPrecision_invalidArg() {
+    public void testMaxPrecision_invalidArg() {
         // arrange
         final ParsedDouble d = ParsedDouble.from(10);
         final String baseMsg = "Precision must be greater than zero; was ";
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> d.withPrecision(0), IllegalArgumentException.class, baseMsg + "0");
+                () -> d.maxPrecision(0), IllegalArgumentException.class, baseMsg + "0");
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> d.withPrecision(-1), IllegalArgumentException.class, baseMsg + "-1");
+                () -> d.maxPrecision(-1), IllegalArgumentException.class, baseMsg + "-1");
     }
 
     @Test
@@ -371,6 +445,8 @@ public class ParsedDoubleTest {
         Assertions.assertEquals(negative, parsed.isNegative());
         Assertions.assertEquals(digits, parsed.getDigits());
         Assertions.assertEquals(exponent, parsed.getExponent());
+        Assertions.assertEquals(digits.length(), parsed.getPrecision());
+        Assertions.assertEquals(exponent, parsed.getScientificExponent() - digits.length() + 1);
     }
 
     private static double createRandomDouble(final UniformRandomProvider rng) {

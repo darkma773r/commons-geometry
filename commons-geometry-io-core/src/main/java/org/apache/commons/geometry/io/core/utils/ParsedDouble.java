@@ -110,7 +110,48 @@ final class ParsedDouble {
      * @return true if the value is equal to zero
      */
     public boolean isZero() {
-        return digits.length() == 1 && digits.charAt(0) == ZERO;
+        return getPrecision() == 1 && digits.charAt(0) == ZERO;
+    }
+
+    /** Return the precision of this instance, meaning the number of significant decimal
+     * digits in the representation.
+     * @return the precision of this instance
+     */
+    public int getPrecision() {
+        return digits.length();
+    }
+
+    /** Get the exponent that would be used when representing this number in scientific
+     * notation (i.e., with a single non-zero digit in front of the decimal point.
+     * @return the exponent that would be used when representing this number in scientific
+     *      notation
+     */
+    public int getScientificExponent() {
+        return getPrecision() + exponent - 1;
+    }
+
+    /** Round the instance to the given decimal exponent position using
+     * {@link java.math.RoundingMode#HALF_EVEN half-even rounding}. For example, a value of {@code -2}
+     * will round the instance to the digit at the position {@code 0.01}. A new instance is
+     * returned if the rounding operation results in a new value.
+     * @param roundExponent exponent defining the decimal place to round to
+     * @return result of the rounding operation
+     */
+    public ParsedDouble round(final int roundExponent) {
+        if (roundExponent > exponent) {
+            final int precision = getPrecision();
+            final int max = precision + exponent;
+
+            if (roundExponent < max) {
+                return maxPrecision(max - roundExponent);
+            } else if (roundExponent == max && shouldRoundUp(0)) {
+                return new ParsedDouble(negative, "1", roundExponent);
+            }
+
+            return POS_ZERO;
+        }
+
+        return this;
     }
 
     /** Return the value as close as possible to this instance with <em>at most</em> the given number
@@ -123,30 +164,22 @@ final class ParsedDouble {
      *      significant digits
      * @throws IllegalArgumentException if {@code precision} is less than 1
      */
-    public ParsedDouble withPrecision(final int precision) {
+    public ParsedDouble maxPrecision(final int precision) {
         if (precision < 1) {
             throw new IllegalArgumentException("Precision must be greater than zero; was " + precision);
         }
 
-        final int numDigits = digits.length();
-        if (numDigits > precision) {
+        final int currentPrecision = getPrecision();
+        if (currentPrecision > precision) {
             // we need to round to reduce the number of digits
             String resultDigits = digits.substring(0, precision);
 
-            // Round up in the following cases:
-            // 1. The digit after the last digit is greater than 5.
-            // 2. The digit after the last digit is 5 and there are additional (non-zero)
-            //      digits after it.
-            // 3. The digit after the last digit is 5, there are no additional digits afterward,
-            //      and the last digit is odd (half-even rounding).
-            final int roundValue = digitValue(digits.charAt(precision));
-            if (roundValue > 5 || (roundValue == 5 &&
-                    (precision < numDigits - 1 || digitValue(digits.charAt(precision - 1)) % 2 != 0))) {
+            if (shouldRoundUp(precision)) {
                 resultDigits = addOne(resultDigits);
             }
 
             // compute the initial result exponent
-            int resultExponent = exponent + (numDigits - precision);
+            int resultExponent = exponent + (currentPrecision - precision);
 
             // remove zeros from the end of the integer if present, adjusting the
             // exponent as needed
@@ -174,13 +207,15 @@ final class ParsedDouble {
      * @return a string representation of the value with no exponent field
      */
     public String toPlainString(final boolean includeDecimalPlaceholder) {
+        final int precision = getPrecision();
+
         final StringBuilder sb = new StringBuilder();
         if (negative) {
             sb.append(MINUS);
         }
 
         if (exponent < 0) {
-            final int diff = digits.length() + exponent;
+            final int diff = precision + exponent;
 
             // add whole digits, using a beginning placeholder zero if
             // needed
@@ -201,7 +236,7 @@ final class ParsedDouble {
             }
 
             // fraction digits
-            sb.append(digits, i, digits.length());
+            sb.append(digits, i, precision);
         } else {
             sb.append(digits);
 
@@ -247,7 +282,7 @@ final class ParsedDouble {
      * @return a string representation of the value in engineering notation
      */
     public String toEngineeringString(final boolean includeDecimalPlaceholder) {
-        final int wholeDigits = 1 + Math.floorMod(exponent + digits.length() - 1, 3);
+        final int wholeDigits = 1 + Math.floorMod(getPrecision() + exponent - 1, 3);
         return toScientificString(wholeDigits, includeDecimalPlaceholder);
     }
 
@@ -261,19 +296,19 @@ final class ParsedDouble {
      *      given number of whole digits
      */
     private String toScientificString(final int wholeDigits, final boolean includeDecimalPlaceholder) {
-        final int numDigits = digits.length();
+        final int precision = getPrecision();
 
         final StringBuilder sb = new StringBuilder();
         if (negative) {
             sb.append(MINUS);
         }
 
-        if (numDigits <= wholeDigits) {
+        if (precision <= wholeDigits) {
             // not enough digits to meet the requested number of whole digits;
             // we'll need to pad with zeros
             sb.append(digits);
 
-            for (int i = numDigits; i < wholeDigits; ++i) {
+            for (int i = precision; i < wholeDigits; ++i) {
                 sb.append(ZERO);
             }
 
@@ -285,13 +320,31 @@ final class ParsedDouble {
             // we'll need a fractional portion
             sb.append(digits, 0, wholeDigits)
                 .append(DECIMAL_SEP)
-                .append(digits, wholeDigits, numDigits);
+                .append(digits, wholeDigits, precision);
         }
 
         sb.append(EXPONENT)
-            .append(exponent + numDigits - wholeDigits);
+            .append(exponent + precision - wholeDigits);
 
         return sb.toString();
+    }
+
+    /** Return true if a rounding operation at the given index should round up.
+     * @param idx index of the digit to round; must be a valid index into {@code digits}
+     * @return true if a rounding operation at the given index should round up
+     */
+    private boolean shouldRoundUp(final int idx) {
+        // Round up in the following cases:
+        // 1. The digit at the index is greater than 5.
+        // 2. The digit at the index is 5 and there are additional (non-zero)
+        //      digits after it.
+        // 3. The digit is 5, there are no additional digits afterward,
+        //      and the digit before it is odd (half-even rounding).
+        final int precision = getPrecision();
+        final int roundValue = digitValue(digits.charAt(idx));
+
+        return roundValue > 5 || (roundValue == 5 &&
+                (idx < precision - 1 || (idx > 0 && digitValue(digits.charAt(idx - 1)) % 2 != 0)));
     }
 
     /** Construct a new instance from the given double value.
