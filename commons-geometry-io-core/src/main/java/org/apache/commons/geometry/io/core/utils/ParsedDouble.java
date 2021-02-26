@@ -253,8 +253,10 @@ final class ParsedDouble {
         return sb.toString();
     }
 
-    /** Return a string representation of the value in scientific notation. Ex:
+    /** Return a string representation of the value in scientific notation. If the exponent field
+     * is equal to zero, it is not included in the result. Ex:
      * <pre>
+     * 0 = "0.0"
      * 10 = "1.0E1"
      * 1e-6 = "1.0E-6"
      * 1e11 = "1.0E11"
@@ -270,9 +272,11 @@ final class ParsedDouble {
 
     /** Return a string representation of the value in engineering notation. This is similar
      * to {@link #toScientificString(boolean) scientific notation} but with the exponent forced
-     * to be a multiple of 3, allowing easier alignment with SI prefixes.
+     * to be a multiple of 3, allowing easier alignment with SI prefixes. If the exponent field
+     * is equal to zero, it is not included in the result.
      * <pre>
-     * 10 = "10.0E0"
+     * 0 = "0.0"
+     * 10 = "10.0"
      * 1e-6 = "1.0E-6"
      * 1e11 = "100.0E9"
      * </pre>
@@ -287,7 +291,8 @@ final class ParsedDouble {
     }
 
     /** Return a string representation of the value in scientific notation using the
-     * given number of whole digits.
+     * given number of whole digits. If the exponent field of the result is zero, it
+     * is not included in the returned string.
      * @param wholeDigits number of whole digits to use in the output
      * @param includeDecimalPlaceholder if true, then the returned string will contain
      *      the decimal placeholder ".0" when no fractional value is present, similar
@@ -323,8 +328,12 @@ final class ParsedDouble {
                 .append(digits, wholeDigits, precision);
         }
 
-        sb.append(EXPONENT)
-            .append(exponent + precision - wholeDigits);
+        // add the exponent but only if non-zero
+        final int resultExponent = exponent + precision - wholeDigits;
+        if (resultExponent != 0) {
+            sb.append(EXPONENT)
+                .append(resultExponent);
+        }
 
         return sb.toString();
     }

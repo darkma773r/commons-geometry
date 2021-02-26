@@ -294,15 +294,15 @@ public class ParsedDoubleTest {
     @Test
     public void testToScientificString() {
         // act/assert
-        checkToScientificString(0.0, "0.0E0", "0E0");
-        checkToScientificString(1.0, "1.0E0", "1E0");
-        checkToScientificString(1.5, "1.5E0");
+        checkToScientificString(0.0, "0.0", "0");
+        checkToScientificString(1.0, "1.0", "1");
+        checkToScientificString(1.5, "1.5");
 
         checkToScientificString(0.000123, "1.23E-4");
         checkToScientificString(12300, "1.23E4");
 
-        checkToScientificString(Math.PI, "3.141592653589793E0");
-        checkToScientificString(Math.E, "2.718281828459045E0");
+        checkToScientificString(Math.PI, "3.141592653589793");
+        checkToScientificString(Math.E, "2.718281828459045");
 
         checkToScientificString(Double.MAX_VALUE, "1.7976931348623157E308");
         checkToScientificString(Double.MIN_VALUE, "4.9E-324");
@@ -312,17 +312,17 @@ public class ParsedDoubleTest {
     @Test
     public void testToEngineeringString() {
         // act/assert
-        checkToEngineeringString(0.0, "0.0E0", "0E0");
-        checkToEngineeringString(1.0, "1.0E0", "1E0");
-        checkToEngineeringString(1.5, "1.5E0");
+        checkToEngineeringString(0.0, "0.0", "0");
+        checkToEngineeringString(1.0, "1.0", "1");
+        checkToEngineeringString(1.5, "1.5");
 
-        checkToEngineeringString(10, "10.0E0", "10E0");
+        checkToEngineeringString(10, "10.0", "10");
 
         checkToEngineeringString(0.000000123, "123.0E-9", "123E-9");
         checkToEngineeringString(12300000, "12.3E6");
 
-        checkToEngineeringString(Math.PI, "3.141592653589793E0");
-        checkToEngineeringString(Math.E, "2.718281828459045E0");
+        checkToEngineeringString(Math.PI, "3.141592653589793");
+        checkToEngineeringString(Math.E, "2.718281828459045");
 
         checkToEngineeringString(Double.MAX_VALUE, "179.76931348623157E306");
         checkToEngineeringString(Double.MIN_VALUE, "4.9E-324");
@@ -407,10 +407,16 @@ public class ParsedDoubleTest {
 
         // check the exponent value to make sure it is a multiple of 3
         final String pos = ParsedDouble.from(d).toEngineeringString(true);
-        Assertions.assertEquals(0, Integer.parseInt(pos.substring(pos.indexOf('E') + 1)) % 3);
+        final int posEIdx = pos.indexOf('E');
+        if (posEIdx > -1) {
+            Assertions.assertEquals(0, Integer.parseInt(pos.substring(posEIdx + 1)) % 3);
+        }
 
         final String neg = ParsedDouble.from(-d).toEngineeringString(true);
-        Assertions.assertEquals(0, Integer.parseInt(neg.substring(neg.indexOf('E') + 1)) % 3);
+        final int negEIdx = neg.indexOf('E');
+        if (negEIdx > -1) {
+            Assertions.assertEquals(0, Integer.parseInt(neg.substring(negEIdx + 1)) % 3);
+        }
     }
 
     private static void checkToStringMethod(final double d, final String withPlaceholder,
