@@ -132,8 +132,8 @@ final class ParsedDouble {
 
     /** Round the instance to the given decimal exponent position using
      * {@link java.math.RoundingMode#HALF_EVEN half-even rounding}. For example, a value of {@code -2}
-     * will round the instance to the digit at the position {@code 0.01}. A new instance is
-     * returned if the rounding operation results in a new value.
+     * will round the instance to the digit at the position 10<sup>-2</sup> (i.e. to the closest multiple of 0.01).
+     * A new instance is returned if the rounding operation results in a new value.
      * @param roundExponent exponent defining the decimal place to round to
      * @return result of the rounding operation
      */

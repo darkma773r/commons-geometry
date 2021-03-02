@@ -16,6 +16,11 @@
  */
 package org.apache.commons.geometry.io.core.utils;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.IntFunction;
+
+import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -94,10 +99,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testDefault_noPrecisionLimit_noMinExponent() {
         // arrange
-        final int precision = 0;
+        final int maxPrecision = 0;
 
         // act
-        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(precision);
+        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(maxPrecision);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -134,10 +139,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testDefault_noPrecisionLimit_withMinExponent() {
         // arrange
-        final int precision = 0;
+        final int maxPrecision = 0;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -174,10 +179,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testDefault_withPrecisionLimit_noMinExponent() {
         // arrange
-        final int precision = 4;
+        final int maxPrecision = 4;
         final int minExponent = Integer.MIN_VALUE;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -217,10 +222,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testDefault_withPrecisionLimit_withMinExponent() {
         // arrange
-        final int precision = 3;
+        final int maxPrecision = 3;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -257,9 +262,9 @@ public class DataDecimalFormatsTest {
     @Test
     public void testPlain_noPrecisionLimit_noMinExponent() {
         // arrange
-        final int precision = 0;
+        final int maxPrecision = 0;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(precision);
+        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(maxPrecision);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -296,10 +301,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testPlain_noPrecisionLimit_withMinExponent() {
         // arrange
-        final int precision = 0;
+        final int maxPrecision = 0;
         final int minExponent = -2;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -336,10 +341,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testPlain_withPrecisionLimit_noMinExponent() {
         // arrange
-        final int precision = 3;
+        final int maxPrecision = 3;
         final int minExponent = Integer.MIN_VALUE;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -376,10 +381,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testPlain_withPrecisionLimit_withMinExponent() {
         // arrange
-        final int precision = 4;
+        final int maxPrecision = 4;
         final int minExponent = -2;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -416,10 +421,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testScientific_noPrecisionLimit_noMinExponent() {
         // arrange
-        final int precision = 0;
+        final int maxPrecision = 0;
 
         // act
-        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(precision);
+        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(maxPrecision);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -456,10 +461,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testScientific_noPrecisionLimit_withMinExponent() {
         // arrange
-        final int precision = 0;
+        final int maxPrecision = 0;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -496,10 +501,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testScientific_withPrecisionLimit_noMinExponent() {
         // arrange
-        final int precision = 3;
+        final int maxPrecision = 3;
         final int minExponent = Integer.MIN_VALUE;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -539,10 +544,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testScientific_withPrecisionLimit_withMinExponent() {
         // arrange
-        final int precision = 3;
+        final int maxPrecision = 3;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -579,10 +584,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testEngineering_noPrecisionLimit_noMinExponent() {
         // arrange
-        final int precision = 0;
+        final int maxPrecision = 0;
 
         // act
-        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(precision);
+        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(maxPrecision);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -619,10 +624,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testEngineering_noPrecisionLimit_withMinExponent() {
         // arrange
-        final int precision = 0;
+        final int maxPrecision = 0;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -659,10 +664,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testEngineering_withPrecisionLimit_noMinExponent() {
         // arrange
-        final int precision = 3;
+        final int maxPrecision = 3;
         final int minExponent = Integer.MIN_VALUE;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -699,10 +704,10 @@ public class DataDecimalFormatsTest {
     @Test
     public void testEngineering_withPrecisionLimit_withMinExponent() {
         // arrange
-        final int precision = 3;
+        final int maxPrecision = 3;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(precision, minExponent);
+        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -734,6 +739,190 @@ public class DataDecimalFormatsTest {
         checkFormat(fmt, Double.MIN_NORMAL, "0.0");
         checkFormat(fmt, Math.PI, "3.14");
         checkFormat(fmt, Math.E, "2.72");
+    }
+
+    @Test
+    public void testPrecisionValidation() {
+        // arrange
+        final List<IntFunction<DataDecimalFormat>> fns = Arrays.asList(
+                    DataDecimalFormats::createDefault,
+                    p -> DataDecimalFormats.createDefault(p, Integer.MIN_VALUE),
+                    DataDecimalFormats::createPlain,
+                    p -> DataDecimalFormats.createPlain(p, Integer.MIN_VALUE),
+                    DataDecimalFormats::createScientific,
+                    p -> DataDecimalFormats.createScientific(p, Integer.MIN_VALUE),
+                    DataDecimalFormats::createEngineering,
+                    p -> DataDecimalFormats.createEngineering(p, Integer.MIN_VALUE)
+                );
+
+        final String msg = "Max precision must be greater than or equal to zero; was -1";
+
+        // act/assert
+        for (final IntFunction<DataDecimalFormat> fn : fns) {
+            GeometryTestUtils.assertThrowsWithMessage(
+                    () -> fn.apply(-1),
+                    IllegalArgumentException.class, msg);
+        }
+    }
+
+    @Test
+    public void testDefault_docExamples() {
+        // arrange
+        final DataDecimalFormat noLimits = DataDecimalFormats.createDefault(0);
+        final DataDecimalFormat precisionOnly = DataDecimalFormats.createDefault(4);
+        final DataDecimalFormat minExpOnly = DataDecimalFormats.createDefault(0, -2);
+        final DataDecimalFormat precisionAndMinExp = DataDecimalFormats.createDefault(4, -2);
+
+        // act/assert
+        checkFormat(noLimits, 0.0001, "1.0E-4");
+        checkFormat(noLimits, -0.0635, "-0.0635");
+        checkFormat(noLimits, 510.751, "510.751");
+        checkFormat(noLimits, -123456.0, "-123456.0");
+        checkFormat(noLimits, 42078500.0, "4.20785E7");
+
+        checkFormat(precisionOnly, 0.0001, "1.0E-4");
+        checkFormat(precisionOnly, -0.0635, "-0.0635");
+        checkFormat(precisionOnly, 510.751, "510.8");
+        checkFormat(precisionOnly, -123456.0, "-123500.0");
+        checkFormat(precisionOnly, 42078500.0, "4.208E7");
+
+        checkFormat(minExpOnly, 0.0001, "0.0");
+        checkFormat(minExpOnly, -0.0635, "-0.06");
+        checkFormat(minExpOnly, 510.751, "510.75");
+        checkFormat(minExpOnly, -123456.0, "-123456.0");
+        checkFormat(minExpOnly, 42078500.0, "4.20785E7");
+
+        checkFormat(precisionAndMinExp, 0.0001, "0.0");
+        checkFormat(precisionAndMinExp, -0.0635, "-0.06");
+        checkFormat(precisionAndMinExp, 510.751, "510.8");
+        checkFormat(precisionAndMinExp, -123456.0, "-123500.0");
+        checkFormat(precisionAndMinExp, 42078500.0, "4.208E7");
+    }
+
+    @Test
+    public void testPlain_docExamples() {
+        // arrange
+        final DataDecimalFormat noLimits = DataDecimalFormats.createPlain(0);
+        final DataDecimalFormat precisionOnly = DataDecimalFormats.createPlain(4);
+        final DataDecimalFormat minExpOnly = DataDecimalFormats.createPlain(0, -2);
+        final DataDecimalFormat precisionAndMinExp = DataDecimalFormats.createPlain(4, -2);
+
+        // act/assert
+        checkFormat(noLimits, 0.0001, "0.0001");
+        checkFormat(noLimits, -0.0635, "-0.0635");
+        checkFormat(noLimits, 510.751, "510.751");
+        checkFormat(noLimits, -123456.0, "-123456.0");
+        checkFormat(noLimits, 42078500.0, "42078500.0");
+
+        checkFormat(precisionOnly, 0.0001, "0.0001");
+        checkFormat(precisionOnly, -0.0635, "-0.0635");
+        checkFormat(precisionOnly, 510.751, "510.8");
+        checkFormat(precisionOnly, -123456.0, "-123500.0");
+        checkFormat(precisionOnly, 42078500.0, "42080000.0");
+
+        checkFormat(minExpOnly, 0.0001, "0.0");
+        checkFormat(minExpOnly, -0.0635, "-0.06");
+        checkFormat(minExpOnly, 510.751, "510.75");
+        checkFormat(minExpOnly, -123456.0, "-123456.0");
+        checkFormat(minExpOnly, 42078500.0, "42078500.0");
+
+        checkFormat(precisionAndMinExp, 0.0001, "0.0");
+        checkFormat(precisionAndMinExp, -0.0635, "-0.06");
+        checkFormat(precisionAndMinExp, 510.751, "510.8");
+        checkFormat(precisionAndMinExp, -123456.0, "-123500.0");
+        checkFormat(precisionAndMinExp, 42078500.0, "42080000.0");
+    }
+
+    @Test
+    public void testScientific_docExamples() {
+        // arrange
+        final DataDecimalFormat noLimits = DataDecimalFormats.createScientific(0);
+        final DataDecimalFormat precisionOnly = DataDecimalFormats.createScientific(4);
+        final DataDecimalFormat minExpOnly = DataDecimalFormats.createScientific(0, -2);
+        final DataDecimalFormat precisionAndMinExp = DataDecimalFormats.createScientific(4, -2);
+
+        // act/assert
+        checkFormat(noLimits, 0.0001, "1.0E-4");
+        checkFormat(noLimits, -0.0635, "-6.35E-2");
+        checkFormat(noLimits, 1.0, "1.0");
+        checkFormat(noLimits, 10.0, "1.0E1");
+        checkFormat(noLimits, 100.0, "1.0E2");
+        checkFormat(noLimits, 510.751, "5.10751E2");
+        checkFormat(noLimits, -123456.0, "-1.23456E5");
+        checkFormat(noLimits, 42078500.0, "4.20785E7");
+
+        checkFormat(precisionOnly, 0.0001, "1.0E-4");
+        checkFormat(precisionOnly, -0.0635, "-6.35E-2");
+        checkFormat(precisionOnly, 1.0, "1.0");
+        checkFormat(precisionOnly, 10.0, "1.0E1");
+        checkFormat(precisionOnly, 100.0, "1.0E2");
+        checkFormat(precisionOnly, 510.751, "5.108E2");
+        checkFormat(precisionOnly, -123456.0, "-1.235E5");
+        checkFormat(precisionOnly, 42078500.0, "4.208E7");
+
+        checkFormat(minExpOnly, 0.0001, "0.0");
+        checkFormat(minExpOnly, -0.0635, "-6.0E-2");
+        checkFormat(minExpOnly, 1.0, "1.0");
+        checkFormat(minExpOnly, 10.0, "1.0E1");
+        checkFormat(minExpOnly, 100.0, "1.0E2");
+        checkFormat(minExpOnly, 510.751, "5.1075E2");
+        checkFormat(minExpOnly, -123456.0, "-1.23456E5");
+        checkFormat(minExpOnly, 42078500.0, "4.20785E7");
+
+        checkFormat(precisionAndMinExp, 0.0001, "0.0");
+        checkFormat(precisionAndMinExp, -0.0635, "-6.0E-2");
+        checkFormat(precisionAndMinExp, 1.0, "1.0");
+        checkFormat(precisionAndMinExp, 10.0, "1.0E1");
+        checkFormat(precisionAndMinExp, 100.0, "1.0E2");
+        checkFormat(precisionAndMinExp, 510.751, "5.108E2");
+        checkFormat(precisionAndMinExp, -123456.0, "-1.235E5");
+        checkFormat(precisionAndMinExp, 42078500.0, "4.208E7");
+    }
+
+    @Test
+    public void testEngineering_docExamples() {
+        // arrange
+        final DataDecimalFormat noLimits = DataDecimalFormats.createEngineering(0);
+        final DataDecimalFormat precisionOnly = DataDecimalFormats.createEngineering(4);
+        final DataDecimalFormat minExpOnly = DataDecimalFormats.createEngineering(0, -2);
+        final DataDecimalFormat precisionAndMinExp = DataDecimalFormats.createEngineering(4, -2);
+
+        // act/assert
+        checkFormat(noLimits, 0.0001, "100.0E-6");
+        checkFormat(noLimits, -0.0635, "-63.5E-3");
+        checkFormat(noLimits, 1.0, "1.0");
+        checkFormat(noLimits, 10.0, "10.0");
+        checkFormat(noLimits, 100.0, "100.0");
+        checkFormat(noLimits, 510.751, "510.751");
+        checkFormat(noLimits, -123456.0, "-123.456E3");
+        checkFormat(noLimits, 42078500.0, "42.0785E6");
+
+        checkFormat(precisionOnly, 0.0001, "100.0E-6");
+        checkFormat(precisionOnly, -0.0635, "-63.5E-3");
+        checkFormat(precisionOnly, 1.0, "1.0");
+        checkFormat(precisionOnly, 10.0, "10.0");
+        checkFormat(precisionOnly, 100.0, "100.0");
+        checkFormat(precisionOnly, 510.751, "510.8");
+        checkFormat(precisionOnly, -123456.0, "-123.5E3");
+        checkFormat(precisionOnly, 42078500.0, "42.08E6");
+
+        checkFormat(minExpOnly, 0.0001, "0.0");
+        checkFormat(minExpOnly, -0.0635, "-60.0E-3");
+        checkFormat(minExpOnly, 1.0, "1.0");
+        checkFormat(minExpOnly, 10.0, "10.0");
+        checkFormat(minExpOnly, 100.0, "100.0");
+        checkFormat(minExpOnly, 510.751, "510.75");
+        checkFormat(minExpOnly, -123456.0, "-123.456E3");
+        checkFormat(minExpOnly, 42078500.0, "42.0785E6");
+
+        checkFormat(precisionAndMinExp, 0.0001, "0.0");
+        checkFormat(precisionAndMinExp, -0.0635, "-60.0E-3");
+        checkFormat(precisionAndMinExp, 1.0, "1.0");
+        checkFormat(precisionAndMinExp, 10.0, "10.0");
+        checkFormat(precisionAndMinExp, 100.0, "100.0");
+        checkFormat(precisionAndMinExp, 510.751, "510.8");
+        checkFormat(precisionAndMinExp, -123456.0, "-123.5E3");
+        checkFormat(precisionAndMinExp, 42078500.0, "42.08E6");
     }
 
     private static void checkFormat(final DataDecimalFormat fmt, final double d, final String str) {
