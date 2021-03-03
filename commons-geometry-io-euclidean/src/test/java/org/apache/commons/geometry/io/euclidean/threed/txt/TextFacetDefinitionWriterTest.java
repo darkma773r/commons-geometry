@@ -30,7 +30,7 @@ import org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
-import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
+import org.apache.commons.geometry.io.core.utils.DoubleFormats;
 import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +57,7 @@ public class TextFacetDefinitionWriterTest {
     public void testPropertyDefaults() {
         // act/assert
         Assertions.assertEquals("\n", fdWriter.getLineSeparator());
-        Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, fdWriter.getDataDecimalFormat());
+        Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, fdWriter.getDoubleFormat());
         Assertions.assertEquals(" ", fdWriter.getVertexComponentSeparator());
         Assertions.assertEquals("; ", fdWriter.getVertexSeparator());
         Assertions.assertEquals(-1, fdWriter.getFacetVertexCount());
@@ -194,7 +194,7 @@ public class TextFacetDefinitionWriterTest {
         final SimpleFacetDefinition f2 = new SimpleFacetDefinition(Arrays.asList(
                 Vector3D.of(0.5, 0.7, 1.2), Vector3D.of(10.01, -4, 2), Vector3D.of(-10.0 / 3.0, 0, 0), Vector3D.ZERO));
 
-        fdWriter.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -3));
+        fdWriter.setDoubleFormat(DoubleFormats.createDefault(0, -3));
 
         // act
         fdWriter.write(f1);
@@ -307,7 +307,7 @@ public class TextFacetDefinitionWriterTest {
                 Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0), Vector3D.of(0, 1, 0)
             ), TEST_PRECISION);
 
-        fdWriter.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
+        fdWriter.setDoubleFormat(DoubleFormats.createDefault(0, -1));
 
         fdWriter.setFacetVertexCount(3);
         fdWriter.setLineSeparator("\r\n");

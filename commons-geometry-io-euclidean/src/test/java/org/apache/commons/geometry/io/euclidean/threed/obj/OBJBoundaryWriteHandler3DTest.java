@@ -28,7 +28,7 @@ import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
-import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
+import org.apache.commons.geometry.io.core.utils.DoubleFormats;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitions;
 import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
@@ -55,14 +55,14 @@ public class OBJBoundaryWriteHandler3DTest {
         // act/assert
         Assertions.assertEquals(StandardCharsets.UTF_8, handler.getCharset());
         Assertions.assertEquals("\n", handler.getLineSeparator());
-        Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, handler.getDataDecimalFormat());
+        Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, handler.getDoubleFormat());
         Assertions.assertEquals(-1, handler.getMeshBufferBatchSize());
     }
 
     @Test
     public void testWriteFacets() throws IOException {
         // act
-        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -6));
+        handler.setDoubleFormat(DoubleFormats.createDefault(0, -6));
         handler.writeFacets(FACETS, out);
 
         // assert
@@ -81,7 +81,7 @@ public class OBJBoundaryWriteHandler3DTest {
         // arrange
         handler.setCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
-        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
+        handler.setDoubleFormat(DoubleFormats.createDefault(0, -1));
         handler.setMeshBufferBatchSize(1);
 
         // act
@@ -130,7 +130,7 @@ public class OBJBoundaryWriteHandler3DTest {
 
         handler.setCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
-        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
+        handler.setDoubleFormat(DoubleFormats.createDefault(0, -1));
         handler.setMeshBufferBatchSize(1);
 
         // act

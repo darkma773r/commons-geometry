@@ -43,7 +43,7 @@ public class ParsedDoubleTest {
         checkFrom(0.1, "1", -1);
         checkFrom(0.01, "1", -2);
         checkFrom(0.001, "1", -3);
-        checkFrom(0.0001, "1",-4);
+        checkFrom(0.0001, "1", -4);
         checkFrom(0.00001, "1", -5);
 
         checkFrom(1.2, "12", -1);

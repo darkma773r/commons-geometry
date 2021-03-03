@@ -16,6 +16,11 @@
  */
 package org.apache.commons.geometry.io.core.utils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -25,16 +30,16 @@ import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class DataDecimalFormatsTest {
+public class DoubleFormatsTest {
 
     private static final double[] EXAMPLE_VALUES = {
-            0.0001, -0.0635, 510.751, -123456.0, 42078500.0
+        0.0001, -0.0635, 510.751, -123456.0, 42078500.0
     };
 
     @Test
     public void testDoubleToString() {
         // arrange
-        final DataDecimalFormat fmt = DataDecimalFormats.DOUBLE_TO_STRING;
+        final DoubleFormat fmt = DoubleFormats.DOUBLE_TO_STRING;
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -69,7 +74,7 @@ public class DataDecimalFormatsTest {
     @Test
     public void testFloatToString() {
         // arrange
-        final DataDecimalFormat fmt = DataDecimalFormats.FLOAT_TO_STRING;
+        final DoubleFormat fmt = DoubleFormats.FLOAT_TO_STRING;
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -107,7 +112,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 0;
 
         // act
-        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(maxPrecision);
+        final DoubleFormat fmt = DoubleFormats.createDefault(maxPrecision);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -147,7 +152,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 0;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createDefault(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -187,7 +192,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 4;
         final int minExponent = Integer.MIN_VALUE;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createDefault(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -230,7 +235,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 3;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createDefault(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createDefault(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -269,7 +274,7 @@ public class DataDecimalFormatsTest {
         // arrange
         final int maxPrecision = 0;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(maxPrecision);
+        final DoubleFormat fmt = DoubleFormats.createPlain(maxPrecision);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -309,7 +314,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 0;
         final int minExponent = -2;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createPlain(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -349,7 +354,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 3;
         final int minExponent = Integer.MIN_VALUE;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createPlain(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -389,7 +394,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 4;
         final int minExponent = -2;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createPlain(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createPlain(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -429,7 +434,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 0;
 
         // act
-        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(maxPrecision);
+        final DoubleFormat fmt = DoubleFormats.createScientific(maxPrecision);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -469,7 +474,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 0;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createScientific(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -509,7 +514,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 3;
         final int minExponent = Integer.MIN_VALUE;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createScientific(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -552,7 +557,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 3;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createScientific(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createScientific(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -592,7 +597,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 0;
 
         // act
-        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(maxPrecision);
+        final DoubleFormat fmt = DoubleFormats.createEngineering(maxPrecision);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -632,7 +637,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 0;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createEngineering(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -672,7 +677,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 3;
         final int minExponent = Integer.MIN_VALUE;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createEngineering(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -712,7 +717,7 @@ public class DataDecimalFormatsTest {
         final int maxPrecision = 3;
         final int minExponent = -3;
 
-        final DataDecimalFormat fmt = DataDecimalFormats.createEngineering(maxPrecision, minExponent);
+        final DoubleFormat fmt = DoubleFormats.createEngineering(maxPrecision, minExponent);
 
         // act/assert
         checkFormatSpecial(fmt);
@@ -749,21 +754,21 @@ public class DataDecimalFormatsTest {
     @Test
     public void testPrecisionValidation() {
         // arrange
-        final List<IntFunction<DataDecimalFormat>> fns = Arrays.asList(
-                    DataDecimalFormats::createDefault,
-                    p -> DataDecimalFormats.createDefault(p, Integer.MIN_VALUE),
-                    DataDecimalFormats::createPlain,
-                    p -> DataDecimalFormats.createPlain(p, Integer.MIN_VALUE),
-                    DataDecimalFormats::createScientific,
-                    p -> DataDecimalFormats.createScientific(p, Integer.MIN_VALUE),
-                    DataDecimalFormats::createEngineering,
-                    p -> DataDecimalFormats.createEngineering(p, Integer.MIN_VALUE)
+        final List<IntFunction<DoubleFormat>> fns = Arrays.asList(
+                    DoubleFormats::createDefault,
+                    p -> DoubleFormats.createDefault(p, Integer.MIN_VALUE),
+                    DoubleFormats::createPlain,
+                    p -> DoubleFormats.createPlain(p, Integer.MIN_VALUE),
+                    DoubleFormats::createScientific,
+                    p -> DoubleFormats.createScientific(p, Integer.MIN_VALUE),
+                    DoubleFormats::createEngineering,
+                    p -> DoubleFormats.createEngineering(p, Integer.MIN_VALUE)
                 );
 
         final String msg = "Max precision must be greater than or equal to zero; was -1";
 
         // act/assert
-        for (final IntFunction<DataDecimalFormat> fn : fns) {
+        for (final IntFunction<DoubleFormat> fn : fns) {
             GeometryTestUtils.assertThrowsWithMessage(
                     () -> fn.apply(-1),
                     IllegalArgumentException.class, msg);
@@ -772,41 +777,48 @@ public class DataDecimalFormatsTest {
 
     /** Utility method used to generate the tables of format examples in the Javadocs.
      * This helps to ensure accuracy and consistency in the documentation. The HTML tables
-     * are printed to stdout and can then be copied into the correct locations in the source.
+     * are printed to a file and can then be copied into the correct locations in the source.
+     * @throws IOException
      */
     // @Test
-    public void generateExampleTables() {
-        System.out.println("Default - one arg");
-        System.out.println(generateOneArgExamplesTable(DataDecimalFormats::createDefault));
+    public void generateExampleTables() throws IOException {
+        final Path output = Paths.get("target/format-examples.txt");
 
-        System.out.println("Default - two arg");
-        System.out.println(generateTwoArgExamplesTable(DataDecimalFormats::createDefault));
+        final List<String> lines = new ArrayList<>();
 
-        System.out.println("Plain - one arg");
-        System.out.println(generateOneArgExamplesTable(DataDecimalFormats::createPlain));
+        lines.add("Default - one arg");
+        lines.add(generateOneArgExamplesTable(DoubleFormats::createDefault));
 
-        System.out.println("Plain - two arg");
-        System.out.println(generateTwoArgExamplesTable(DataDecimalFormats::createPlain));
+        lines.add("Default - two arg");
+        lines.add(generateTwoArgExamplesTable(DoubleFormats::createDefault));
 
-        System.out.println("Scientific - one arg");
-        System.out.println(generateOneArgExamplesTable(DataDecimalFormats::createScientific));
+        lines.add("Plain - one arg");
+        lines.add(generateOneArgExamplesTable(DoubleFormats::createPlain));
 
-        System.out.println("Scientific - two arg");
-        System.out.println(generateTwoArgExamplesTable(DataDecimalFormats::createScientific));
+        lines.add("Plain - two arg");
+        lines.add(generateTwoArgExamplesTable(DoubleFormats::createPlain));
 
-        System.out.println("Engineering - one arg");
-        System.out.println(generateOneArgExamplesTable(DataDecimalFormats::createEngineering));
+        lines.add("Scientific - one arg");
+        lines.add(generateOneArgExamplesTable(DoubleFormats::createScientific));
 
-        System.out.println("Engineering - two arg");
-        System.out.println(generateTwoArgExamplesTable(DataDecimalFormats::createEngineering));
+        lines.add("Scientific - two arg");
+        lines.add(generateTwoArgExamplesTable(DoubleFormats::createScientific));
+
+        lines.add("Engineering - one arg");
+        lines.add(generateOneArgExamplesTable(DoubleFormats::createEngineering));
+
+        lines.add("Engineering - two arg");
+        lines.add(generateTwoArgExamplesTable(DoubleFormats::createEngineering));
+
+        Files.write(output, lines);
     }
 
-    private static String generateOneArgExamplesTable(final IntFunction<DataDecimalFormat> fn) {
+    private static String generateOneArgExamplesTable(final IntFunction<DoubleFormat> fn) {
         final int aMaxPrecision = 0;
         final int bMaxPrecision = 4;
 
-        final DataDecimalFormat aFmt = fn.apply(aMaxPrecision);
-        final DataDecimalFormat bFmt = fn.apply(bMaxPrecision);
+        final DoubleFormat aFmt = fn.apply(aMaxPrecision);
+        final DoubleFormat bFmt = fn.apply(bMaxPrecision);
 
         final String descTemplate = "(maxPrecision= %d)";
 
@@ -816,15 +828,15 @@ public class DataDecimalFormatsTest {
                 );
     }
 
-    private static String generateTwoArgExamplesTable(final BiFunction<Integer, Integer, DataDecimalFormat> fn) {
+    private static String generateTwoArgExamplesTable(final BiFunction<Integer, Integer, DoubleFormat> fn) {
         final int aMaxPrecision = 0;
         final int aMinExponent = -2;
 
         final int bMaxPrecision = 4;
         final int bMinExponent = -2;
 
-        final DataDecimalFormat aFmt = fn.apply(aMaxPrecision, aMinExponent);
-        final DataDecimalFormat bFmt = fn.apply(bMaxPrecision, bMinExponent);
+        final DoubleFormat aFmt = fn.apply(aMaxPrecision, aMinExponent);
+        final DoubleFormat bFmt = fn.apply(bMaxPrecision, bMinExponent);
 
         final String descTemplate = "(maxPrecision= %d, minExponent= %d)";
 
@@ -836,7 +848,7 @@ public class DataDecimalFormatsTest {
                 );
     }
 
-    private static String generateExamplesTable(final List<DataDecimalFormat> fmts,
+    private static String generateExamplesTable(final List<DoubleFormat> fmts,
             final List<String> fmtDescriptions) {
         final StringBuilder sb = new StringBuilder();
 
@@ -855,7 +867,7 @@ public class DataDecimalFormatsTest {
                 .append(value)
                 .append("</td>");
 
-            for (DataDecimalFormat fmt : fmts) {
+            for (DoubleFormat fmt : fmts) {
                 sb.append("<td>")
                     .append(fmt.format(value))
                     .append("</td>");
@@ -869,11 +881,11 @@ public class DataDecimalFormatsTest {
         return sb.toString();
     }
 
-    private static void checkFormat(final DataDecimalFormat fmt, final double d, final String str) {
+    private static void checkFormat(final DoubleFormat fmt, final double d, final String str) {
         Assertions.assertEquals(str, fmt.format(d));
     }
 
-    private static void checkFormatSpecial(final DataDecimalFormat fmt) {
+    private static void checkFormatSpecial(final DoubleFormat fmt) {
         checkFormat(fmt, Double.NaN, "NaN");
         checkFormat(fmt, Double.POSITIVE_INFINITY, "Infinity");
         checkFormat(fmt, Double.NEGATIVE_INFINITY, "-Infinity");

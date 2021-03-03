@@ -387,7 +387,7 @@ final class ParsedDouble {
                 decimalSepIdx = i;
             } else if (ch == EXPONENT) {
                 exponentIdx = i;
-            } else if (exponentIdx < 0){
+            } else if (exponentIdx < 0) {
                 digitStr.append(ch);
             }
         }
@@ -481,15 +481,15 @@ final class ParsedDouble {
      * characters (i.e. '0' - '9'). The characters are modified in place. True is
      * returned if the operation resulted is a carry-out of 1. False is returned if
      * the result is fully contained in the passed array.
-     * @param digits sequence of digit characters
+     * @param digitChars sequence of digit characters
      * @return true if a 1 was carried out of the operation; otherwise false
      */
-    private static boolean addOne(final char[] digitsChars) {
+    private static boolean addOne(final char[] digitChars) {
         int i;
         char c;
-        for (i = digitsChars.length - 1; i >= 0; --i) {
-            c = DIGITS.charAt((digitValue(digitsChars[i]) + 1) % DIGITS.length());
-            digitsChars[i] = c;
+        for (i = digitChars.length - 1; i >= 0; --i) {
+            c = DIGITS.charAt((digitValue(digitChars[i]) + 1) % DIGITS.length());
+            digitChars[i] = c;
 
             if (c != ZERO) {
                 break; // no carry over; stop

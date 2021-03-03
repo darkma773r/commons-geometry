@@ -32,6 +32,7 @@ import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.Mesh;
 import org.apache.commons.geometry.io.core.utils.AbstractTextFormatWriter;
+import org.apache.commons.geometry.io.core.utils.DoubleFormat;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 
 /** Class for writing OBJ files containing 3D polygon geometries.
@@ -294,12 +295,14 @@ public final class OBJWriter extends AbstractTextFormatWriter {
      * @return string representation of the given vector
      */
     private String createVectorString(final Vector3D vec) {
+        final DoubleFormat fmt = getDoubleFormat();
+
         final StringBuilder sb = new StringBuilder();
-        sb.append(doubleToString(vec.getX()))
+        sb.append(fmt.format(vec.getX()))
             .append(SPACE)
-            .append(doubleToString(vec.getY()))
+            .append(fmt.format(vec.getY()))
             .append(SPACE)
-            .append(doubleToString(vec.getZ()));
+            .append(fmt.format(vec.getZ()));
 
         return sb.toString();
     }

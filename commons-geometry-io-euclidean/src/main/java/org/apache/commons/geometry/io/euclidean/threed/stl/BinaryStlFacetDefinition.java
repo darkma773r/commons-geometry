@@ -23,6 +23,7 @@ import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 
 public class BinaryStlFacetDefinition extends SimpleFacetDefinition {
 
+    /** Default value for the STL binary facet attribute. */
     private static final int DEFAULT_ATTRIBUTE_VALUE = 0;
 
     /** Attribute value for the facet (2 bytes). */

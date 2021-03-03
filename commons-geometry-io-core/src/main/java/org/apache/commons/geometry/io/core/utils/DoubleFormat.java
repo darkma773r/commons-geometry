@@ -16,14 +16,14 @@
  */
 package org.apache.commons.geometry.io.core.utils;
 
-/** Interface used to create standard, non-localized decimal strings for use in
- * text-based data output.
+/** Interface used to create string representations of double values.
  *
  * <p><strong>Implementation Note:</strong> Implementations of this interface <em>must</em> be
  * thread-safe.</p>
+ * @see DoubleFormats
  */
 @FunctionalInterface
-public interface DataDecimalFormat {
+public interface DoubleFormat {
 
     /** Return a string representation of the given double value.
      * @param d double to obtain a string representation for

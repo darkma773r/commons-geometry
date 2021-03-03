@@ -29,7 +29,7 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
-import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
+import org.apache.commons.geometry.io.core.utils.DoubleFormats;
 import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ public class OBJWriterTest {
         // act/assert
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
             Assertions.assertEquals("\n", meshWriter.getLineSeparator());
-            Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, meshWriter.getDataDecimalFormat());
+            Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, meshWriter.getDoubleFormat());
             Assertions.assertEquals(0, meshWriter.getVertexCount());
             Assertions.assertEquals(0, meshWriter.getVertexNormalCount());
         }
@@ -94,7 +94,7 @@ public class OBJWriterTest {
 
         // act
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            meshWriter.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
+            meshWriter.setDoubleFormat(DoubleFormats.createDefault(0, -1));
 
             meshWriter.writeVertex(Vector3D.of(1.09, 2.05, 3.06));
         }
@@ -160,7 +160,7 @@ public class OBJWriterTest {
         final int index2;
         final int count;
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            meshWriter.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
+            meshWriter.setDoubleFormat(DoubleFormats.createDefault(0, -1));
 
             index1 = meshWriter.writeVertex(Vector3D.of(1.09, 2.1, 3.005));
             index2 = meshWriter.writeVertex(Vector3D.of(0.06, 10, 12));
@@ -187,7 +187,7 @@ public class OBJWriterTest {
         final int index2;
         final int count;
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            meshWriter.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
+            meshWriter.setDoubleFormat(DoubleFormats.createDefault(0, -1));
 
             index1 = meshWriter.writeVertexNormal(Vector3D.of(1.09, 2.1, 3.005));
             index2 = meshWriter.writeVertexNormal(Vector3D.of(0.06, 10, 12));

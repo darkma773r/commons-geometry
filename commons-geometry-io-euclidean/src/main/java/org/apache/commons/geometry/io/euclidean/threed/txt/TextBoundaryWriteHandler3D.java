@@ -24,8 +24,8 @@ import java.util.stream.Stream;
 
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
-import org.apache.commons.geometry.io.core.utils.DataDecimalFormat;
-import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
+import org.apache.commons.geometry.io.core.utils.DoubleFormat;
+import org.apache.commons.geometry.io.core.utils.DoubleFormats;
 import org.apache.commons.geometry.io.euclidean.threed.AbstractBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 
@@ -46,8 +46,8 @@ public class TextBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     /** Line separator string. */
     private String lineSeparator = DEFAULT_LINE_SEPARATOR;
 
-    /** Decimal number formatter. */
-    private DataDecimalFormat dataDecimalFormat = DataDecimalFormats.DOUBLE_TO_STRING;
+    /** Double format instance. */
+    private DoubleFormat doubleFormat = DoubleFormats.DOUBLE_TO_STRING;
 
     /** String used to separate vertex components, ie, x, y, z values. */
     private String vertexComponentSeparator = TextFacetDefinitionWriter.DEFAULT_VERTEX_COMPONENT_SEPARATOR;
@@ -86,20 +86,20 @@ public class TextBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
         this.lineSeparator = lineSeparator;
     }
 
-    /** Get the {@link DataDecimalFormat} instance used to convert double values
+    /** Get the {@link DoubleFormat} instance used to convert double values
      * to strings.
-     * @return {@code DataDecimalFormat} instance
+     * @return {@code DoubleFormat} instance
      */
-    public DataDecimalFormat getDataDecimalFormat() {
-        return dataDecimalFormat;
+    public DoubleFormat getDoubleFormat() {
+        return doubleFormat;
     }
 
-    /** Set the {@link DataDecimalFormat} instance used to convert double values
+    /** Set the {@link DoubleFormat} instance used to convert double values
      * to strings.
-     * @param dataDecimalFormat format instance
+     * @param doubleFormat double format instance
      */
-    public void setDataDecimalFormat(final DataDecimalFormat dataDecimalFormat) {
-        this.dataDecimalFormat = dataDecimalFormat;
+    public void setDoubleFormat(final DoubleFormat doubleFormat) {
+        this.doubleFormat = doubleFormat;
     }
 
     /** Get the string used to separate vertex components (ie, individual x, y, z values).
@@ -187,7 +187,7 @@ public class TextBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
                 GeometryIOUtils.createCloseShieldWriter(out, charset));
 
         facetWriter.setLineSeparator(lineSeparator);
-        facetWriter.setDataDecimalFormat(dataDecimalFormat);
+        facetWriter.setDoubleFormat(doubleFormat);
 
         facetWriter.setVertexComponentSeparator(vertexComponentSeparator);
         facetWriter.setVertexSeparator(vertexSeparator);

@@ -33,24 +33,24 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
     /** Line separator string. */
     private String lineSeparator = DEFAULT_LINE_SEPARATOR;
 
-    /** Data decimal formatter. */
-    private DataDecimalFormat dataDecimalFormat;
+    /** Double format instance. */
+    private DoubleFormat doubleFormat;
 
     /** Construct a new instance that writes content to the given writer.
      * @param writer writer instance
      */
     protected AbstractTextFormatWriter(final Writer writer) {
-        this(writer, DataDecimalFormats.DOUBLE_TO_STRING);
+        this(writer, DoubleFormats.DOUBLE_TO_STRING);
     }
 
     /** Construct a new instance that writes content to the given writer and uses the
      * decimal format instance for creating floating-point string representations.
      * @param writer writer instance
-     * @param dataDecimalFormat decimal format instance
+     * @param doubleFormat double format instance
      */
-    protected AbstractTextFormatWriter(final Writer writer, final DataDecimalFormat dataDecimalFormat) {
+    protected AbstractTextFormatWriter(final Writer writer, final DoubleFormat doubleFormat) {
         this.writer = writer;
-        this.dataDecimalFormat = dataDecimalFormat;
+        this.doubleFormat = doubleFormat;
     }
 
     /** Get the current line separator. This value defaults to {@value #DEFAULT_LINE_SEPARATOR}.
@@ -67,18 +67,18 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
         this.lineSeparator = lineSeparator;
     }
 
-    /** Get the {@link DataDecimalFormat} instance used to format floating point output.
-     * @return the decimal format instance
+    /** Get the {@link DoubleFormat} instance used to format floating point output.
+     * @return the double format instance
      */
-    public DataDecimalFormat getDataDecimalFormat() {
-        return dataDecimalFormat;
+    public DoubleFormat getDoubleFormat() {
+        return doubleFormat;
     }
 
-    /** Set the {@link DataDecimalFormat} instance used to format floating point output.
-     * @param decimalFormat decimal format instance
+    /** Set the {@link DoubleFormat} instance used to format floating point output.
+     * @param doubleFormat double format instance
      */
-    public void setDataDecimalFormat(final DataDecimalFormat decimalFormat) {
-        this.dataDecimalFormat = decimalFormat;
+    public void setDoubleFormat(final DoubleFormat doubleFormat) {
+        this.doubleFormat = doubleFormat;
     }
 
     /** {@inheritDoc} */
@@ -99,7 +99,7 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
      * @throws IOException if an I/O error occurs
      */
     protected void write(final double d) throws IOException {
-        write(doubleToString(d));
+        write(doubleFormat.format(d));
     }
 
     /** Write an integer value.
@@ -131,13 +131,5 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
      */
     protected void writeNewLine() throws IOException {
         write(lineSeparator);
-    }
-
-    /** Get a string representation of the given double for use in writer output.
-     * @param n double to convert to a string
-     * @return string representation of the argument
-     */
-    protected String doubleToString(final double d) {
-        return dataDecimalFormat.format(d);
     }
 }

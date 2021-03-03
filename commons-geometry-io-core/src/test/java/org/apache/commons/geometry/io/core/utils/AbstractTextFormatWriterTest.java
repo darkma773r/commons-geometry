@@ -34,7 +34,7 @@ public class AbstractTextFormatWriterTest {
         try (TestWriter writer = new TestWriter(out)) {
             // assert
             Assertions.assertEquals("\n", writer.getLineSeparator());
-            Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, writer.getDataDecimalFormat());
+            Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, writer.getDoubleFormat());
             Assertions.assertSame(out, writer.getWriter());
         }
     }
@@ -70,8 +70,8 @@ public class AbstractTextFormatWriterTest {
 
             writer.setLineSeparator("\r\n");
 
-            final DataDecimalFormat df = DataDecimalFormats.createPlain(0, -2);
-            writer.setDataDecimalFormat(df);
+            final DoubleFormat df = DoubleFormats.createPlain(0, -2);
+            writer.setDoubleFormat(df);
 
             // act
             writer.write('a');

@@ -28,7 +28,7 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.io.core.test.CloseCountOutputStream;
-import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
+import org.apache.commons.geometry.io.core.utils.DoubleFormats;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
@@ -64,7 +64,7 @@ public class TextBoundaryWriteHandler3DTest {
         Assertions.assertEquals("\n", handler.getLineSeparator());
         Assertions.assertEquals(" ", handler.getVertexComponentSeparator());
         Assertions.assertEquals("; ", handler.getVertexSeparator());
-        Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, handler.getDataDecimalFormat());
+        Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, handler.getDoubleFormat());
         Assertions.assertEquals(-1, handler.getFacetVertexCount());
     }
 
@@ -78,7 +78,7 @@ public class TextBoundaryWriteHandler3DTest {
         Assertions.assertEquals("\n", handler.getLineSeparator());
         Assertions.assertEquals(",", handler.getVertexComponentSeparator());
         Assertions.assertEquals(",", handler.getVertexSeparator());
-        Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, handler.getDataDecimalFormat());
+        Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, handler.getDoubleFormat());
         Assertions.assertEquals(3, handler.getFacetVertexCount());
     }
 
@@ -131,7 +131,7 @@ public class TextBoundaryWriteHandler3DTest {
         final TextBoundaryWriteHandler3D handler = new TextBoundaryWriteHandler3D();
         handler.setCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
-        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
+        handler.setDoubleFormat(DoubleFormats.createDefault(0, -1));
         handler.setVertexComponentSeparator("|");
         handler.setVertexSeparator(" | ");
         handler.setFacetVertexCount(4);
@@ -184,7 +184,7 @@ public class TextBoundaryWriteHandler3DTest {
         final TextBoundaryWriteHandler3D handler = new TextBoundaryWriteHandler3D();
         handler.setCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
-        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
+        handler.setDoubleFormat(DoubleFormats.createDefault(0, -1));
         handler.setVertexComponentSeparator("|");
         handler.setVertexSeparator(" | ");
         handler.setFacetVertexCount(4);

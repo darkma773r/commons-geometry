@@ -404,6 +404,7 @@ public final class Planes {
      * interior angle in the polygon is selected as the base of the triangle fan. Callers are responsible for
      * ensuring that the given list of vertices define a geometrically valid convex polygon; no validation (except
      * for a check on the minimum number of vertices) is performed.
+     * @param <T> triangle result type
      * @param vertices vertices defining a convex polygon
      * @param fn function accepting the vertices of each triangle as a list and returning the object used
      *      to represent that triangle in the result; each argument to this function is guaranteed to
@@ -435,7 +436,6 @@ public final class Planes {
         while (vertexIdx != fanIdx) {
             vertexB = vertices.get(vertexIdx);
 
-            // add directly as a triangle instance to avoid computation of the plane again
             triangles.add(fn.apply(Arrays.asList(fanBase, vertexA, vertexB)));
 
             vertexA = vertexB;

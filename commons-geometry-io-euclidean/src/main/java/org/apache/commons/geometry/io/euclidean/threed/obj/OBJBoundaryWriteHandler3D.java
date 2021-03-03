@@ -26,8 +26,8 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.mesh.Mesh;
 import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
-import org.apache.commons.geometry.io.core.utils.DataDecimalFormat;
-import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
+import org.apache.commons.geometry.io.core.utils.DoubleFormat;
+import org.apache.commons.geometry.io.core.utils.DoubleFormats;
 import org.apache.commons.geometry.io.euclidean.threed.AbstractBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 
@@ -48,8 +48,8 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     /** Line separator string. */
     private String lineSeparator = DEFAULT_LINE_SEPARATOR;
 
-    /** Decimal number formatter. */
-    private DataDecimalFormat dataDecimalFormat = DataDecimalFormats.DOUBLE_TO_STRING;
+    /** Double format instance. */
+    private DoubleFormat doubleFormat = DoubleFormats.DOUBLE_TO_STRING;
 
     /** Batch size used for mesh buffer creation. */
     private int meshBufferBatchSize = DEFAULT_MESH_BUFFER_BATCH_SIZE;
@@ -82,20 +82,20 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
         this.lineSeparator = lineSeparator;
     }
 
-    /** Get the {@link DataDecimalFormat} instance used to convert double values
+    /** Get the {@link DoubleFormat} instance used to convert double values
      * to strings.
-     * @return {@code DataDecimalFormat} instance
+     * @return {@code DoubleFormat} instance
      */
-    public DataDecimalFormat getDataDecimalFormat() {
-        return dataDecimalFormat;
+    public DoubleFormat getDoubleFormat() {
+        return doubleFormat;
     }
 
-    /** Set the {@link DataDecimalFormat} instance used to convert double values
+    /** Set the {@link DoubleFormat} instance used to convert double values
      * to strings.
-     * @param dataDecimalFormat format instance
+     * @param doubleFormat double format instance
      */
-    public void setDataDecimalFormat(final DataDecimalFormat dataDecimalFormat) {
-        this.dataDecimalFormat = dataDecimalFormat;
+    public void setDoubleFormat(final DoubleFormat doubleFormat) {
+        this.doubleFormat = doubleFormat;
     }
 
     /** Get the batch size when generating OBJ mesh content from facet sequences. Larger batch sizes
@@ -172,7 +172,7 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     private OBJWriter createOBJWriter(final OutputStream out) {
         final OBJWriter writer = new OBJWriter(GeometryIOUtils.createCloseShieldWriter(out, charset));
         writer.setLineSeparator(lineSeparator);
-        writer.setDataDecimalFormat(dataDecimalFormat);
+        writer.setDoubleFormat(doubleFormat);
 
         return writer;
     }
