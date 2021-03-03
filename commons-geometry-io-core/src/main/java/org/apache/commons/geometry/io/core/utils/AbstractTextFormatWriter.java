@@ -34,7 +34,7 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
     private String lineSeparator = DEFAULT_LINE_SEPARATOR;
 
     /** Data decimal formatter. */
-    private DataDecimalFormat decimalFormat;
+    private DataDecimalFormat dataDecimalFormat;
 
     /** Construct a new instance that writes content to the given writer.
      * @param writer writer instance
@@ -46,11 +46,11 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
     /** Construct a new instance that writes content to the given writer and uses the
      * decimal format instance for creating floating-point string representations.
      * @param writer writer instance
-     * @param decimalFormat decimal format instance
+     * @param dataDecimalFormat decimal format instance
      */
-    protected AbstractTextFormatWriter(final Writer writer, final DataDecimalFormat decimalFormat) {
+    protected AbstractTextFormatWriter(final Writer writer, final DataDecimalFormat dataDecimalFormat) {
         this.writer = writer;
-        this.decimalFormat = decimalFormat;
+        this.dataDecimalFormat = dataDecimalFormat;
     }
 
     /** Get the current line separator. This value defaults to {@value #DEFAULT_LINE_SEPARATOR}.
@@ -70,15 +70,15 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
     /** Get the {@link DataDecimalFormat} instance used to format floating point output.
      * @return the decimal format instance
      */
-    public DataDecimalFormat getDecimalFormat() {
-        return decimalFormat;
+    public DataDecimalFormat getDataDecimalFormat() {
+        return dataDecimalFormat;
     }
 
     /** Set the {@link DataDecimalFormat} instance used to format floating point output.
      * @param decimalFormat decimal format instance
      */
-    public void setDecimalFormat(final DataDecimalFormat decimalFormat) {
-        this.decimalFormat = decimalFormat;
+    public void setDataDecimalFormat(final DataDecimalFormat decimalFormat) {
+        this.dataDecimalFormat = decimalFormat;
     }
 
     /** {@inheritDoc} */
@@ -138,6 +138,6 @@ public abstract class AbstractTextFormatWriter implements AutoCloseable {
      * @return string representation of the argument
      */
     protected String doubleToString(final double d) {
-        return decimalFormat.format(d);
+        return dataDecimalFormat.format(d);
     }
 }

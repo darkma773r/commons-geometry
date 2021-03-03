@@ -18,7 +18,6 @@ package org.apache.commons.geometry.io.euclidean.threed.txt;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -341,8 +340,6 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
      */
     public static TextFacetDefinitionWriter csvFormat(final Writer writer) {
         final TextFacetDefinitionWriter fdWriter = new TextFacetDefinitionWriter(writer);
-
-        fdWriter.setDecimalFormat(new DecimalFormat(CSV_DECIMAL_PATTERN));
 
         fdWriter.setVertexComponentSeparator(CSV_SEPARATOR);
         fdWriter.setVertexSeparator(CSV_SEPARATOR);

@@ -28,6 +28,7 @@ import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
+import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitions;
 import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
@@ -54,22 +55,23 @@ public class OBJBoundaryWriteHandler3DTest {
         // act/assert
         Assertions.assertEquals(StandardCharsets.UTF_8, handler.getCharset());
         Assertions.assertEquals("\n", handler.getLineSeparator());
-        Assertions.assertNull(handler.getDecimalFormatPattern());
+        Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, handler.getDataDecimalFormat());
         Assertions.assertEquals(-1, handler.getMeshBufferBatchSize());
     }
 
     @Test
     public void testWriteFacets() throws IOException {
         // act
+        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -6));
         handler.writeFacets(FACETS, out);
 
         // assert
         Assertions.assertEquals(
-                "v 0 0 0\n" +
-                "v 0.333333 0 0\n" +
-                "v 1 1 0\n" +
-                "v 0 1 0\n" +
-                "v 0 -1 0\n" +
+                "v 0.0 0.0 0.0\n" +
+                "v 0.333333 0.0 0.0\n" +
+                "v 1.0 1.0 0.0\n" +
+                "v 0.0 1.0 0.0\n" +
+                "v 0.0 -1.0 0.0\n" +
                 "f 1 2 3 4\n" +
                 "f 1 5 2\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
@@ -79,7 +81,7 @@ public class OBJBoundaryWriteHandler3DTest {
         // arrange
         handler.setCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
-        handler.setDecimalFormatPattern("0.0");
+        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
         handler.setMeshBufferBatchSize(1);
 
         // act
@@ -110,11 +112,11 @@ public class OBJBoundaryWriteHandler3DTest {
 
         // assert
         Assertions.assertEquals(
-                "v 0 0 0\n" +
-                "v 0.333333 0 0\n" +
-                "v 1 1 0\n" +
-                "v 0 1 0\n" +
-                "v 0 -1 0\n" +
+                "v 0.0 0.0 0.0\n" +
+                "v 0.3333333333333333 0.0 0.0\n" +
+                "v 1.0 1.0 0.0\n" +
+                "v 0.0 1.0 0.0\n" +
+                "v 0.0 -1.0 0.0\n" +
                 "f 1 2 3 4\n" +
                 "f 1 5 2\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
@@ -128,7 +130,7 @@ public class OBJBoundaryWriteHandler3DTest {
 
         handler.setCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
-        handler.setDecimalFormatPattern("0.0");
+        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
         handler.setMeshBufferBatchSize(1);
 
         // act
@@ -161,10 +163,10 @@ public class OBJBoundaryWriteHandler3DTest {
 
         // assert
         Assertions.assertEquals(
-                "v 0 0 0\n" +
-                "v 1 0 0\n" +
-                "v 0 1 0\n" +
-                "v 2 3 4\n" +
+                "v 0.0 0.0 0.0\n" +
+                "v 1.0 0.0 0.0\n" +
+                "v 0.0 1.0 0.0\n" +
+                "v 2.0 3.0 4.0\n" +
                 "f 1 2 3\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
 }

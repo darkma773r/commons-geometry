@@ -19,7 +19,6 @@ package org.apache.commons.geometry.io.euclidean.threed.obj;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
@@ -27,6 +26,8 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.mesh.Mesh;
 import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
+import org.apache.commons.geometry.io.core.utils.DataDecimalFormat;
+import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
 import org.apache.commons.geometry.io.euclidean.threed.AbstractBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 
@@ -47,8 +48,8 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     /** Line separator string. */
     private String lineSeparator = DEFAULT_LINE_SEPARATOR;
 
-    /** Decimal format pattern. */
-    private String decimalFormatPattern;
+    /** Decimal number formatter. */
+    private DataDecimalFormat dataDecimalFormat = DataDecimalFormats.DOUBLE_TO_STRING;
 
     /** Batch size used for mesh buffer creation. */
     private int meshBufferBatchSize = DEFAULT_MESH_BUFFER_BATCH_SIZE;
@@ -81,20 +82,20 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
         this.lineSeparator = lineSeparator;
     }
 
-    /** Get the format string used to construct {@link DecimalFormat} instances for
-     * formatting decimal output. If null, default instances are used.
-     * @return format string used to construct {@link DecimalFormat} instances; may be null
+    /** Get the {@link DataDecimalFormat} instance used to convert double values
+     * to strings.
+     * @return {@code DataDecimalFormat} instance
      */
-    public String getDecimalFormatPattern() {
-        return decimalFormatPattern;
+    public DataDecimalFormat getDataDecimalFormat() {
+        return dataDecimalFormat;
     }
 
-    /** Set the format string used to construct {@link DecimalFormat} instances for
-     * formatting decimal output. If set to null, default instances are used.
-     * @param decimalFormatPattern format pattern; may be null
+    /** Set the {@link DataDecimalFormat} instance used to convert double values
+     * to strings.
+     * @param dataDecimalFormat format instance
      */
-    public void setDecimalFormatPattern(final String decimalFormatPattern) {
-        this.decimalFormatPattern = decimalFormatPattern;
+    public void setDataDecimalFormat(final DataDecimalFormat dataDecimalFormat) {
+        this.dataDecimalFormat = dataDecimalFormat;
     }
 
     /** Get the batch size when generating OBJ mesh content from facet sequences. Larger batch sizes
@@ -171,10 +172,7 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     private OBJWriter createOBJWriter(final OutputStream out) {
         final OBJWriter writer = new OBJWriter(GeometryIOUtils.createCloseShieldWriter(out, charset));
         writer.setLineSeparator(lineSeparator);
-
-        if (decimalFormatPattern != null) {
-            writer.setDecimalFormat(new DecimalFormat(decimalFormatPattern));
-        }
+        writer.setDataDecimalFormat(dataDecimalFormat);
 
         return writer;
     }

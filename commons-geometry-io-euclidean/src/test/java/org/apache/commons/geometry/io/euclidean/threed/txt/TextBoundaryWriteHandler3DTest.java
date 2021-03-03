@@ -28,6 +28,7 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.io.core.test.CloseCountOutputStream;
+import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
@@ -63,7 +64,7 @@ public class TextBoundaryWriteHandler3DTest {
         Assertions.assertEquals("\n", handler.getLineSeparator());
         Assertions.assertEquals(" ", handler.getVertexComponentSeparator());
         Assertions.assertEquals("; ", handler.getVertexSeparator());
-        Assertions.assertNull(handler.getDecimalFormatPattern());
+        Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, handler.getDataDecimalFormat());
         Assertions.assertEquals(-1, handler.getFacetVertexCount());
     }
 
@@ -77,7 +78,7 @@ public class TextBoundaryWriteHandler3DTest {
         Assertions.assertEquals("\n", handler.getLineSeparator());
         Assertions.assertEquals(",", handler.getVertexComponentSeparator());
         Assertions.assertEquals(",", handler.getVertexSeparator());
-        Assertions.assertEquals("0.0#####", handler.getDecimalFormatPattern());
+        Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, handler.getDataDecimalFormat());
         Assertions.assertEquals(3, handler.getFacetVertexCount());
     }
 
@@ -93,7 +94,7 @@ public class TextBoundaryWriteHandler3DTest {
         // assert
         Assertions.assertEquals(0, closeOut.getCloseCount());
         Assertions.assertEquals(
-                "0 0 0; 0.333333 0 0; 1 1 0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
+                "0.0 0.0 0.0; 0.3333333333333333 0.0 0.0; 1.0 1.0 0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -108,7 +109,7 @@ public class TextBoundaryWriteHandler3DTest {
         // assert
         Assertions.assertEquals(0, closeOut.getCloseCount());
         Assertions.assertEquals(
-                "0.0,0.0,0.0,0.333333,0.0,0.0,1.0,1.0,0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
+                "0.0,0.0,0.0,0.3333333333333333,0.0,0.0,1.0,1.0,0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -130,7 +131,7 @@ public class TextBoundaryWriteHandler3DTest {
         final TextBoundaryWriteHandler3D handler = new TextBoundaryWriteHandler3D();
         handler.setCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
-        handler.setDecimalFormatPattern("00.#");
+        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
         handler.setVertexComponentSeparator("|");
         handler.setVertexSeparator(" | ");
         handler.setFacetVertexCount(4);
@@ -143,7 +144,7 @@ public class TextBoundaryWriteHandler3DTest {
         // assert
         Assertions.assertEquals(0, closeOut.getCloseCount());
         Assertions.assertEquals(
-                "00|00|00 | 00.3|00|00 | 01|01|00 | 00|01|00\r\n", new String(out.toByteArray(), StandardCharsets.UTF_16));
+                "0.0|0.0|0.0 | 0.3|0.0|0.0 | 1.0|1.0|0.0 | 0.0|1.0|0.0\r\n", new String(out.toByteArray(), StandardCharsets.UTF_16));
     }
 
     @Test
@@ -158,7 +159,7 @@ public class TextBoundaryWriteHandler3DTest {
         // assert
         Assertions.assertEquals(0, closeOut.getCloseCount());
         Assertions.assertEquals(
-                "0 0 0; 0.333333 0 0; 1 1 0; 0 1 0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
+                "0.0 0.0 0.0; 0.3333333333333333 0.0 0.0; 1.0 1.0 0.0; 0.0 1.0 0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -173,8 +174,8 @@ public class TextBoundaryWriteHandler3DTest {
         // assert
         Assertions.assertEquals(0, closeOut.getCloseCount());
         Assertions.assertEquals(
-                "0.333333,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0\n" +
-                "0.333333,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
+                "0.3333333333333333,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0\n" +
+                "0.3333333333333333,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -183,7 +184,7 @@ public class TextBoundaryWriteHandler3DTest {
         final TextBoundaryWriteHandler3D handler = new TextBoundaryWriteHandler3D();
         handler.setCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
-        handler.setDecimalFormatPattern("00.#");
+        handler.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
         handler.setVertexComponentSeparator("|");
         handler.setVertexSeparator(" | ");
         handler.setFacetVertexCount(4);
@@ -196,6 +197,6 @@ public class TextBoundaryWriteHandler3DTest {
         // assert
         Assertions.assertEquals(0, closeOut.getCloseCount());
         Assertions.assertEquals(
-                "00|00|00 | 00.3|00|00 | 01|01|00 | 00|01|00\r\n", new String(out.toByteArray(), StandardCharsets.UTF_16));
+                "0.0|0.0|0.0 | 0.3|0.0|0.0 | 1.0|1.0|0.0 | 0.0|1.0|0.0\r\n", new String(out.toByteArray(), StandardCharsets.UTF_16));
     }
 }

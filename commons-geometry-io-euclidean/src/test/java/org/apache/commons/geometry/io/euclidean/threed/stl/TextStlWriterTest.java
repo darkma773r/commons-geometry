@@ -18,7 +18,6 @@ package org.apache.commons.geometry.io.euclidean.threed.stl;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 

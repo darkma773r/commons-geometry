@@ -19,7 +19,6 @@ package org.apache.commons.geometry.io.euclidean.threed.obj;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
-import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -30,6 +29,7 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
+import org.apache.commons.geometry.io.core.utils.DataDecimalFormats;
 import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ public class OBJWriterTest {
         // act/assert
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
             Assertions.assertEquals("\n", meshWriter.getLineSeparator());
-            Assertions.assertEquals(6, meshWriter.getDecimalFormat().getMaximumFractionDigits());
+            Assertions.assertSame(DataDecimalFormats.DOUBLE_TO_STRING, meshWriter.getDataDecimalFormat());
             Assertions.assertEquals(0, meshWriter.getVertexCount());
             Assertions.assertEquals(0, meshWriter.getVertexNormalCount());
         }
@@ -84,7 +84,7 @@ public class OBJWriterTest {
         Assertions.assertEquals(
             "# line 1\r\n" +
             "# line 2\r\n" +
-            "v 0 0 0\r\n", writer.getBuffer().toString());
+            "v 0.0 0.0 0.0\r\n", writer.getBuffer().toString());
     }
 
     @Test
@@ -94,13 +94,13 @@ public class OBJWriterTest {
 
         // act
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            meshWriter.setDecimalFormat(new DecimalFormat("00.0"));
+            meshWriter.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
 
-            meshWriter.writeVertex(Vector3D.of(1, 2, 3));
+            meshWriter.writeVertex(Vector3D.of(1.09, 2.05, 3.06));
         }
 
         // assert
-        Assertions.assertEquals("v 01.0 02.0 03.0\n", writer.getBuffer().toString());
+        Assertions.assertEquals("v 1.1 2.0 3.1\n", writer.getBuffer().toString());
     }
 
     @Test
@@ -160,7 +160,7 @@ public class OBJWriterTest {
         final int index2;
         final int count;
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            meshWriter.getDecimalFormat().setMaximumFractionDigits(1);
+            meshWriter.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
 
             index1 = meshWriter.writeVertex(Vector3D.of(1.09, 2.1, 3.005));
             index2 = meshWriter.writeVertex(Vector3D.of(0.06, 10, 12));
@@ -173,8 +173,8 @@ public class OBJWriterTest {
         Assertions.assertEquals(1, index2);
         Assertions.assertEquals(2, count);
         Assertions.assertEquals(
-            "v 1.1 2.1 3\n" +
-            "v 0.1 10 12\n", writer.getBuffer().toString());
+            "v 1.1 2.1 3.0\n" +
+            "v 0.1 10.0 12.0\n", writer.getBuffer().toString());
     }
 
     @Test
@@ -187,7 +187,7 @@ public class OBJWriterTest {
         final int index2;
         final int count;
         try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            meshWriter.getDecimalFormat().setMaximumFractionDigits(1);
+            meshWriter.setDataDecimalFormat(DataDecimalFormats.createDefault(0, -1));
 
             index1 = meshWriter.writeVertexNormal(Vector3D.of(1.09, 2.1, 3.005));
             index2 = meshWriter.writeVertexNormal(Vector3D.of(0.06, 10, 12));
@@ -200,8 +200,8 @@ public class OBJWriterTest {
         Assertions.assertEquals(1, index2);
         Assertions.assertEquals(2, count);
         Assertions.assertEquals(
-            "vn 1.1 2.1 3\n" +
-            "vn 0.1 10 12\n", writer.getBuffer().toString());
+            "vn 1.1 2.1 3.0\n" +
+            "vn 0.1 10.0 12.0\n", writer.getBuffer().toString());
     }
 
     @Test
@@ -222,10 +222,10 @@ public class OBJWriterTest {
 
         // assert
         Assertions.assertEquals(
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 1 1 0\n" +
-            "v 0 1 0\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 1.0 1.0 0.0\n" +
+            "v 0.0 1.0 0.0\n" +
             "f 1 2 3\n" +
             "f 1 2 3 4\n", writer.getBuffer().toString());
     }
@@ -251,12 +251,12 @@ public class OBJWriterTest {
 
         // assert
         Assertions.assertEquals(
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 1 1 0\n" +
-            "v 0 1 0\n" +
-            "vn 0 0 1\n" +
-            "vn 0 0 -1\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 1.0 1.0 0.0\n" +
+            "v 0.0 1.0 0.0\n" +
+            "vn 0.0 0.0 1.0\n" +
+            "vn 0.0 0.0 -1.0\n" +
             "f 1//1 2//1 3//1\n" +
             "f 1//2 2//2 3//2 4//2\n", writer.getBuffer().toString());
     }
@@ -360,10 +360,10 @@ public class OBJWriterTest {
 
         // assert
         Assertions.assertEquals(
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 0 1 0\n" +
-            "v 0 0 1\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 0.0 1.0 0.0\n" +
+            "v 0.0 0.0 1.0\n" +
             "f 1 2 3\n" +
             "f 1 2 4\n", writer.getBuffer().toString());
     }
@@ -389,13 +389,13 @@ public class OBJWriterTest {
 
         // assert
         Assertions.assertEquals(
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 1 1 0\n" +
-            "v 0 1.5 0\n" +
-            "v 0 2 0\n" +
-            "vn 0 0 -1\n" +
-            "vn 0 0 1\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 1.0 1.0 0.0\n" +
+            "v 0.0 1.5 0.0\n" +
+            "v 0.0 2.0 0.0\n" +
+            "vn 0.0 0.0 -1.0\n" +
+            "vn 0.0 0.0 1.0\n" +
             "f 1//1 2//1 3//1\n" +
             "f 1 3 4\n" +
             "f 4//2 3//2 5//2\n", writer.getBuffer().toString());
@@ -422,17 +422,17 @@ public class OBJWriterTest {
 
         // assert
         Assertions.assertEquals(
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 1 1 0\n" +
-            "v 0 1.5 0\n" +
-            "vn 0 0 -1\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 1.0 1.0 0.0\n" +
+            "v 0.0 1.5 0.0\n" +
+            "vn 0.0 0.0 -1.0\n" +
             "f 1//1 2//1 3//1\n" +
             "f 1 3 4\n" +
-            "v 0 1.5 0\n" +
-            "v 1 1 0\n" +
-            "v 0 2 0\n" +
-            "vn 0 0 1\n" +
+            "v 0.0 1.5 0.0\n" +
+            "v 1.0 1.0 0.0\n" +
+            "v 0.0 2.0 0.0\n" +
+            "vn 0.0 0.0 1.0\n" +
             "f 5//2 6//2 7//2\n", writer.getBuffer().toString());
     }
 
@@ -465,22 +465,22 @@ public class OBJWriterTest {
 
         // assert
         Assertions.assertEquals(
-            "v 0 0 0\n" +
-            "v 0 -1 0\n" +
-            "v -1 0 0\n" +
-            "vn 0 0 1\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 0.0 -1.0 0.0\n" +
+            "v -1.0 0.0 0.0\n" +
+            "vn 0.0 0.0 1.0\n" +
             "f 1//1 2//1 3//1\n" +
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 1 1 0\n" +
-            "v 0 1.5 0\n" +
-            "vn 0 0 -1\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 1.0 1.0 0.0\n" +
+            "v 0.0 1.5 0.0\n" +
+            "vn 0.0 0.0 -1.0\n" +
             "f 4//2 5//2 6//2\n" +
             "f 4 6 7\n" +
-            "v 0 1.5 0\n" +
-            "v 1 1 0\n" +
-            "v 0 2 0\n" +
-            "vn 0 0 1\n" +
+            "v 0.0 1.5 0.0\n" +
+            "v 1.0 1.0 0.0\n" +
+            "v 0.0 2.0 0.0\n" +
+            "vn 0.0 0.0 1.0\n" +
             "f 8//3 9//3 10//3\n" +
             "f 10 3 2 1\n", writer.getBuffer().toString());
     }
@@ -502,10 +502,10 @@ public class OBJWriterTest {
 
         // assert
         Assertions.assertEquals(
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 0 1 0\n" +
-            "v 0 0 1\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 0.0 1.0 0.0\n" +
+            "v 0.0 0.0 1.0\n" +
             "f 1 2 3\n" +
             "f 1 2 4\n", writer.getBuffer().toString());
     }
@@ -527,10 +527,10 @@ public class OBJWriterTest {
 
         // assert
         Assertions.assertEquals(
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 0 1 0\n" +
-            "v 0 0 1\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 0.0 1.0 0.0\n" +
+            "v 0.0 0.0 1.0\n" +
             "f 1 2 3\n" +
             "f 1 2 4\n", writer.getBuffer().toString());
     }
@@ -552,13 +552,13 @@ public class OBJWriterTest {
 
         // assert
         Assertions.assertEquals(
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 0 1 0\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 0.0 1.0 0.0\n" +
             "f 1 2 3\n" +
-            "v 0 0 0\n" +
-            "v 1 0 0\n" +
-            "v 0 0 1\n" +
+            "v 0.0 0.0 0.0\n" +
+            "v 1.0 0.0 0.0\n" +
+            "v 0.0 0.0 1.0\n" +
             "f 4 5 6\n", writer.getBuffer().toString());
     }
 
