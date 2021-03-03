@@ -42,14 +42,12 @@ public final class DataDecimalFormats {
      * using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
      * <p><strong>Format Examples</strong></p>
      * <table>
-     *  <tr>
-     *      <th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th>
-     *  </tr>
-     *  <tr><td>0.0001</td><td>"1.0E-4"</td><td>"1.0E-4"</td></tr>
-     *  <tr><td>-0.0635</td><td>"-0.0635"</td><td>"-0.0635"</td></tr>
-     *  <tr><td>510.751</td><td>"510.751"</td><td>"510.8"</td></tr>
-     *  <tr><td>-123456.0</td><td>"-123456.0"</td><td>"-123500.0"</td></tr>
-     *  <tr><td>42078500.0</td><td>"4.20785E7"</td><td>"4.208E7"</td></tr>
+     *  <tr><th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th></tr>
+     *  <tr><td>1.0E-4</td><td>1.0E-4</td><td>1.0E-4</td></tr>
+     *  <tr><td>-0.0635</td><td>-0.0635</td><td>-0.0635</td></tr>
+     *  <tr><td>510.751</td><td>510.751</td><td>510.8</td></tr>
+     *  <tr><td>-123456.0</td><td>-123456.0</td><td>-123500.0</td></tr>
+     *  <tr><td>4.20785E7</td><td>4.20785E7</td><td>4.208E7</td></tr>
      * </table>
      * @param maxPrecision Maximum number of significant decimal digits in strings produced by the returned formatter.
      *      Numbers are rounded as necessary so that the number of significant digits does not exceed this value. A
@@ -68,14 +66,12 @@ public final class DataDecimalFormats {
      * using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
      * <p><strong>Format Examples</strong></p>
      * <table>
-     *  <tr>
-     *      <th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th>
-     *  </tr>
-     *  <tr><td>0.0001</td><td>"0.0"</td><td>"0.0"</td></tr>
-     *  <tr><td>-0.0635</td><td>"-0.06"</td><td>"-0.06"</td></tr>
-     *  <tr><td>510.751</td><td>"510.75"</td><td>"510.8"</td></tr>
-     *  <tr><td>-123456.0</td><td>"-123456.0"</td><td>"-123500.0"</td></tr>
-     *  <tr><td>42078500.0</td><td>"4.20785E7"</td><td>"4.208E7"</td></tr>
+     *  <tr><th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th></tr>
+     *  <tr><td>1.0E-4</td><td>0.0</td><td>0.0</td></tr>
+     *  <tr><td>-0.0635</td><td>-0.06</td><td>-0.06</td></tr>
+     *  <tr><td>510.751</td><td>510.75</td><td>510.8</td></tr>
+     *  <tr><td>-123456.0</td><td>-123456.0</td><td>-123500.0</td></tr>
+     *  <tr><td>4.20785E7</td><td>4.20785E7</td><td>4.208E7</td></tr>
      * </table>
      * @param maxPrecision Maximum number of significant decimal digits in strings produced by the returned formatter.
      *      Numbers are rounded as necessary so that the number of significant digits does not exceed this value. A
@@ -92,14 +88,12 @@ public final class DataDecimalFormats {
      * Rounding is performed using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
      * <p><strong>Format Examples</strong></p>
      * <table>
-     *  <tr>
-     *      <th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th>
-     *  </tr>
-     *  <tr><td>0.0001</td><td>"0.0001"</td><td>"0.0001"</td></tr>
-     *  <tr><td>-0.0635</td><td>"-0.0635"</td><td>"-0.0635"</td></tr>
-     *  <tr><td>510.751</td><td>"510.751"</td><td>"510.8"</td></tr>
-     *  <tr><td>-123456.0</td><td>"-123456.0"</td><td>"-123500.0"</td></tr>
-     *  <tr><td>42078500.0</td><td>"42078500.0"</td><td>"42080000.0"</td></tr>
+     *  <tr><th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th></tr>
+     *  <tr><td>1.0E-4</td><td>0.0001</td><td>0.0001</td></tr>
+     *  <tr><td>-0.0635</td><td>-0.0635</td><td>-0.0635</td></tr>
+     *  <tr><td>510.751</td><td>510.751</td><td>510.8</td></tr>
+     *  <tr><td>-123456.0</td><td>-123456.0</td><td>-123500.0</td></tr>
+     *  <tr><td>4.20785E7</td><td>42078500.0</td><td>42080000.0</td></tr>
      * </table>
      * @param maxPrecision Maximum number of significant decimal digits in strings produced by the returned formatter.
      *      Numbers are rounded as necessary so that the number of significant digits does not exceed this value. A
@@ -114,14 +108,12 @@ public final class DataDecimalFormats {
      * Rounding is performed using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
      * <p><strong>Format Examples</strong></p>
      * <table>
-     *  <tr>
-     *      <th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th>
-     *  </tr>
-     *  <tr><td>0.0001</td><td>"0.0"</td><td>"0.0"</td></tr>
-     *  <tr><td>-0.0635</td><td>"-0.06"</td><td>"-0.06"</td></tr>
-     *  <tr><td>510.751</td><td>"510.75"</td><td>"510.8"</td></tr>
-     *  <tr><td>-123456.0</td><td>"-123456.0"</td><td>"-123500.0"</td></tr>
-     *  <tr><td>42078500.0</td><td>"42078500.0"</td><td>"42080000.0"</td></tr>
+     *  <tr><th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th></tr>
+     *  <tr><td>1.0E-4</td><td>0.0</td><td>0.0</td></tr>
+     *  <tr><td>-0.0635</td><td>-0.06</td><td>-0.06</td></tr>
+     *  <tr><td>510.751</td><td>510.75</td><td>510.8</td></tr>
+     *  <tr><td>-123456.0</td><td>-123456.0</td><td>-123500.0</td></tr>
+     *  <tr><td>4.20785E7</td><td>42078500.0</td><td>42080000.0</td></tr>
      * </table>
      * @param maxPrecision Maximum number of significant decimal digits in strings produced by the returned formatter.
      *      Numbers are rounded as necessary so that the number of significant digits does not exceed this value. A
@@ -138,17 +130,12 @@ public final class DataDecimalFormats {
      * {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
      * <p><strong>Format Examples</strong></p>
      * <table>
-     *  <tr>
-     *      <th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th>
-     *  </tr>
-     *  <tr><td>0.0001</td><td>"1.0E-4"</td><td>"1.0E-4"</td></tr>
-     *  <tr><td>-0.0635</td><td>"-6.35E-2"</td><td>"-6.35E-2"</td></tr>
-     *  <tr><td>1.0</td><td>"1.0"</td><td>"1.0"</td></tr>
-     *  <tr><td>10.0</td><td>"1.0E1"</td><td>"1.0E1"</td></tr>
-     *  <tr><td>100.0</td><td>"1.0E2"</td><td>"1.0E2"</td></tr>
-     *  <tr><td>510.751</td><td>"5.10751E2"</td><td>"5.108E2"</td></tr>
-     *  <tr><td>-123456.0</td><td>"-1.23456E5"</td><td>"-1.235E5"</td></tr>
-     *  <tr><td>42078500.0</td><td>"4.20785E7"</td><td>"4.208E7"</td></tr>
+     *  <tr><th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th></tr>
+     *  <tr><td>1.0E-4</td><td>1.0E-4</td><td>1.0E-4</td></tr>
+     *  <tr><td>-0.0635</td><td>-6.35E-2</td><td>-6.35E-2</td></tr>
+     *  <tr><td>510.751</td><td>5.10751E2</td><td>5.108E2</td></tr>
+     *  <tr><td>-123456.0</td><td>-1.23456E5</td><td>-1.235E5</td></tr>
+     *  <tr><td>4.20785E7</td><td>4.20785E7</td><td>4.208E7</td></tr>
      * </table>
      * @param maxPrecision Maximum number of significant decimal digits in strings produced by the returned formatter.
      *      Numbers are rounded as necessary so that the number of significant digits does not exceed this value. A
@@ -164,17 +151,12 @@ public final class DataDecimalFormats {
      * {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
      * <p><strong>Format Examples</strong></p>
      * <table>
-     *  <tr>
-     *      <th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th>
-     *  </tr>
-     *  <tr><td>0.0001</td><td>"0.0"</td><td>"0.0"</td></tr>
-     *  <tr><td>-0.0635</td><td>"-6.0E-2"</td><td>"-6.0E-2"</td></tr>
-     *  <tr><td>1.0</td><td>"1.0"</td><td>"1.0"</td></tr>
-     *  <tr><td>10.0</td><td>"1.0E1"</td><td>"1.0E1"</td></tr>
-     *  <tr><td>100.0</td><td>"1.0E2"</td><td>"1.0E2"</td></tr>
-     *  <tr><td>510.751</td><td>"5.1075E2"</td><td>"5.108E2"</td></tr>
-     *  <tr><td>-123456.0</td><td>"-1.23456E5"</td><td>"-1.235E5"</td></tr>
-     *  <tr><td>42078500.0</td><td>"4.20785E7"</td><td>"4.208E7"</td></tr>
+     *  <tr><th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th></tr>
+     *  <tr><td>1.0E-4</td><td>0.0</td><td>0.0</td></tr>
+     *  <tr><td>-0.0635</td><td>-6.0E-2</td><td>-6.0E-2</td></tr>
+     *  <tr><td>510.751</td><td>5.1075E2</td><td>5.108E2</td></tr>
+     *  <tr><td>-123456.0</td><td>-1.23456E5</td><td>-1.235E5</td></tr>
+     *  <tr><td>4.20785E7</td><td>4.20785E7</td><td>4.208E7</td></tr>
      * </table>
      * @param maxPrecision Maximum number of significant decimal digits in strings produced by the returned formatter.
      *      Numbers are rounded as necessary so that the number of significant digits does not exceed this value. A
@@ -192,17 +174,12 @@ public final class DataDecimalFormats {
      * performed using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
      * <p><strong>Format Examples</strong></p>
      * <table>
-     *  <tr>
-     *      <th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th>
-     *  </tr>
-     *  <tr><td>0.0001</td><td>"100.0E-6"</td><td>"100.0E-6"</td></tr>
-     *  <tr><td>-0.0635</td><td>"-63.5E-3"</td><td>"-63.5E-3"</td></tr>
-     *  <tr><td>1.0</td><td>"1.0"</td><td>"1.0"</td></tr>
-     *  <tr><td>10.0</td><td>"10.0"</td><td>"10.0"</td></tr>
-     *  <tr><td>100.0</td><td>"100.0"</td><td>"100.0"</td></tr>
-     *  <tr><td>510.751</td><td>"510.751"</td><td>"510.8"</td></tr>
-     *  <tr><td>-123456.0</td><td>"-123.456E3"</td><td>"-123.5E3"</td></tr>
-     *  <tr><td>42078500.0</td><td>"42.0785E6"</td><td>"42.08E6"</td></tr>
+     *  <tr><th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th></tr>
+     *  <tr><td>1.0E-4</td><td>100.0E-6</td><td>100.0E-6</td></tr>
+     *  <tr><td>-0.0635</td><td>-63.5E-3</td><td>-63.5E-3</td></tr>
+     *  <tr><td>510.751</td><td>510.751</td><td>510.8</td></tr>
+     *  <tr><td>-123456.0</td><td>-123.456E3</td><td>-123.5E3</td></tr>
+     *  <tr><td>4.20785E7</td><td>42.0785E6</td><td>42.08E6</td></tr>
      * </table>
      * @param maxPrecision Maximum number of significant decimal digits in strings produced by the returned formatter.
      *      Numbers are rounded as necessary so that the number of significant digits does not exceed this value. A
@@ -219,17 +196,12 @@ public final class DataDecimalFormats {
      * performed using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
      * <p><strong>Format Examples</strong></p>
      * <table>
-     *  <tr>
-     *      <th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th>
-     *  </tr>
-     *  <tr><td>0.0001</td><td>"0.0"</td><td>"0.0"</td></tr>
-     *  <tr><td>-0.0635</td><td>"-60.0E-3"</td><td>"-60.0E-3"</td></tr>
-     *  <tr><td>1.0</td><td>"1.0"</td><td>"1.0"</td></tr>
-     *  <tr><td>10.0</td><td>"10.0"</td><td>"10.0"</td></tr>
-     *  <tr><td>100.0</td><td>"100.0"</td><td>"100.0"</td></tr>
-     *  <tr><td>510.751</td><td>"510.75"</td><td>"510.8"</td></tr>
-     *  <tr><td>-123456.0</td><td>"-123.456E3"</td><td>"-123.5E3"</td></tr>
-     *  <tr><td>42078500.0</td><td>"42.0785E6"</td><td>"42.08E6"</td></tr>
+     *  <tr><th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th></tr>
+     *  <tr><td>1.0E-4</td><td>0.0</td><td>0.0</td></tr>
+     *  <tr><td>-0.0635</td><td>-60.0E-3</td><td>-60.0E-3</td></tr>
+     *  <tr><td>510.751</td><td>510.75</td><td>510.8</td></tr>
+     *  <tr><td>-123456.0</td><td>-123.456E3</td><td>-123.5E3</td></tr>
+     *  <tr><td>4.20785E7</td><td>42.0785E6</td><td>42.08E6</td></tr>
      * </table>
      * @param maxPrecision Maximum number of significant decimal digits in strings produced by the returned formatter.
      *      Numbers are rounded as necessary so that the number of significant digits does not exceed this value. A

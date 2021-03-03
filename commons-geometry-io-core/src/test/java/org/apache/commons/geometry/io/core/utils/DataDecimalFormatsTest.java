@@ -18,6 +18,7 @@ package org.apache.commons.geometry.io.core.utils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.IntFunction;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
@@ -25,6 +26,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class DataDecimalFormatsTest {
+
+    private static final double[] EXAMPLE_VALUES = {
+            0.0001, -0.0635, 510.751, -123456.0, 42078500.0
+    };
 
     @Test
     public void testDoubleToString() {
@@ -765,164 +770,103 @@ public class DataDecimalFormatsTest {
         }
     }
 
-    @Test
-    public void testDefault_docExamples() {
-        // arrange
-        final DataDecimalFormat noLimits = DataDecimalFormats.createDefault(0);
-        final DataDecimalFormat precisionOnly = DataDecimalFormats.createDefault(4);
-        final DataDecimalFormat minExpOnly = DataDecimalFormats.createDefault(0, -2);
-        final DataDecimalFormat precisionAndMinExp = DataDecimalFormats.createDefault(4, -2);
+    /** Utility method used to generate the tables of format examples in the Javadocs.
+     * This helps to ensure accuracy and consistency in the documentation. The HTML tables
+     * are printed to stdout and can then be copied into the correct locations in the source.
+     */
+    // @Test
+    public void generateExampleTables() {
+        System.out.println("Default - one arg");
+        System.out.println(generateOneArgExamplesTable(DataDecimalFormats::createDefault));
 
-        // act/assert
-        checkFormat(noLimits, 0.0001, "1.0E-4");
-        checkFormat(noLimits, -0.0635, "-0.0635");
-        checkFormat(noLimits, 510.751, "510.751");
-        checkFormat(noLimits, -123456.0, "-123456.0");
-        checkFormat(noLimits, 42078500.0, "4.20785E7");
+        System.out.println("Default - two arg");
+        System.out.println(generateTwoArgExamplesTable(DataDecimalFormats::createDefault));
 
-        checkFormat(precisionOnly, 0.0001, "1.0E-4");
-        checkFormat(precisionOnly, -0.0635, "-0.0635");
-        checkFormat(precisionOnly, 510.751, "510.8");
-        checkFormat(precisionOnly, -123456.0, "-123500.0");
-        checkFormat(precisionOnly, 42078500.0, "4.208E7");
+        System.out.println("Plain - one arg");
+        System.out.println(generateOneArgExamplesTable(DataDecimalFormats::createPlain));
 
-        checkFormat(minExpOnly, 0.0001, "0.0");
-        checkFormat(minExpOnly, -0.0635, "-0.06");
-        checkFormat(minExpOnly, 510.751, "510.75");
-        checkFormat(minExpOnly, -123456.0, "-123456.0");
-        checkFormat(minExpOnly, 42078500.0, "4.20785E7");
+        System.out.println("Plain - two arg");
+        System.out.println(generateTwoArgExamplesTable(DataDecimalFormats::createPlain));
 
-        checkFormat(precisionAndMinExp, 0.0001, "0.0");
-        checkFormat(precisionAndMinExp, -0.0635, "-0.06");
-        checkFormat(precisionAndMinExp, 510.751, "510.8");
-        checkFormat(precisionAndMinExp, -123456.0, "-123500.0");
-        checkFormat(precisionAndMinExp, 42078500.0, "4.208E7");
+        System.out.println("Scientific - one arg");
+        System.out.println(generateOneArgExamplesTable(DataDecimalFormats::createScientific));
+
+        System.out.println("Scientific - two arg");
+        System.out.println(generateTwoArgExamplesTable(DataDecimalFormats::createScientific));
+
+        System.out.println("Engineering - one arg");
+        System.out.println(generateOneArgExamplesTable(DataDecimalFormats::createEngineering));
+
+        System.out.println("Engineering - two arg");
+        System.out.println(generateTwoArgExamplesTable(DataDecimalFormats::createEngineering));
     }
 
-    @Test
-    public void testPlain_docExamples() {
-        // arrange
-        final DataDecimalFormat noLimits = DataDecimalFormats.createPlain(0);
-        final DataDecimalFormat precisionOnly = DataDecimalFormats.createPlain(4);
-        final DataDecimalFormat minExpOnly = DataDecimalFormats.createPlain(0, -2);
-        final DataDecimalFormat precisionAndMinExp = DataDecimalFormats.createPlain(4, -2);
+    private static String generateOneArgExamplesTable(final IntFunction<DataDecimalFormat> fn) {
+        final int aMaxPrecision = 0;
+        final int bMaxPrecision = 4;
 
-        // act/assert
-        checkFormat(noLimits, 0.0001, "0.0001");
-        checkFormat(noLimits, -0.0635, "-0.0635");
-        checkFormat(noLimits, 510.751, "510.751");
-        checkFormat(noLimits, -123456.0, "-123456.0");
-        checkFormat(noLimits, 42078500.0, "42078500.0");
+        final DataDecimalFormat aFmt = fn.apply(aMaxPrecision);
+        final DataDecimalFormat bFmt = fn.apply(bMaxPrecision);
 
-        checkFormat(precisionOnly, 0.0001, "0.0001");
-        checkFormat(precisionOnly, -0.0635, "-0.0635");
-        checkFormat(precisionOnly, 510.751, "510.8");
-        checkFormat(precisionOnly, -123456.0, "-123500.0");
-        checkFormat(precisionOnly, 42078500.0, "42080000.0");
+        final String descTemplate = "(maxPrecision= %d)";
 
-        checkFormat(minExpOnly, 0.0001, "0.0");
-        checkFormat(minExpOnly, -0.0635, "-0.06");
-        checkFormat(minExpOnly, 510.751, "510.75");
-        checkFormat(minExpOnly, -123456.0, "-123456.0");
-        checkFormat(minExpOnly, 42078500.0, "42078500.0");
-
-        checkFormat(precisionAndMinExp, 0.0001, "0.0");
-        checkFormat(precisionAndMinExp, -0.0635, "-0.06");
-        checkFormat(precisionAndMinExp, 510.751, "510.8");
-        checkFormat(precisionAndMinExp, -123456.0, "-123500.0");
-        checkFormat(precisionAndMinExp, 42078500.0, "42080000.0");
+        return generateExamplesTable(
+                    Arrays.asList(aFmt, bFmt),
+                    Arrays.asList(String.format(descTemplate, aMaxPrecision), String.format(descTemplate, bMaxPrecision))
+                );
     }
 
-    @Test
-    public void testScientific_docExamples() {
-        // arrange
-        final DataDecimalFormat noLimits = DataDecimalFormats.createScientific(0);
-        final DataDecimalFormat precisionOnly = DataDecimalFormats.createScientific(4);
-        final DataDecimalFormat minExpOnly = DataDecimalFormats.createScientific(0, -2);
-        final DataDecimalFormat precisionAndMinExp = DataDecimalFormats.createScientific(4, -2);
+    private static String generateTwoArgExamplesTable(final BiFunction<Integer, Integer, DataDecimalFormat> fn) {
+        final int aMaxPrecision = 0;
+        final int aMinExponent = -2;
 
-        // act/assert
-        checkFormat(noLimits, 0.0001, "1.0E-4");
-        checkFormat(noLimits, -0.0635, "-6.35E-2");
-        checkFormat(noLimits, 1.0, "1.0");
-        checkFormat(noLimits, 10.0, "1.0E1");
-        checkFormat(noLimits, 100.0, "1.0E2");
-        checkFormat(noLimits, 510.751, "5.10751E2");
-        checkFormat(noLimits, -123456.0, "-1.23456E5");
-        checkFormat(noLimits, 42078500.0, "4.20785E7");
+        final int bMaxPrecision = 4;
+        final int bMinExponent = -2;
 
-        checkFormat(precisionOnly, 0.0001, "1.0E-4");
-        checkFormat(precisionOnly, -0.0635, "-6.35E-2");
-        checkFormat(precisionOnly, 1.0, "1.0");
-        checkFormat(precisionOnly, 10.0, "1.0E1");
-        checkFormat(precisionOnly, 100.0, "1.0E2");
-        checkFormat(precisionOnly, 510.751, "5.108E2");
-        checkFormat(precisionOnly, -123456.0, "-1.235E5");
-        checkFormat(precisionOnly, 42078500.0, "4.208E7");
+        final DataDecimalFormat aFmt = fn.apply(aMaxPrecision, aMinExponent);
+        final DataDecimalFormat bFmt = fn.apply(bMaxPrecision, bMinExponent);
 
-        checkFormat(minExpOnly, 0.0001, "0.0");
-        checkFormat(minExpOnly, -0.0635, "-6.0E-2");
-        checkFormat(minExpOnly, 1.0, "1.0");
-        checkFormat(minExpOnly, 10.0, "1.0E1");
-        checkFormat(minExpOnly, 100.0, "1.0E2");
-        checkFormat(minExpOnly, 510.751, "5.1075E2");
-        checkFormat(minExpOnly, -123456.0, "-1.23456E5");
-        checkFormat(minExpOnly, 42078500.0, "4.20785E7");
+        final String descTemplate = "(maxPrecision= %d, minExponent= %d)";
 
-        checkFormat(precisionAndMinExp, 0.0001, "0.0");
-        checkFormat(precisionAndMinExp, -0.0635, "-6.0E-2");
-        checkFormat(precisionAndMinExp, 1.0, "1.0");
-        checkFormat(precisionAndMinExp, 10.0, "1.0E1");
-        checkFormat(precisionAndMinExp, 100.0, "1.0E2");
-        checkFormat(precisionAndMinExp, 510.751, "5.108E2");
-        checkFormat(precisionAndMinExp, -123456.0, "-1.235E5");
-        checkFormat(precisionAndMinExp, 42078500.0, "4.208E7");
+        return generateExamplesTable(
+                    Arrays.asList(aFmt, bFmt),
+                    Arrays.asList(
+                            String.format(descTemplate, aMaxPrecision, aMinExponent),
+                            String.format(descTemplate, bMaxPrecision, bMinExponent))
+                );
     }
 
-    @Test
-    public void testEngineering_docExamples() {
-        // arrange
-        final DataDecimalFormat noLimits = DataDecimalFormats.createEngineering(0);
-        final DataDecimalFormat precisionOnly = DataDecimalFormats.createEngineering(4);
-        final DataDecimalFormat minExpOnly = DataDecimalFormats.createEngineering(0, -2);
-        final DataDecimalFormat precisionAndMinExp = DataDecimalFormats.createEngineering(4, -2);
+    private static String generateExamplesTable(final List<DataDecimalFormat> fmts,
+            final List<String> fmtDescriptions) {
+        final StringBuilder sb = new StringBuilder();
 
-        // act/assert
-        checkFormat(noLimits, 0.0001, "100.0E-6");
-        checkFormat(noLimits, -0.0635, "-63.5E-3");
-        checkFormat(noLimits, 1.0, "1.0");
-        checkFormat(noLimits, 10.0, "10.0");
-        checkFormat(noLimits, 100.0, "100.0");
-        checkFormat(noLimits, 510.751, "510.751");
-        checkFormat(noLimits, -123456.0, "-123.456E3");
-        checkFormat(noLimits, 42078500.0, "42.0785E6");
+        sb.append("<table>\n")
+            .append("  <tr><th>Value</th>");
 
-        checkFormat(precisionOnly, 0.0001, "100.0E-6");
-        checkFormat(precisionOnly, -0.0635, "-63.5E-3");
-        checkFormat(precisionOnly, 1.0, "1.0");
-        checkFormat(precisionOnly, 10.0, "10.0");
-        checkFormat(precisionOnly, 100.0, "100.0");
-        checkFormat(precisionOnly, 510.751, "510.8");
-        checkFormat(precisionOnly, -123456.0, "-123.5E3");
-        checkFormat(precisionOnly, 42078500.0, "42.08E6");
+        for (String desc : fmtDescriptions) {
+            sb.append("<th>")
+                .append(desc)
+                .append("</th>");
+        }
+        sb.append("</tr>\n");
 
-        checkFormat(minExpOnly, 0.0001, "0.0");
-        checkFormat(minExpOnly, -0.0635, "-60.0E-3");
-        checkFormat(minExpOnly, 1.0, "1.0");
-        checkFormat(minExpOnly, 10.0, "10.0");
-        checkFormat(minExpOnly, 100.0, "100.0");
-        checkFormat(minExpOnly, 510.751, "510.75");
-        checkFormat(minExpOnly, -123456.0, "-123.456E3");
-        checkFormat(minExpOnly, 42078500.0, "42.0785E6");
+        for (double value : EXAMPLE_VALUES) {
+            sb.append("  <tr><td>")
+                .append(value)
+                .append("</td>");
 
-        checkFormat(precisionAndMinExp, 0.0001, "0.0");
-        checkFormat(precisionAndMinExp, -0.0635, "-60.0E-3");
-        checkFormat(precisionAndMinExp, 1.0, "1.0");
-        checkFormat(precisionAndMinExp, 10.0, "10.0");
-        checkFormat(precisionAndMinExp, 100.0, "100.0");
-        checkFormat(precisionAndMinExp, 510.751, "510.8");
-        checkFormat(precisionAndMinExp, -123456.0, "-123.5E3");
-        checkFormat(precisionAndMinExp, 42078500.0, "42.08E6");
+            for (DataDecimalFormat fmt : fmts) {
+                sb.append("<td>")
+                    .append(fmt.format(value))
+                    .append("</td>");
+            }
+
+            sb.append("</tr>\n");
+        }
+
+        sb.append("</table>");
+
+        return sb.toString();
     }
 
     private static void checkFormat(final DataDecimalFormat fmt, final double d, final String str) {
