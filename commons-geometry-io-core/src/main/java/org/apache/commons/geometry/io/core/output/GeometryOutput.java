@@ -20,11 +20,25 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
+/** Interface representing the output of a geometric IO operation.
+ */
 public interface GeometryOutput {
 
+    /** Get the output file name.
+     * @return output file name
+     */
     String getFileName();
 
+    /** Get the charset of the output or null if the charset
+     * is unknown or not applicable.
+     * @return charset of the input or null if unknown or
+     *      not applicable
+     */
     Charset getCharset();
 
+    /** Get the output stream for writing to the output.
+     * @return output stream for writing to the output
+     * @throws IOException if an IO error occurs
+     */
     OutputStream getOutputStream() throws IOException;
 }

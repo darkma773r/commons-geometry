@@ -23,20 +23,34 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 
+/** {@link GeometryInput} implementation for reading content from a URL.
+ */
 public class UrlGeometryInput extends AbstractGeometryInput {
 
+    /** Input URL. */
     private final URL url;
 
+    /** Construct a new instance for reading from the given URL.
+     * @param url input url
+     */
     public UrlGeometryInput(final URL url) {
         this(url, null);
     }
 
+    /** Construct a new instance for reading from the given URL with the
+     * specified charset.
+     * @param url input URL
+     * @param charset charset to use when reading content
+     */
     public UrlGeometryInput(final URL url, final Charset charset) {
         super(getUrlFileName(url), charset);
 
         this.url = url;
     }
 
+    /** Get the input URL.
+     * @return input URL
+     */
     public URL getUrl() {
         return url;
     }
@@ -50,6 +64,22 @@ public class UrlGeometryInput extends AbstractGeometryInput {
         return new BufferedInputStream(url.openStream());
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName())
+            .append("[url= ")
+            .append(getUrl())
+            .append(']');
+
+        return sb.toString();
+    }
+
+    /** Get the file name for the given URL.
+     * @param url URL to get the file name of
+     * @return URL file name
+     */
     private static String getUrlFileName(final URL url) {
         return Paths.get(url.getPath()).getFileName().toString();
     }

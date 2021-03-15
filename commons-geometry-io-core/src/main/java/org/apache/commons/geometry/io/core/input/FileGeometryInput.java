@@ -23,20 +23,34 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/** {@link GeometryInput} implementation for reading content from a file.
+ */
 public class FileGeometryInput extends AbstractGeometryInput {
 
+    /** Input file. */
     private final Path file;
 
+    /** Construct a new instance for reading from the given file.
+     * @param file input file
+     */
     public FileGeometryInput(final Path file) {
         this(file, null);
     }
 
+    /** Construct a new instance for reading from the given file with the
+     * specific charset.
+     * @param file input file
+     * @param charset charset to use when reading from the input file
+     */
     public FileGeometryInput(final Path file, final Charset charset) {
         super(file.getFileName().toString(), charset);
 
         this.file = file;
     }
 
+    /** Get the input file.
+     * @return input file
+     */
     public Path getFile() {
         return file;
     }
@@ -48,5 +62,17 @@ public class FileGeometryInput extends AbstractGeometryInput {
     @Override
     public InputStream getInputStream() throws IOException {
         return new BufferedInputStream(Files.newInputStream(file));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName())
+            .append("[file= ")
+            .append(getFile())
+            .append(']');
+
+        return sb.toString();
     }
 }

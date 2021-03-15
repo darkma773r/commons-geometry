@@ -18,12 +18,20 @@ package org.apache.commons.geometry.io.core.input;
 
 import java.nio.charset.Charset;
 
+/** Abstract base class for {@link GeometryInput} implementations.
+ */
 abstract class AbstractGeometryInput implements GeometryInput {
 
+    /** Input file name. */
     private final String fileName;
 
+    /** Input charset; may be null. */
     private final Charset charset;
 
+    /** Construct a new instance with the given file name and charset.
+     * @param fileName file name
+     * @param charset charset to use when reading input; may be null
+     */
     AbstractGeometryInput(final String fileName, final Charset charset) {
         this.fileName = fileName;
         this.charset = charset;
@@ -39,5 +47,17 @@ abstract class AbstractGeometryInput implements GeometryInput {
     @Override
     public Charset getCharset() {
         return charset;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName())
+            .append("[fileName= ")
+            .append(getFileName())
+            .append(']');
+
+        return sb.toString();
     }
 }

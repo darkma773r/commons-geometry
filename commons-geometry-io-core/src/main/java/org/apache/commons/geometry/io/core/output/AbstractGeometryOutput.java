@@ -18,12 +18,20 @@ package org.apache.commons.geometry.io.core.output;
 
 import java.nio.charset.Charset;
 
-public abstract class AbstractGeometryOutput implements GeometryOutput {
+/** Abstract base class for {@link GeometryOutput} implementations.
+ */
+abstract class AbstractGeometryOutput implements GeometryOutput {
 
+    /** Output file name. */
     private final String fileName;
 
+    /** Output charset; may be null. */
     private final Charset charset;
 
+    /** Construct a new instance with the given file name and charset.
+     * @param fileName file name
+     * @param charset charset to use when writing output; may be null
+     */
     protected AbstractGeometryOutput(final String fileName, final Charset charset) {
         this.fileName = fileName;
         this.charset = charset;
@@ -39,5 +47,17 @@ public abstract class AbstractGeometryOutput implements GeometryOutput {
     @Override
     public Charset getCharset() {
         return charset;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName())
+            .append("[fileName= ")
+            .append(getFileName())
+            .append(']');
+
+        return sb.toString();
     }
 }

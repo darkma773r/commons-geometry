@@ -14,27 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.io.core;
-
-import java.util.List;
-
-/** Interface describing a geometric data format.
+/** This package contains types representing input to IO operations.
  */
-public interface GeometryFormat {
-
-    /** Get the format name.
-     * @return format name
-     */
-    String getFormatName();
-
-    /** Get the default file extension used by the format.
-     * @return default file extension
-     */
-    String getDefaultFileExtension();
-
-    /** Get <em>all</em> file extensions associated with the format,
-     * including the {@link #getDefaultFileExtension() default}.
-     * @return all file extensions associated with the format
-     */
-    List<String> getFileExtensions();
-}
+package org.apache.commons.geometry.io.core.input;

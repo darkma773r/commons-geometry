@@ -17,6 +17,7 @@
 package org.apache.commons.geometry.io.core;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -373,8 +374,8 @@ public class BoundaryIOManager<
                 handler = getByFormat(fmt);
 
                 if (handler == null) {
-                    throw new IllegalArgumentException("Failed to find handler for format \"" +
-                            fmt.getFormatName() + "\"");
+                    throw new IllegalArgumentException(MessageFormat.format(
+                            "Failed to find handler for format \"{0}\"", fmt.getFormatName()));
                 }
             } else {
                 final String fileExt = GeometryIOUtils.getFileExtension(fileName);
@@ -382,12 +383,12 @@ public class BoundaryIOManager<
                     handler = getByFileExtension(fileExt);
 
                     if (handler == null) {
-                       throw new IllegalArgumentException("Failed to find handler for file extension \"" +
-                               fileExt + "\"");
+                        throw new IllegalArgumentException(MessageFormat.format(
+                               "Failed to find handler for file extension \"{0}\"", fileExt));
                     }
                 } else {
-                    throw new IllegalArgumentException("Failed to find handler: no format " +
-                            "specified and no file extension available");
+                    throw new IllegalArgumentException(
+                            "Failed to find handler: no format specified and no file extension available");
                 }
             }
 
@@ -455,8 +456,8 @@ public class BoundaryIOManager<
         }
 
         /** Normalize the given string for use as a registry identifier.
-         * @param name name to normalize
-         * @return normalized name
+         * @param str string to normalize
+         * @return normalized string
          */
         private static String normalizeString(final String str) {
             return str.toLowerCase();

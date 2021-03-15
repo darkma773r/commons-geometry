@@ -23,26 +23,55 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/** {@link GeometryOutput} implementation for writing content to a file.
+ */
 public class FileGeometryOutput extends AbstractGeometryOutput {
 
+    /** File to write to. */
     private final Path file;
 
+    /** Construct a new instance with the given file and no charset.
+     * @param file output file
+     */
     public FileGeometryOutput(final Path file) {
         this(file, null);
     }
 
+    /** Construct a new instance with the given file and charset.
+     * @param file output file
+     * @param charset file charset
+     */
     public FileGeometryOutput(final Path file, final Charset charset) {
         super(file.getFileName().toString(), charset);
 
         this.file = file;
     }
 
+    /** Get the output file.
+     * @return output file
+     */
     public Path getFile() {
         return file;
     }
-    /** {@inheritDoc} */
+
+    /** {@inheritDoc}
+     *
+     * <p>The returned output stream is buffered.</p>
+     */
     @Override
     public OutputStream getOutputStream() throws IOException {
         return new BufferedOutputStream(Files.newOutputStream(file));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName())
+            .append("[file= ")
+            .append(getFile())
+            .append(']');
+
+        return sb.toString();
     }
 }
