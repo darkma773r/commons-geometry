@@ -75,9 +75,6 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
     /** Vertex and vertex component separator used in the CSV format. */
     static final String CSV_SEPARATOR = ",";
 
-    /** Default CSV decimal format pattern stirng. */
-    static final String CSV_DECIMAL_PATTERN = "0.0#####";
-
     /** Number of vertices required per facet in the CSV format. */
     static final int CSV_FACET_VERTEX_COUNT = 3;
 
@@ -325,9 +322,6 @@ public class TextFacetDefinitionWriter extends AbstractTextFormatWriter {
      *  <li>Vertex separator and vertex components separator are set to the "," string.</li>
      *  <li>Comments are disabled (i.e., comment token is set to null).</li>
      *  <li>Facet vertex count is set to 3 to ensure a consistent number of columns.</li>
-     *  <li>Floating point numbers are formatted using the {@link DecimalFormat#DecimalFormat(String) pattern}
-     *      {@value #CSV_DECIMAL_PATTERN}, which includes at least one fractional digit to ensure that all values
-     *      are interpreted as floating point numbers.</li>
      * </ul>
      * This configuration produces output similar to the following:
      * <pre>

@@ -17,10 +17,10 @@
 package org.apache.commons.geometry.io.core;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 import org.apache.commons.geometry.core.partitioning.BoundarySource;
 import org.apache.commons.geometry.core.partitioning.HyperplaneConvexSubset;
+import org.apache.commons.geometry.io.core.output.GeometryOutput;
 
 /** Basic interface for writing geometric boundary representations
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) in a specific data storage
@@ -38,11 +38,15 @@ import org.apache.commons.geometry.core.partitioning.HyperplaneConvexSubset;
  */
 public interface BoundaryWriteHandler<H extends HyperplaneConvexSubset<?>, B extends BoundarySource<H>> {
 
+    GeometryFormat getFormat();
+
+    void write(B src, GeometryOutput out) throws IOException;
+
     /** Write all boundary information from the given source to the output stream using the
      * data format supported by this instance. The output stream is <em>not</em> closed.
      * @param src object containing geometric boundary information to write
      * @param out output stream to write content to; <em>not</em> closed by this method
      * @throws IOException if an I/O error occurs
      */
-    void write(B src, OutputStream out) throws IOException;
+//    void write(B src, OutputStream out) throws IOException;
 }

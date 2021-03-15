@@ -18,7 +18,6 @@ package org.apache.commons.geometry.io.euclidean.threed;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,6 +36,9 @@ import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
+import org.apache.commons.geometry.io.core.GeometryFormat;
+import org.apache.commons.geometry.io.core.input.GeometryInput;
+import org.apache.commons.geometry.io.core.input.StreamGeometryInput;
 import org.apache.commons.geometry.io.core.test.CloseCountInputStream;
 import org.apache.commons.geometry.io.euclidean.threed.AbstractBoundaryReadHandler3D.FacetDefinitionReaderIterator;
 import org.junit.jupiter.api.Assertions;
@@ -63,7 +65,7 @@ public class AbstractBoundaryReadHandler3DTest {
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final BoundarySource3D result = handler.read(in, TEST_PRECISION);
+        final BoundarySource3D result = handler.read(new StreamGeometryInput(in), TEST_PRECISION);
 
         // assert
         Assertions.assertNotNull(handler.inArg);
@@ -83,7 +85,7 @@ public class AbstractBoundaryReadHandler3DTest {
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final TriangleMesh result = handler.readTriangleMesh(in, TEST_PRECISION);
+        final TriangleMesh result = handler.readTriangleMesh(new StreamGeometryInput(in), TEST_PRECISION);
 
         // assert
         Assertions.assertNotNull(handler.inArg);
@@ -105,7 +107,7 @@ public class AbstractBoundaryReadHandler3DTest {
 
         // act
         final List<PlaneConvexSubset> list;
-        try (Stream<PlaneConvexSubset> stream = handler.boundaries(in, TEST_PRECISION)) {
+        try (Stream<PlaneConvexSubset> stream = handler.boundaries(new StreamGeometryInput(in), TEST_PRECISION)) {
             list = stream.collect(Collectors.toList());
         }
 
@@ -126,7 +128,7 @@ public class AbstractBoundaryReadHandler3DTest {
 
         // act
         final List<FacetDefinition> list;
-        try (Stream<FacetDefinition> stream = handler.facets(in)) {
+        try (Stream<FacetDefinition> stream = handler.facets(new StreamGeometryInput(in))) {
             list = stream.collect(Collectors.toList());
         }
 
@@ -171,7 +173,7 @@ public class AbstractBoundaryReadHandler3DTest {
 
         private final Collection<FacetDefinition> facets;
 
-        private InputStream inArg;
+        private GeometryInput inArg;
 
         TestReadHandler3D(final Collection<FacetDefinition> facets) {
             this.facets = facets;
@@ -179,7 +181,13 @@ public class AbstractBoundaryReadHandler3DTest {
 
         /** {@inheritDoc} */
         @Override
-        public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
+        public GeometryFormat getFormat() {
+            throw new UnsupportedOperationException();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public FacetDefinitionReader facetDefinitionReader(final GeometryInput in) throws IOException {
             this.inArg = in;
 
             return new StubFacetDefinitionReader(facets);

@@ -17,14 +17,11 @@
 package org.apache.commons.geometry.io.euclidean.threed;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +39,11 @@ import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
+import org.apache.commons.geometry.io.core.GeometryFormat;
+import org.apache.commons.geometry.io.core.input.GeometryInput;
+import org.apache.commons.geometry.io.core.input.StreamGeometryInput;
+import org.apache.commons.geometry.io.core.output.GeometryOutput;
+import org.apache.commons.geometry.io.core.output.StreamGeometryOutput;
 import org.apache.commons.geometry.io.core.test.CloseCountInputStream;
 import org.apache.commons.geometry.io.core.test.CloseCountOutputStream;
 import org.apache.commons.geometry.io.euclidean.EuclideanIOTestUtils;
@@ -56,12 +58,6 @@ public class IO3DTest {
     private static final double MODEL_EPS = 1e-8;
 
     private static final DoublePrecisionContext MODEL_PRECISION = new EpsilonDoublePrecisionContext(MODEL_EPS);
-
-    private static final List<String> SUPPORTED_FORMATS = Arrays.asList(
-                IO3D.TXT,
-                IO3D.CSV,
-                IO3D.OBJ
-            );
 
     @TempDir
     public Path tempDir;
@@ -211,7 +207,7 @@ public class IO3DTest {
             baseName = entry.getKey();
             expected = entry.getValue();
 
-            for (final String fmt : SUPPORTED_FORMATS) {
+            for (final GeometryFormat fmt : GeometryFormat3D.values()) {
                 location = getModelLocation(baseName, fmt);
                 path = Paths.get(EuclideanIOTestUtils.resource(location).toURI());
 
@@ -220,11 +216,11 @@ public class IO3DTest {
         }
     }
 
-    private void testReadWriteWithPath(final String fmt, final Path path,
+    private void testReadWriteWithPath(final GeometryFormat fmt, final Path path,
             final ReadFn<Path> readFn, final WriteFn<Path> writeFn,
             final RegionBSPTree3D expected, final double eps) throws IOException {
 
-        final Path tmp = Files.createTempFile("tmp", "." + fmt);
+        final Path tmp = Files.createTempFile("tmp", "." + fmt.getDefaultFileExtension());
 
         final BoundarySource3D orig = readFn.read(fmt, path);
         assertRegion(expected, orig, eps);
@@ -244,7 +240,7 @@ public class IO3DTest {
             baseName = entry.getKey();
             expected = entry.getValue();
 
-            for (String fmt : SUPPORTED_FORMATS) {
+            for (final GeometryFormat fmt : GeometryFormat3D.values()) {
                 location = getModelLocation(baseName, fmt);
                 url = EuclideanIOTestUtils.resource(location);
 
@@ -253,7 +249,7 @@ public class IO3DTest {
         }
     }
 
-    private void testReadWriteWithUrl(final String fmt, final URL url,
+    private void testReadWriteWithUrl(final GeometryFormat fmt, final URL url,
             final ReadFn<URL> readFn, final WriteFn<Path> writeFn,
             final RegionBSPTree3D expected, final double eps) throws IOException {
 
@@ -268,8 +264,8 @@ public class IO3DTest {
         assertRegion(expected, result, eps);
     }
 
-    private void testReadWriteWithInputOutputStreams(final ReadFn<InputStream> readFn, final WriteFn<OutputStream> writeFn)
-            throws Exception {
+    private void testReadWriteWithInputOutputStreams(final ReadFn<GeometryInput> readFn,
+            final WriteFn<GeometryOutput> writeFn) throws Exception {
         String baseName;
         RegionBSPTree3D expected;
         String location;
@@ -278,7 +274,7 @@ public class IO3DTest {
             baseName = entry.getKey();
             expected = entry.getValue();
 
-            for (String fmt : SUPPORTED_FORMATS) {
+            for (final GeometryFormat fmt : GeometryFormat3D.values()) {
                 location = getModelLocation(baseName, fmt);
                 path = Paths.get(EuclideanIOTestUtils.resource(location).toURI());
 
@@ -287,29 +283,29 @@ public class IO3DTest {
         }
     }
 
-    private void testReadWriteWithStreams(final String fmt, final Path path,
-            final ReadFn<InputStream> readFn, final WriteFn<OutputStream> writeFn,
+    private void testReadWriteWithStreams(final GeometryFormat fmt, final Path path,
+            final ReadFn<GeometryInput> readFn, final WriteFn<GeometryOutput> writeFn,
             final RegionBSPTree3D expected, final double eps) throws IOException {
 
-        final Path tmp = Files.createTempFile("tmp", "." + fmt);
+        final Path tmp = Files.createTempFile("tmp", "." + fmt.getDefaultFileExtension());
 
         final BoundarySource3D orig;
         try (CloseCountInputStream in = new CloseCountInputStream(Files.newInputStream(path))) {
-            orig = readFn.read(fmt, in);
+            orig = readFn.read(fmt, new StreamGeometryInput(in));
 
             Assertions.assertEquals(0, in.getCloseCount());
         }
         assertRegion(expected, orig, eps);
 
         try (CloseCountOutputStream out = new CloseCountOutputStream(Files.newOutputStream(tmp))) {
-            writeFn.write(orig, fmt, out);
+            writeFn.write(orig, fmt, new StreamGeometryOutput(out));
 
             Assertions.assertEquals(0, out.getCloseCount());
         }
 
         final BoundarySource3D result;
         try (CloseCountInputStream in = new CloseCountInputStream(Files.newInputStream(tmp))) {
-            result = readFn.read(fmt, in);
+            result = readFn.read(fmt, new StreamGeometryInput(in));
         }
         assertRegion(expected, result, eps);
     }
@@ -332,8 +328,8 @@ public class IO3DTest {
         Assertions.assertEquals(0, diff.getSize(), eps);
     }
 
-    private static String getModelLocation(final String baseName, final String fmt) {
-        return "/models/" + baseName + "." + fmt;
+    private static String getModelLocation(final String baseName, final GeometryFormat fmt) {
+        return "/models/" + baseName + "." + fmt.getDefaultFileExtension();
     }
 
     private static Map<String, RegionBSPTree3D> getTestInputs() {
@@ -383,11 +379,11 @@ public class IO3DTest {
 
     @FunctionalInterface
     interface ReadFn<T> {
-        BoundarySource3D read(String format, T t) throws IOException;
+        BoundarySource3D read(GeometryFormat fmt, T t) throws IOException;
     }
 
     @FunctionalInterface
     interface WriteFn<D> {
-        void write(BoundarySource3D src, String fmt, D dst) throws IOException;
+        void write(BoundarySource3D src, GeometryFormat fmt, D dst) throws IOException;
     }
 }

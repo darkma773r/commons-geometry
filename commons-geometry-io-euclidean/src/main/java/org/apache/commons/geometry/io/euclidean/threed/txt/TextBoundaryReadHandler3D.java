@@ -18,13 +18,16 @@ package org.apache.commons.geometry.io.euclidean.threed.txt;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.geometry.io.core.GeometryFormat;
+import org.apache.commons.geometry.io.core.input.GeometryInput;
 import org.apache.commons.geometry.io.euclidean.threed.AbstractBoundaryReadHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitionReader;
+import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 
 /** {@link org.apache.commons.geometry.io.euclidean.threed.BoundaryReadHandler3D BoundaryReadHandler3D}
  * implementation for reading simple text and CSV data. Input is read using the UTF-8 charset by default.
@@ -32,29 +35,40 @@ import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitionReader;
  */
 public class TextBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
 
-    /** Charset for use with txt and csv files. */
-    static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+    /** Default charset for reading text input. */
+    private Charset defaultCharset = StandardCharsets.UTF_8;
 
-    /** Charset for reading text input. */
-    private Charset charset = DEFAULT_CHARSET;
-
-    /** Get the text input charset.
-     * @return text input charset
+    /** Get the text input default charset.
+     * @return text input default charset
      */
-    public Charset getCharset() {
-        return charset;
+    public Charset getDefaultCharset() {
+        return defaultCharset;
     }
 
-    /** Set the text input charset.
-     * @param charset text input charset
+    /** Set the text input default charset.
+     * @param charset text input default charset
      */
-    public void setCharset(final Charset charset) {
-        this.charset = charset;
+    public void setDefaultCharset(final Charset defaultCharset) {
+        this.defaultCharset = defaultCharset;
     }
 
     /** {@inheritDoc} */
     @Override
-    public FacetDefinitionReader facetDefinitionReader(final InputStream in) throws IOException {
-        return new TextFacetDefinitionReader(new BufferedReader(new InputStreamReader(in, charset)));
+    public GeometryFormat getFormat() {
+        return GeometryFormat3D.TXT;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public FacetDefinitionReader facetDefinitionReader(final GeometryInput in) throws IOException {
+        return new TextFacetDefinitionReader(createReader(in));
+    }
+
+    private Reader createReader(final GeometryInput in) throws IOException {
+        final Charset charset = in.getCharset() != null ?
+                in.getCharset() :
+                defaultCharset;
+
+        return new BufferedReader(new InputStreamReader(in.getInputStream(), charset));
     }
 }

@@ -17,29 +17,26 @@
 package org.apache.commons.geometry.io.core;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.partitioning.BoundarySource;
 import org.apache.commons.geometry.core.partitioning.HyperplaneConvexSubset;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
+import org.apache.commons.geometry.io.core.input.GeometryInput;
 import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
+import org.apache.commons.geometry.io.core.output.GeometryOutput;
 
-/** Class managing IO operations for geometric data formats containing region boundaries. Handlers
- * for specific formats are registered by format name and retrieved as needed. Methods that do not
- * accept the data format as an argument infer the format from the input file extension. Format names
- * are not case-sensitive.
+/** Class managing IO operations for geometric data formats containing region boundaries.
+ * All IO operations are delegated to registered format-specific {@link BoundaryReadHandler read handlers}
+ * and {@link BoundaryWriteHandler write handlers}.
  *
  * <p>Instances of this class are thread-safe as long as the registered handler instances are
  * thread-safe.</p>
@@ -57,335 +54,412 @@ public class BoundaryIOManager<
     R extends BoundaryReadHandler<H, B>,
     W extends BoundaryWriteHandler<H, B>> {
 
-    /** Map of format names to read handlers. */
-    private final Map<String, R> readHandlers = new HashMap<>();
+    /** Error message used when a handler is null. */
+    private static final String HANDLER_NULL_ERR = "Handler cannot be null";
 
-    /** Map of format names to write handlers. */
-    private final Map<String, W> writeHandlers = new HashMap<>();
+    /** Error message used when a format is null. */
+    private static final String FORMAT_NULL_ERR = "Format cannot be null";
 
-    /** Return true if this instance supports reading input in the given format.
-     * @param formatName format name; not case-sensitive
-     * @return true if this instance can read the given format
+    /** Error message used when a format name is null. */
+    private static final String FORMAT_NAME_NULL_ERR = "Format name cannot be null";
+
+    /** Read handler registry. */
+    private final HandlerRegistry<R> readRegistry = new HandlerRegistry<>();
+
+    /** Write handler registry. */
+    private final HandlerRegistry<W> writeRegistry = new HandlerRegistry<>();
+
+    /** Register a {@link BoundaryReadHandler read handler} with the instance, replacing
+     * any handler previously registered for the argument's supported data format, as returned
+     * by {@link BoundaryReadHandler#getFormat()}.
+     * @param handler handler to register
+     * @throws NullPointerException if {@code handler}, its {@link BoundaryReadHandler#getFormat() format},
+     *      or the {@link GeometryFormat#getFormatName() format's name} are null
      */
-    public boolean readsFormat(final String formatName) {
-        return formatName != null && getReadHandler(formatName) != null;
+    public void registerReadHandler(final R handler) {
+        Objects.requireNonNull(handler, HANDLER_NULL_ERR);
+        readRegistry.register(handler.getFormat(), handler);
     }
 
-    /** Return true if this instance supports writing output in the given format.
-     * @param formatName format name; not case-sensitive
-     * @return true if this instance can write the given format
+    /** Unregister a previously registered {@link BoundaryReadHandler read handler};
+     * does nothing if the argument is null or is not currently registered.
+     * @param handler handler to unregister; may be null
      */
-    public boolean writesFormat(final String formatName) {
-        return formatName != null && getWriteHandler(formatName) != null;
+    public void unregisterReadHandler(final R handler) {
+        readRegistry.unregister(handler);
     }
 
-    /** Return a set containing the formats supported for reading. Format names are normalized
-     * to lower case.
-     * @return a set containing the formats supported for reading
+    /** Get all registered {@link BoundaryReadHandler read handlers}.
+     * @return list containing all registered read handlers
      */
-    public Set<String> getReadFormats() {
-        synchronized (readHandlers) {
-            return Collections.unmodifiableSet(new HashSet<>(readHandlers.keySet()));
-        }
+    public List<R> getReadHandlers() {
+        return readRegistry.getHandlers();
     }
 
-    /** Return a set containing the formats supported for writing. Format names are normalized
-     * to lower case.
-     * @return a set containing the formats supported for writing
+    /** Get the list of formats supported by the currently registered
+     * {@link BoundaryReadHandler read handlers}.
+     * @return list of read formats
+     * @see BoundaryReadHandler#getFormat()
      */
-    public Set<String> getWriteFormats() {
-        synchronized (writeHandlers) {
-            return Collections.unmodifiableSet(new HashSet<>(writeHandlers.keySet()));
-        }
+    public List<GeometryFormat> getReadFormats() {
+        return readRegistry.getHandlers().stream()
+                .map(h -> h.getFormat())
+                .collect(Collectors.toList());
     }
 
-    /** Get the read handler for the given format name or null if not found.
-     * @param formatName format name; not case-sensitive
-     * @return read handler for the given format name or null if not found
+    /** Get the {@link BoundaryReadHandler read handler} for the given format or
+     * null if no such handler has been registered.
+     * @param fmt format to obtain a handler for
+     * @return read handler for the given format or null if not found
      */
-    public R getReadHandler(final String formatName) {
-        final String normalizedFormat = normalizeFormat(formatName);
-        synchronized (readHandlers) {
-            return readHandlers.get(normalizedFormat);
-        }
+    public R getReadHandlerForFormat(final GeometryFormat fmt) {
+        return readRegistry.getByFormat(fmt);
     }
 
-    /** Get the write handler for the given format name or null if not found.
-     * @param formatName format name; not case-sensitive
-     * @return write handler for the given format name or null if not found
+    /** Get the {@link BoundaryReadHandler read handler} for the given file extension
+     * or null if no such handler has been registered. File extension comparisons are
+     * not case-sensitive.
+     * @param fileExt file extension to obtain a handler for
+     * @return read handler for the given file extension or null if not found
+     * @see GeometryFormat#getFileExtensions()
      */
-    public W getWriteHandler(final String formatName) {
-        final String normalizedFormat = normalizeFormat(formatName);
-        synchronized (writeHandlers) {
-            return writeHandlers.get(normalizedFormat);
-        }
+    public R getReadHandlerForFileExtension(final String fileExt) {
+        return readRegistry.getByFileExtension(fileExt);
     }
 
-    /** Register a {@link BoundaryReadHandler} for the given format name. Any previously
-     * registered handler for that name is replaced.
-     * @param formatName format name; not case-sensitive
-     * @param readHandler handler to register for the given format name
+    /** Register a {@link BoundaryWriteHandler write handler} with the instance, replacing
+     * any handler previously registered for the argument's supported data format, as returned
+     * by {@link BoundaryWriteHandler#getFormat()}.
+     * @param handler handler to register
+     * @throws NullPointerException if {@code handler}, its {@link BoundaryWriteHandler#getFormat() format},
+     *      or the {@link GeometryFormat#getFormatName() format's name} are null
      */
-    public void registerReadHandler(final String formatName, final R readHandler) {
-        final String normalizedFormat = normalizeFormat(formatName);
-        Objects.requireNonNull(readHandler, "Read handler cannot be null");
-
-        synchronized (readHandlers) {
-            readHandlers.put(normalizedFormat, readHandler);
-        }
+    public void registerWriteHandler(final W handler) {
+        Objects.requireNonNull(handler, HANDLER_NULL_ERR);
+        writeRegistry.register(handler.getFormat(), handler);
     }
 
-    /** Register a {@link BoundaryWriteHandler} for the given format name. Any previously
-     * registered handler for that name is replaced.
-     * @param formatName format name; not case-sensitive
-     * @param writeHandler handler to register for the given format name
+    /** Unregister a previously registered {@link BoundaryWriteHandler write handler};
+     * does nothing if the argument is null or is not currently registered.
+     * @param handler handler to unregister; may be null
      */
-    public void registerWriteHandler(final String formatName, final W writeHandler) {
-        final String normalizedFormat = normalizeFormat(formatName);
-        Objects.requireNonNull(writeHandler, "Write handler cannot be null");
-
-        synchronized (readHandlers) {
-            writeHandlers.put(normalizedFormat, writeHandler);
-        }
+    public void unregisterWriteHandler(final W handler) {
+        writeRegistry.unregister(handler);
     }
 
-    /** Return a {@link BoundarySource} containing all boundaries from the file at the
-     * given path. The data format is determined from the file extension.
-     * @param path file path to read from
+    /** Get all registered {@link BoundaryWriteHandler write handlers}.
+     * @return list containing all registered write handlers
+     */
+    public List<W> getWriteHandlers() {
+        return writeRegistry.getHandlers();
+    }
+
+    /** Get the list of formats supported by the currently registered
+     * {@link BoundaryWriteHandler write handlers}.
+     * @return list of write formats
+     * @see BoundaryWriteHandler#getFormat()
+     */
+    public List<GeometryFormat> getWriteFormats() {
+        return writeRegistry.getHandlers().stream()
+                .map(h -> h.getFormat())
+                .collect(Collectors.toList());
+    }
+
+    /** Get the {@link BoundaryWriteHandler write handler} for the given format or
+     * null if no such handler has been registered.
+     * @param fmt format to obtain a handler for
+     * @return write handler for the given format or null if not found
+     */
+    public W getWriteHandlerForFormat(final GeometryFormat fmt) {
+        return writeRegistry.getByFormat(fmt);
+    }
+
+    /** Get the {@link BoundaryWriteHandler write handler} for the given file extension
+     * or null if no such handler has been registered. File extension comparisons are
+     * not case-sensitive.
+     * @param fileExt file extension to obtain a handler for
+     * @return write handler for the given file extension or null if not found
+     * @see GeometryFormat#getFileExtensions()
+     */
+    public W getWriteHandlerForFileExtension(final String fileExt) {
+        return writeRegistry.getByFileExtension(fileExt);
+    }
+
+    /** Return a {@link BoundarySource} containing all boundaries from the given input.
+     * @param in input to read boundaries from
+     * @param fmt format of the input; if null, the format is determined implicitly from the
+     *      file extension of the input {@link GeometryInput#getFileName() file name}
      * @param precision precision context used for floating point comparisons
-     * @return object containing all boundaries from the file at the given path
-     * @throws IllegalArgumentException if the file does not have a file extension or the file
-     *      extension does not match a registered data format
-     * @throws IOException if an I/O or data format error occurs
+     * @return object containing all boundaries from the input
+     * @throws IllegalArgumentException if no {@link BoundaryReadHandler read handler}
+     *      can be found for the input format
+     * @throws IOException if an IO error occurs
      */
-    public B read(final Path path, final DoublePrecisionContext precision) throws IOException {
-        return read(path.toUri().toURL(), precision);
+    public B read(final GeometryInput in, final GeometryFormat fmt, final DoublePrecisionContext precision)
+            throws IOException {
+        return requireReadHandler(in, fmt).read(in, precision);
     }
 
-    /** Return a {@link BoundarySource} containing all boundaries from the given URL. The data
-     * format is determined from the file extension of the URL path.
-     * @param url URL to read from
-     * @param precision precision context used for floating point comparisons
-     * @return object containing all boundaries from the given URL
-     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
-     *      extension does not match a registered data format
-     * @throws IOException if an I/O or data format error occurs
-     */
-    public B read(final URL url, final DoublePrecisionContext precision) throws IOException {
-        final R reader = requireReadHandler(url);
-
-        try (InputStream in = getInputStream(url)) {
-            return reader.read(in, precision);
-        }
-    }
-
-    /** Return a {@link BoundarySource} containing all boundaries from the given input stream.
-     * The input stream is <em>not</em> closed.
-     * @param in input stream containing data in the specified format
-     * @param formatName data format of the input
-     * @param precision precision context used for floating point comparisons
-     * @return a boundary source containing the boundary information from the input stream
-     * @throws IllegalArgumentException if no read handler is registered for the given format
-     * @throws IOException if an I/O or data format error occurs
-     */
-    public B read(final InputStream in, final String formatName,
-            final DoublePrecisionContext precision) throws IOException {
-        final R reader = requireReadHandler(formatName);
-        return reader.read(in, precision);
-    }
-
-    /** Return a {@link Stream} providing access to all boundaries from the file at the given path.
-     * The underlying input stream is closed when the returned stream is closed. Callers should
-     * therefore use the returned stream in a try-with-resources statement to ensure that all
-     * resources are properly closed. Ex:
+    /** Return a {@link Stream} providing access to all boundaries from the given input. The underlying input
+     * stream is closed when the returned stream is closed. Callers should therefore use the returned stream
+     * in a try-with-resources statement to ensure that all resources are properly closed. Ex:
      * <pre>
-     *  try (Stream&lt;H&gt; stream = manager.boundaries(path, precision)) {
+     *  try (Stream&lt;H&gt; stream = manager.boundaries(in, fmt, precision)) {
      *      // access stream content
      *  }
-     * </pre>
-     *
+     *  </pre>
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     * @param path file path to read from
+     * @param in input to read boundaries from
+     * @param fmt format of the input; if null, the format is determined implicitly from the
+     *      file extension of the input {@link GeometryInput#getFileName() file name}
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the boundaries in the specified file
-     * @throws IllegalArgumentException if the path does not have a file extension or the file
-     *      extension does not match a registered data format
-     * @throws IOException if stream creation fails
+     * @return stream providing access to all boundaries from the input
+     * @throws IllegalArgumentException if no {@link BoundaryReadHandler read handler}
+     *      can be found for the input format
+     * @throws IOException if an IO error occurs
      */
-    public Stream<H> boundaries(final Path path, final DoublePrecisionContext precision)
-            throws IOException {
-        return boundaries(path.toUri().toURL(), precision);
-    }
-
-    /** Return a {@link Stream} providing access to all boundaries from the given URL.
-     * The underlying input stream is closed when the returned stream is closed. Callers should
-     * therefore use the returned stream in a try-with-resources statement to ensure that all
-     * resources are properly closed. Ex:
-     * <pre>
-     *  try (Stream&lt;H&gt; stream = manager.boundaries(url, precision)) {
-     *      // access stream content
-     *  }
-     * </pre>
-     *
-     * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
-     * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     * @param url URL to read from
-     * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the boundaries from the specified URL
-     * @throws IllegalArgumentException if the URL path does not have a file extension or the file
-     *      extension does not match a registered data format
-     * @throws IOException if stream creation fails
-     */
-    public Stream<H> boundaries(final URL url, final DoublePrecisionContext precision)
-            throws IOException {
-        final R reader = requireReadHandler(url);
-
-        return GeometryIOUtils.createCloseableStream(
-                in -> reader.boundaries(in, precision),
-                () -> getInputStream(url));
-    }
-
-    /** Return a {@link Stream} providing access to all boundaries from the given input stream.
-     * The input stream is <em>not</em> closed when the returned stream is closed. An {@link IOException}
-     * is thrown immediately by this method if stream creation fails. Any IO errors occurring during
-     * stream iteration are wrapped with {@link java.io.UncheckedIOException}.
-     * @param in input stream containing data in the specified format
-     * @param formatName data format of the input
-     * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the boundaries in the input stream
-     * @throws IllegalArgumentException if no read handler is registered for the given format
-     * @throws IOException if stream creation fails
-     */
-    public Stream<H> boundaries(final InputStream in, final String formatName,
+    public Stream<H> boundaries(final GeometryInput in, final GeometryFormat fmt,
             final DoublePrecisionContext precision) throws IOException {
-        final R reader = requireReadHandler(formatName);
-        return reader.boundaries(in, precision);
+        return requireReadHandler(in, fmt).boundaries(in, precision);
     }
 
-    /** Write all boundaries from {@code src} to the given file path. The data format
-     * is determined by the file extension of the target path. If the target path already exists,
-     * it is overwritten.
-     * @param src boundary source containing the boundaries to write
-     * @param path file path to write to
-     * @throws IllegalArgumentException if the target file does not have a file extension or the file
-     *      extension does not match a registered data format
-     * @throws IOException if an I/O error occurs
+    /** Write all boundaries from {@code src} to the given output.
+     * @param src object containing boundaries to write
+     * @param out output to write boundaries to
+     * @param fmt format of the output; if null, the format is determined implicitly from the
+     *      file extension of the output {@link GeometryOutput#getFileName()}
+     * @throws IllegalArgumentException if no {@link BoundaryWriteHandler write handler} can be found
+     *      for the output format
+     * @throws IOException if an IO error occurs
      */
-    public void write(final B src, final Path path) throws IOException {
-        final W writer = requireWriteHandler(path);
-
-        try (OutputStream out = getOutputStream(path)) {
-            writer.write(src, out);
-        }
+    public void write(final B src, final GeometryOutput out, final GeometryFormat fmt) throws IOException {
+        requireWriteHandler(out, fmt).write(src, out);
     }
 
-    /** Write all boundaries from {@code src} to the given output stream. The output stream
-     * is <em>not</em> closed.
-     * @param src boundary source containing the boundaries to write
-     * @param out output stream to write to
-     * @param formatName data format name; not case-sensitive
-     * @throws IllegalArgumentException if no write handler is registered for the given format name
-     * @throws IOException if an I/O error occurs
+    /** Get the {@link BoundaryReadHandler read handler} matching the arguments, throwing an exception
+     * on failure. If {@code fmt} is given, the handler registered for that format is returned and the
+     * {@code input} object is not examined. If {@code fmt} is null, the file extension of the input
+     * {@link GeometryInput#getFileName() file name} is used to implicitly determine the format and locate
+     * the handler.
+     * @param in input object
+     * @param fmt format; may be null
+     * @return the read handler for {@code fmt} or, if {@code fmt} is null, the read handler for the
+     *      file extension indicated by the input
+     * @throws NullPointerException if {@code in} is null
+     * @throws IllegalArgumentException if no matching handler can be found
      */
-    public void write(final B src, final OutputStream out, final String formatName)
-            throws IOException {
-        final W writer = requireWriteHandler(formatName);
-        writer.write(src, out);
+    protected R requireReadHandler(final GeometryInput in, final GeometryFormat fmt) {
+        Objects.requireNonNull(in, "Input cannot be null");
+        return readRegistry.requireHandlerByFormatOrFileName(fmt, in.getFileName());
     }
 
-    /** Get the {@link BoundaryReadHandler read handler} registered for the given format name, throwing
-     * an exception if one cannot be found.
-     * @param formatName format name; not case-sensitive
-     * @return read handler registered for the given format
-     * @throws IllegalArgumentException if no handler has been registered for the given format
+    /** Get the {@link BoundaryWriteHandler write handler} matching the arguments, throwing an exception
+     * on failure. If {@code fmt} is given, the handler registered for that format is returned and the
+     * {@code input} object is not examined. If {@code fmt} is null, the file extension of the output
+     * {@link GeometryOutput#getFileName() file name} is used to implicitly determine the format and locate
+     * the handler.
+     * @param out output object
+     * @param fmt format; may be null
+     * @return the write handler for {@code fmt} or, if {@code fmt} is null, the write handler for the
+     *      file extension indicated by the output
+     * @throws NullPointerException if {@code out} is null
+     * @throws IllegalArgumentException if no matching handler can be found
      */
-    protected R requireReadHandler(final String formatName) {
-        final R reader = getReadHandler(formatName);
-        if (reader == null) {
-            throw new IllegalArgumentException(
-                    MessageFormat.format("No read handler registered for format \"{0}\"", formatName));
-        }
-        return reader;
+    protected W requireWriteHandler(final GeometryOutput out, final GeometryFormat fmt) {
+        Objects.requireNonNull(out, "Output cannot be null");
+        return writeRegistry.requireHandlerByFormatOrFileName(fmt, out.getFileName());
     }
 
-    /** Get the {@link BoundaryReadHandler read handler} registered for data format indicated
-     * by the URL path file extension.
-     * @param url URL to get a read handler for
-     * @return read handler registered for the format indicated by the URL
-     * @throws IllegalArgumentException if no handler has been registered for the indicated format
+    /** Internal class used to manage handler registration. Instances of this class
+     * are thread-safe.
+     * @param <T> Handler type
      */
-    protected R requireReadHandler(final URL url) {
-        final String formatName = getFormatForFileName(url.getPath());
-        return requireReadHandler(formatName);
-    }
+    private static final class HandlerRegistry<T> {
 
-    /** Get the {@link BoundaryWriteHandler write handler} registered for the given format name, throwing
-     * an exception if one cannot be found.
-     * @param formatName format name; not case-sensitive
-     * @return write handler registered for the given format
-     * @throws IllegalArgumentException if no handler has been registered for the given format
-     */
-    protected W requireWriteHandler(final String formatName) {
-        final W writer = getWriteHandler(formatName);
-        if (writer == null) {
-            throw new IllegalArgumentException(
-                    MessageFormat.format("No write handler registered for format \"{0}\"", formatName));
-        }
-        return writer;
-    }
+        /** List of registered handlers. */
+        private final List<T> handlers = new ArrayList<>();
 
-    /** Get the {@link BoundaryWriteHandler write handler} registered for the format indicated by the
-     * path file extension.
-     * @param path path to get a write handler for
-     * @return write handler registered for the indicated format
-     * @throws IllegalArgumentException if no handler has been registered for the indicated format
-     */
-    protected W requireWriteHandler(final Path path) {
-        final String formatName = getFormatForFileName(path.toString());
-        return requireWriteHandler(formatName);
-    }
+        /** Handlers keyed by lower-case format name. */
+        private final Map<String, T> handlersByFormatName = new HashMap<>();
 
-    /** Get the data format name indicated by the given file name or path, throwing an exception if one cannot
-     * be determined. The file extension is used as the format name.
-     * @param name file name or path
-     * @return the data format indicated by the file name or path
-     * @throws IllegalArgumentException if no data format can be determined
-     */
-    protected String getFormatForFileName(final String name) {
-        final String ext = GeometryIOUtils.getFileExtension(name);
-        if (ext == null || ext.length() < 1) {
-            throw new IllegalArgumentException(MessageFormat.format(
-                    "Cannot determine file data format: file name \"{0}\" does not have a file extension", name));
+        /** Handlers keyed by lower-case file extension. */
+        private final Map<String, T> handlersByFileExtension = new HashMap<>();
+
+        /** Register a handler for the given {@link GeometryFormat format}.
+         * @param fmt format for the handler
+         * @param handler handler to register
+         * @throws NullPointerException if either argument is null
+         */
+        public synchronized void register(final GeometryFormat fmt, final T handler) {
+            Objects.requireNonNull(fmt, FORMAT_NULL_ERR);
+            Objects.requireNonNull(handler, HANDLER_NULL_ERR);
+
+            if (!handlers.contains(handler)) {
+                // remove any previously registered handler
+                unregisterFormat(fmt);
+
+                // add the new handler
+                addToFormat(fmt.getFormatName(), handler);
+                addToFileExtensions(fmt.getFileExtensions(), handler);
+
+                handlers.add(handler);
+            }
         }
 
-        return ext;
-    }
+        /** Unregister the given handler.
+         * @param handler handler to unregister
+         */
+        public synchronized void unregister(final T handler) {
+            if (handler != null && handlers.remove(handler)) {
+                removeValue(handlersByFormatName, handler);
+                removeValue(handlersByFileExtension, handler);
+            }
+        }
 
-    /** Get an input stream for reading the content of the given URL.
-     * @param url URL to get an input stream for
-     * @return input stream for reading the content of the URL
-     * @throws IOException if the stream cannot be created
-     */
-    protected InputStream getInputStream(final URL url) throws IOException {
-        return url.openStream();
-    }
+        /** Unregister the current handler for the given format and return it.
+         * Null is returned if no handler was registered.
+         * @param fmt format to unregister
+         * @return handler instance previously registered for the format or null
+         *      if not found
+         */
+        public synchronized T unregisterFormat(final GeometryFormat fmt) {
+            final T handler = getByFormat(fmt);
+            if (handler != null) {
+                unregister(handler);
+            }
+            return handler;
+        }
 
-    /** Get an output stream for writing to the given path.
-     * @param path path to get an output stream for
-     * @return output stream for the given path
-     * @throws IOException if the stream cannot be created
-     */
-    protected OutputStream getOutputStream(final Path path) throws IOException {
-        return Files.newOutputStream(path);
-    }
+        /** Get all registered handlers.
+         * @return list of all registered handlers
+         */
+        public synchronized List<T> getHandlers() {
+            return Collections.unmodifiableList(new ArrayList<>(handlers));
+        }
 
-    /** Normalize the given data format name.
-     * @param formatName format name
-     * @return normalized format name
-     */
-    private static String normalizeFormat(final String formatName) {
-        Objects.requireNonNull(formatName, "Format name cannot be null");
-        return formatName.toLowerCase();
+        /** Get the first handler registered for the given format, or null if
+         * not found.
+         * @param fmt format to obtain a handler for
+         * @return first handler registered for the format
+         */
+        public synchronized T getByFormat(final GeometryFormat fmt) {
+            if (fmt != null) {
+                return getByNormalizedKey(handlersByFormatName, fmt.getFormatName());
+            }
+            return null;
+        }
+
+        /** Get the first handler registered for the given file extension or null if not found.
+         * @param fileExt file extension
+         * @return first handler registered for the given file extension or null if not found
+         */
+        public synchronized T getByFileExtension(final String fileExt) {
+            return getByNormalizedKey(handlersByFileExtension, fileExt);
+        }
+
+        /** Get the handler for the given format or file extension, throwing an exception if one
+         * cannot be found. If {@code fmt} is not null, it is used to directly look up the handler
+         * and the {@code fileName} argument is ignored. Otherwise, the file extension is extracted
+         * from {@code fileName} and used to look up the handler.
+         * @param fmt format to look up; if present, {@code fileName} is ignored
+         * @param fileName file name to use for the look up if {@code fmt} is null
+         * @return the handler matching the arguments
+         * @throws IllegalArgumentException if a handler cannot be found
+         */
+        public synchronized T requireHandlerByFormatOrFileName(final GeometryFormat fmt, final String fileName) {
+            T handler = null;
+            if (fmt != null) {
+                handler = getByFormat(fmt);
+
+                if (handler == null) {
+                    throw new IllegalArgumentException("Failed to find handler for format \"" +
+                            fmt.getFormatName() + "\"");
+                }
+            } else {
+                final String fileExt = GeometryIOUtils.getFileExtension(fileName);
+                if (fileExt != null && !fileExt.isEmpty()) {
+                    handler = getByFileExtension(fileExt);
+
+                    if (handler == null) {
+                       throw new IllegalArgumentException("Failed to find handler for file extension \"" +
+                               fileExt + "\"");
+                    }
+                } else {
+                    throw new IllegalArgumentException("Failed to find handler: no format " +
+                            "specified and no file extension available");
+                }
+            }
+
+            return handler;
+        }
+
+        /** Add the handler to the internal format name map.
+         * @param fmtName format name
+         * @param handler handler to add
+         * @throws NullPointerException if {@code fmtName} is null
+         */
+        private void addToFormat(final String fmtName, final T handler) {
+            Objects.requireNonNull(fmtName, FORMAT_NAME_NULL_ERR);
+            handlersByFormatName.put(normalizeString(fmtName), handler);
+        }
+
+        /** Add the handler to the internal file extension map under each file extension.
+         * @param fileExts file extensions to map to the handler
+         * @param handler handler to add to the file extension map
+         */
+        private void addToFileExtensions(final List<String> fileExts, final T handler) {
+            if (fileExts != null) {
+                for (final String fileExt : fileExts) {
+                    addToFileExtension(fileExt, handler);
+                }
+            }
+        }
+
+        /** Add the handler to the internal file extension map.
+         * @param fileExt file extension to map to the handler
+         * @param handler handler to add to the file extension map
+         */
+        private void addToFileExtension(final String fileExt, final T handler) {
+            if (fileExt != null) {
+                handlersByFileExtension.put(normalizeString(fileExt), handler);
+            }
+        }
+
+        /** Normalize the given key and return its associated value in the map, or null
+         * if not found.
+         * @param <V> Value type
+         * @param map map to search
+         * @param key unnormalized map key
+         * @return the value associated with the key after normalization, or null if not found
+         */
+        private static <V> V getByNormalizedKey(final Map<String, V> map, final String key) {
+            if (key != null) {
+                return map.get(normalizeString(key));
+            }
+            return null;
+        }
+
+        /** Remove all keys that map to {@code value}.
+         * @param <V> Value type
+         * @param map map to remove keys from
+         * @param value value to remove from all entries in the map
+         */
+        private static <V> void removeValue(final Map<String, V> map, final V value) {
+            final Iterator<Map.Entry<String, V>> it = map.entrySet().iterator();
+            while (it.hasNext()) {
+                if (value.equals(it.next().getValue())) {
+                    it.remove();
+                }
+            }
+        }
+
+        /** Normalize the given string for use as a registry identifier.
+         * @param name name to normalize
+         * @return normalized name
+         */
+        private static String normalizeString(final String str) {
+            return str.toLowerCase();
+        }
     }
 }

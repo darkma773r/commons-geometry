@@ -17,17 +17,10 @@
 package org.apache.commons.geometry.io.euclidean.threed.txt;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.util.Iterator;
-import java.util.stream.Stream;
 
-import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
-import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
-import org.apache.commons.geometry.io.core.utils.DoubleFormat;
-import org.apache.commons.geometry.io.core.utils.DoubleFormats;
-import org.apache.commons.geometry.io.euclidean.threed.AbstractBoundaryWriteHandler3D;
-import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
+import org.apache.commons.geometry.io.core.GeometryFormat;
+import org.apache.commons.geometry.io.core.output.GeometryOutput;
+import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 
 /** {@link org.apache.commons.geometry.io.euclidean.threed.BoundaryWriteHandler3D BoundaryWriteHandler3D}
  * implementation designed to write simple text data formats using {@link TextFacetDefinitionWriter}. Output is
@@ -35,19 +28,7 @@ import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
  * @see org.apache.commons.geometry.io.euclidean.threed.BoundaryWriteHandler3D
  * @see TextFacetDefinitionWriter
  */
-public class TextBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
-
-    /** The default line separator value. */
-    private static final String DEFAULT_LINE_SEPARATOR = "\n";
-
-    /** Charset used for text output. */
-    private Charset charset = TextBoundaryReadHandler3D.DEFAULT_CHARSET;
-
-    /** Line separator string. */
-    private String lineSeparator = DEFAULT_LINE_SEPARATOR;
-
-    /** Double format instance. */
-    private DoubleFormat doubleFormat = DoubleFormats.DOUBLE_TO_STRING;
+public class TextBoundaryWriteHandler3D extends AbstractTextBoundaryWriteHandler3D {
 
     /** String used to separate vertex components, ie, x, y, z values. */
     private String vertexComponentSeparator = TextFacetDefinitionWriter.DEFAULT_VERTEX_COMPONENT_SEPARATOR;
@@ -57,50 +38,6 @@ public class TextBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** Number of vertices required per facet; will be -1 if disabled. */
     private int facetVertexCount = TextFacetDefinitionWriter.DEFAULT_FACET_VERTEX_COUNT;
-
-    /** Get the text output charset.
-     * @return text output charset
-     */
-    public Charset getCharset() {
-        return charset;
-    }
-
-    /** Set the text output charset.
-     * @param charset text output charset
-     */
-    public void setCharset(final Charset charset) {
-        this.charset = charset;
-    }
-
-    /** Get the line separator. This value defaults to {@value #DEFAULT_LINE_SEPARATOR}.
-     * @return the current line separator
-     */
-    public String getLineSeparator() {
-        return lineSeparator;
-    }
-
-    /** Set the line separator.
-     * @param lineSeparator the line separator to use
-     */
-    public void setLineSeparator(final String lineSeparator) {
-        this.lineSeparator = lineSeparator;
-    }
-
-    /** Get the {@link DoubleFormat} instance used to convert double values
-     * to strings.
-     * @return {@code DoubleFormat} instance
-     */
-    public DoubleFormat getDoubleFormat() {
-        return doubleFormat;
-    }
-
-    /** Set the {@link DoubleFormat} instance used to convert double values
-     * to strings.
-     * @param doubleFormat double format instance
-     */
-    public void setDoubleFormat(final DoubleFormat doubleFormat) {
-        this.doubleFormat = doubleFormat;
-    }
 
     /** Get the string used to separate vertex components (ie, individual x, y, z values).
      * @return string used to separate vertex components
@@ -156,56 +93,19 @@ public class TextBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** {@inheritDoc} */
     @Override
-    public void write(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
-            throws IOException {
-        try (TextFacetDefinitionWriter writer = getFacetDefinitionWriter(out)) {
-            final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
-            while (it.hasNext()) {
-                writer.write(it.next());
-            }
-        }
+    public GeometryFormat getFormat() {
+        return GeometryFormat3D.TXT;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
-            throws IOException {
-        try (TextFacetDefinitionWriter writer = getFacetDefinitionWriter(out)) {
-            final Iterator<? extends FacetDefinition> it = facets.iterator();
-            while (it.hasNext()) {
-                writer.write(it.next());
-            }
-        }
-    }
-
-    /** Get a configured {@link TextFacetDefinitionWriter} for writing output.
-     * @param out output stream to write to
-     * @return a new, configured text format writer
-     */
-    private TextFacetDefinitionWriter getFacetDefinitionWriter(final OutputStream out) {
-        final TextFacetDefinitionWriter facetWriter = new TextFacetDefinitionWriter(
-                GeometryIOUtils.createCloseShieldWriter(out, charset));
-
-        facetWriter.setLineSeparator(lineSeparator);
-        facetWriter.setDoubleFormat(doubleFormat);
+    protected TextFacetDefinitionWriter getFacetDefinitionWriter(final GeometryOutput out) throws IOException {
+        final TextFacetDefinitionWriter facetWriter = super.getFacetDefinitionWriter(out);
 
         facetWriter.setVertexComponentSeparator(vertexComponentSeparator);
         facetWriter.setVertexSeparator(vertexSeparator);
         facetWriter.setFacetVertexCount(facetVertexCount);
 
         return facetWriter;
-    }
-
-    /** Create a new {@link TextBoundaryWriteHandler3D} configured to output CSV content.
-     * @return a new {@link TextBoundaryWriteHandler3D} configured to output CSV content
-     * @see TextFacetDefinitionWriter#csvFormat(java.io.Writer)
-     */
-    public static final TextBoundaryWriteHandler3D csvFormat() {
-        final TextBoundaryWriteHandler3D handler = new TextBoundaryWriteHandler3D();
-        handler.setVertexComponentSeparator(TextFacetDefinitionWriter.CSV_SEPARATOR);
-        handler.setVertexSeparator(TextFacetDefinitionWriter.CSV_SEPARATOR);
-        handler.setFacetVertexCount(TextFacetDefinitionWriter.CSV_FACET_VERTEX_COUNT);
-
-        return handler;
     }
 }

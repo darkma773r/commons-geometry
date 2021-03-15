@@ -29,6 +29,7 @@ import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
+import org.apache.commons.geometry.io.core.input.StreamGeometryInput;
 import org.apache.commons.geometry.io.core.test.CloseCountInputStream;
 import org.apache.commons.geometry.io.euclidean.EuclideanIOTestUtils;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
@@ -48,7 +49,7 @@ public class OBJBoundaryReadHandler3DTest {
     @Test
     public void testDefaults() {
         // act/assert
-        Assertions.assertEquals(StandardCharsets.UTF_8, handler.getCharset());
+        Assertions.assertEquals(StandardCharsets.UTF_8, handler.getDefaultCharset());
     }
 
     @Test
@@ -61,7 +62,7 @@ public class OBJBoundaryReadHandler3DTest {
                 "f 1 2 3\n", StandardCharsets.UTF_8);
 
         // act
-        final FacetDefinitionReader reader = handler.facetDefinitionReader(in);
+        final FacetDefinitionReader reader = handler.facetDefinitionReader(new StreamGeometryInput(in));
 
         // assert
         final List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(reader);
@@ -74,7 +75,7 @@ public class OBJBoundaryReadHandler3DTest {
     @Test
     public void testFacetDefinitionReader_nonDefaultCharset() throws IOException {
         // arrange
-        handler.setCharset(StandardCharsets.UTF_16);
+        handler.setDefaultCharset(StandardCharsets.UTF_16);
         final InputStream in = input(
                 "v 0 0 0\n" +
                 "v 1 1 0\n" +
@@ -82,7 +83,7 @@ public class OBJBoundaryReadHandler3DTest {
                 "f 1 2 3\n", StandardCharsets.UTF_16);
 
         // act
-        final FacetDefinitionReader reader = handler.facetDefinitionReader(in);
+        final FacetDefinitionReader reader = handler.facetDefinitionReader(new StreamGeometryInput(in));
 
         // assert
         final List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(reader);
@@ -98,7 +99,7 @@ public class OBJBoundaryReadHandler3DTest {
         final CloseCountInputStream in = input("", StandardCharsets.UTF_8);
 
         // act/assert
-        try (FacetDefinitionReader reader = handler.facetDefinitionReader(in)) {
+        try (FacetDefinitionReader reader = handler.facetDefinitionReader(new StreamGeometryInput(in))) {
             Assertions.assertEquals(0, in.getCloseCount());
         }
 
@@ -115,7 +116,7 @@ public class OBJBoundaryReadHandler3DTest {
                 "f 1 2 3\n", StandardCharsets.UTF_8);
 
         // act
-        final TriangleMesh mesh = handler.readTriangleMesh(in, TEST_PRECISION);
+        final TriangleMesh mesh = handler.readTriangleMesh(new StreamGeometryInput(in), TEST_PRECISION);
 
         // assert
         Assertions.assertEquals(0, in.getCloseCount());
@@ -131,7 +132,7 @@ public class OBJBoundaryReadHandler3DTest {
     @Test
     public void testReadTriangleMesh_nonDefaultCharset() throws IOException {
         // arrange
-        handler.setCharset(StandardCharsets.UTF_16);
+        handler.setDefaultCharset(StandardCharsets.UTF_16);
         final CloseCountInputStream in = input(
                 "v 0 0 0\n" +
                 "v 1 1 0\n" +
@@ -139,7 +140,7 @@ public class OBJBoundaryReadHandler3DTest {
                 "f 1 2 3\n", StandardCharsets.UTF_16);
 
         // act
-        final TriangleMesh mesh = handler.readTriangleMesh(in, TEST_PRECISION);
+        final TriangleMesh mesh = handler.readTriangleMesh(new StreamGeometryInput(in), TEST_PRECISION);
 
         // assert
         Assertions.assertEquals(0, in.getCloseCount());

@@ -17,7 +17,6 @@
 package org.apache.commons.geometry.io.euclidean.threed;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +33,7 @@ import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
+import org.apache.commons.geometry.io.core.input.GeometryInput;
 import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
 
 /** Abstract base class for {@link BoundaryReadHandler3D} implementations.
@@ -42,14 +42,12 @@ public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandl
 
     /** {@inheritDoc} */
     @Override
-    public BoundarySource3D read(final InputStream in, final DoublePrecisionContext precision)
+    public BoundarySource3D read(final GeometryInput in, final DoublePrecisionContext precision)
             throws IOException {
         // read the input as a simple list of boundaries
         final List<PlaneConvexSubset> list = new ArrayList<>();
 
-        try (FacetDefinitionReader reader =
-                facetDefinitionReader(GeometryIOUtils.createCloseShieldInputStream(in))) {
-
+        try (FacetDefinitionReader reader = facetDefinitionReader(in)) {
             FacetDefinition facet;
             while ((facet = reader.readFacet()) != null) {
                 list.add(FacetDefinitions.toPolygon(facet, precision));
@@ -61,12 +59,11 @@ public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandl
 
     /** {@inheritDoc} */
     @Override
-    public TriangleMesh readTriangleMesh(final InputStream in, final DoublePrecisionContext precision)
+    public TriangleMesh readTriangleMesh(final GeometryInput in, final DoublePrecisionContext precision)
             throws IOException {
         final SimpleTriangleMesh.Builder meshBuilder = SimpleTriangleMesh.builder(precision);
 
-        try (FacetDefinitionReader reader =
-                facetDefinitionReader(GeometryIOUtils.createCloseShieldInputStream(in))) {
+        try (FacetDefinitionReader reader = facetDefinitionReader(in)) {
             FacetDefinition facet;
             while ((facet = reader.readFacet()) != null) {
                 for (final Triangle3D tri : FacetDefinitions.toPolygon(facet, precision).toTriangles()) {
@@ -84,7 +81,7 @@ public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandl
 
     /** {@inheritDoc} */
     @Override
-    public Stream<PlaneConvexSubset> boundaries(final InputStream in, final DoublePrecisionContext precision)
+    public Stream<PlaneConvexSubset> boundaries(final GeometryInput in, final DoublePrecisionContext precision)
             throws IOException {
         return facets(in)
                 .map(f -> FacetDefinitions.toPolygon(f, precision));
@@ -92,7 +89,7 @@ public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandl
 
     /** {@inheritDoc} */
     @Override
-    public Stream<FacetDefinition> facets(final InputStream in) throws IOException {
+    public Stream<FacetDefinition> facets(final GeometryInput in) throws IOException {
         final FacetDefinitionReader fdReader = facetDefinitionReader(in);
         final FacetDefinitionReaderIterator it = new FacetDefinitionReaderIterator(fdReader);
 

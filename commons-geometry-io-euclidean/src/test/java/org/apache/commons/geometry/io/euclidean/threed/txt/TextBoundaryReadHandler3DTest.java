@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.io.core.input.StreamGeometryInput;
 import org.apache.commons.geometry.io.core.test.CloseCountInputStream;
 import org.apache.commons.geometry.io.euclidean.EuclideanIOTestUtils;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
@@ -41,7 +42,7 @@ public class TextBoundaryReadHandler3DTest {
     @Test
     public void testDefaults() {
         // act/assert
-        Assertions.assertEquals(StandardCharsets.UTF_8, handler.getCharset());
+        Assertions.assertEquals(StandardCharsets.UTF_8, handler.getDefaultCharset());
     }
 
     @Test
@@ -50,7 +51,7 @@ public class TextBoundaryReadHandler3DTest {
         final InputStream in = input("0 0 0; 1 1 0; 0 1 0", StandardCharsets.UTF_8);
 
         // act
-        final FacetDefinitionReader reader = handler.facetDefinitionReader(in);
+        final FacetDefinitionReader reader = handler.facetDefinitionReader(new StreamGeometryInput(in));
 
         // assert
         final List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(reader);
@@ -63,11 +64,11 @@ public class TextBoundaryReadHandler3DTest {
     @Test
     public void testFacetDefinitionReader_nonDefaultCharset() throws IOException {
         // arrange
-        handler.setCharset(StandardCharsets.UTF_16);
+        handler.setDefaultCharset(StandardCharsets.UTF_16);
         final InputStream in = input("0 0 0; 1 1 0; 0 1 0", StandardCharsets.UTF_16);
 
         // act
-        final FacetDefinitionReader reader = handler.facetDefinitionReader(in);
+        final FacetDefinitionReader reader = handler.facetDefinitionReader(new StreamGeometryInput(in));
 
         // assert
         final List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(reader);
@@ -83,7 +84,7 @@ public class TextBoundaryReadHandler3DTest {
         final CloseCountInputStream in = new CloseCountInputStream(input("", StandardCharsets.UTF_8));
 
         // act/assert
-        try (FacetDefinitionReader reader = handler.facetDefinitionReader(in)) {
+        try (FacetDefinitionReader reader = handler.facetDefinitionReader(new StreamGeometryInput(in))) {
             Assertions.assertEquals(0, in.getCloseCount());
         }
 

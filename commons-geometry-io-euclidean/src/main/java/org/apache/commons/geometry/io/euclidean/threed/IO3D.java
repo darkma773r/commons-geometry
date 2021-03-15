@@ -17,8 +17,6 @@
 package org.apache.commons.geometry.io.euclidean.threed;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -29,6 +27,12 @@ import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
+import org.apache.commons.geometry.io.core.GeometryFormat;
+import org.apache.commons.geometry.io.core.input.FileGeometryInput;
+import org.apache.commons.geometry.io.core.input.GeometryInput;
+import org.apache.commons.geometry.io.core.input.UrlGeometryInput;
+import org.apache.commons.geometry.io.core.output.FileGeometryOutput;
+import org.apache.commons.geometry.io.core.output.GeometryOutput;
 
 /** Utility class providing convenient access to 3D IO functionality. The static read and write functions delegate
  * to a default {@link #getDefaultManager() DefaultBoundaryIOManager3D} instance. The default configuration should
@@ -53,30 +57,6 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
  */
 public final class IO3D {
 
-    /** String representing the OBJ file format.
-     * @see <a href="https://en.wikipedia.org/wiki/Wavefront_.obj_file">Wavefront .obj file</a>
-     */
-    public static final String OBJ = "obj";
-
-    /** String representing the simple text format described by
-     * {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionReader TextFacetDefinitionReader}
-     * and
-     * {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter TextFacetDefinitionWriter}.
-     * This format describes facets by listing the coordinates of its vertices in order, with one facet
-     * described per line. Facets may have 3 or more vertices and do not need to all have the same
-     * number of vertices.
-     */
-    public static final String TXT = "txt";
-
-    /** String representing the CSV file format as described by
-     * {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter#csvFormat(java.io.Writer)
-     * TextFacetDefinitionWriter}. When used to represent 3D geometry information, the coordinates of the vertices of
-     * the facets are listed in order, with one facet defined per row. This is similar to the {@link #TXT} format
-     * with the exception that facets are converted to triangles before writing so that all rows have the same
-     * number of columns.
-     */
-    public static final String CSV = "csv";
-
     /** Utility class; no instantiation. */
     private IO3D() {}
 
@@ -90,7 +70,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#facetDefinitionReader(Path)
      */
     public static FacetDefinitionReader facetDefinitionReader(final Path path) throws IOException {
-        return getDefaultManager().facetDefinitionReader(path);
+        return facetDefinitionReader(new FileGeometryInput(path), null);
     }
 
     /** Get a {@link FacetDefinitionReader} for reading facet information from the given URL.
@@ -103,7 +83,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#facetDefinitionReader(URL)
      */
     public static FacetDefinitionReader facetDefinitionReader(final URL url) throws IOException {
-        return getDefaultManager().facetDefinitionReader(url);
+        return facetDefinitionReader(new UrlGeometryInput(url), null);
     }
 
     /** Get a {@link FacetDefinitionReader} for reading facet information from the given input stream.
@@ -116,9 +96,9 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#facetDefinitionReader(InputStream, String)
      */
-    public static FacetDefinitionReader facetDefinitionReader(final InputStream in, final String formatName)
+    public static FacetDefinitionReader facetDefinitionReader(final GeometryInput in, final GeometryFormat fmt)
             throws IOException {
-        return getDefaultManager().facetDefinitionReader(in, formatName);
+        return getDefaultManager().facetDefinitionReader(in, fmt);
     }
 
     /** Return a {@link Stream} providing access to all facets from the given file path.
@@ -141,7 +121,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#facets(Path)
      */
     public static Stream<FacetDefinition> facets(final Path path) throws IOException {
-        return getDefaultManager().facets(path);
+        return facets(new FileGeometryInput(path), null);
     }
 
     /** Return a {@link Stream} providing access to all facets from the given URL.
@@ -164,7 +144,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#facets(URL)
      */
     public static Stream<FacetDefinition> facets(final URL url) throws IOException {
-        return getDefaultManager().facets(url);
+        return facets(new UrlGeometryInput(url), null);
     }
 
     /** Return a {@link Stream} providing access to all facets from the given input stream.
@@ -180,9 +160,9 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#facets(InputStream, String)
      */
-    public static Stream<FacetDefinition> facets(final InputStream in, final String formatName)
+    public static Stream<FacetDefinition> facets(final GeometryInput in, final GeometryFormat fmt)
             throws IOException {
-        return getDefaultManager().facets(in, formatName);
+        return getDefaultManager().facets(in, fmt);
     }
 
     /** Return a {@link Stream} providing access to all boundaries from the given file path.
@@ -207,7 +187,7 @@ public final class IO3D {
      */
     public static Stream<PlaneConvexSubset> boundaries(final Path path, final DoublePrecisionContext precision)
             throws IOException {
-        return getDefaultManager().boundaries(path, precision);
+        return boundaries(new FileGeometryInput(path), null, precision);
     }
 
     /** Return a {@link Stream} providing access to all boundaries from the given URL.
@@ -232,7 +212,7 @@ public final class IO3D {
      */
     public static Stream<PlaneConvexSubset> boundaries(final URL url, final DoublePrecisionContext precision)
             throws IOException {
-        return getDefaultManager().boundaries(url, precision);
+        return boundaries(new UrlGeometryInput(url), null, precision);
     }
 
     /** Return a {@link Stream} providing access to all boundaries from the given input stream.
@@ -249,9 +229,9 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#boundaries(InputStream, String, DoublePrecisionContext)
      */
-    public static Stream<PlaneConvexSubset> boundaries(final InputStream in, final String formatName,
+    public static Stream<PlaneConvexSubset> boundaries(final GeometryInput in, final GeometryFormat fmt,
             final DoublePrecisionContext precision) throws IOException {
-        return getDefaultManager().boundaries(in, formatName, precision);
+        return getDefaultManager().boundaries(in, fmt, precision);
     }
 
     /** Return a {@link Stream} providing access to all triangles from the given file path.
@@ -276,7 +256,7 @@ public final class IO3D {
      */
     public static Stream<Triangle3D> triangles(final Path path, final DoublePrecisionContext precision)
             throws IOException {
-        return getDefaultManager().triangles(path, precision);
+        return triangles(new FileGeometryInput(path), null, precision);
     }
 
     /** Return a {@link Stream} providing access to all triangles from the given URL.
@@ -301,7 +281,7 @@ public final class IO3D {
      */
     public static Stream<Triangle3D> triangles(final URL url, final DoublePrecisionContext precision)
             throws IOException {
-        return getDefaultManager().triangles(url, precision);
+        return triangles(new UrlGeometryInput(url), null, precision);
     }
 
     /** Return a {@link Stream} providing access to all triangles from the given input stream.
@@ -318,9 +298,9 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#triangles(InputStream, String, DoublePrecisionContext)
      */
-    public static Stream<Triangle3D> triangles(final InputStream in, final String formatName,
+    public static Stream<Triangle3D> triangles(final GeometryInput in, final GeometryFormat fmt,
             final DoublePrecisionContext precision) throws IOException {
-        return getDefaultManager().triangles(in, formatName, precision);
+        return getDefaultManager().triangles(in, fmt, precision);
     }
 
     /** Return a {@link BoundarySource3D} containing all boundaries from the file at the
@@ -335,7 +315,7 @@ public final class IO3D {
      */
     public static BoundarySource3D read(final Path path, final DoublePrecisionContext precision)
             throws IOException {
-        return getDefaultManager().read(path, precision);
+        return read(new FileGeometryInput(path), null, precision);
     }
 
     /** Return a {@link BoundarySource3D} containing all boundaries from the given URL. The data
@@ -350,7 +330,7 @@ public final class IO3D {
      */
     public static BoundarySource3D read(final URL url, final DoublePrecisionContext precision)
             throws IOException {
-        return getDefaultManager().read(url, precision);
+        return read(new UrlGeometryInput(url), null, precision);
     }
 
     /** Return a {@link BoundarySource3D} containing all boundaries from the given input stream.
@@ -364,9 +344,9 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#read(InputStream, String, DoublePrecisionContext)
      */
-    public static BoundarySource3D read(final InputStream in, final String formatName,
+    public static BoundarySource3D read(final GeometryInput in, final GeometryFormat fmt,
             final DoublePrecisionContext precision) throws IOException {
-        return getDefaultManager().read(in, formatName, precision);
+        return getDefaultManager().read(in, fmt, precision);
     }
 
     /** Return a {@link TriangleMesh} containing all triangles from the given file path. The data
@@ -381,7 +361,7 @@ public final class IO3D {
      */
     public static TriangleMesh readTriangleMesh(final Path path, final DoublePrecisionContext precision)
             throws IOException {
-        return getDefaultManager().readTriangleMesh(path, precision);
+        return readTriangleMesh(new FileGeometryInput(path), null, precision);
     }
 
     /** Return a {@link TriangleMesh} containing all triangles from the given URL. The data
@@ -396,7 +376,7 @@ public final class IO3D {
      */
     public static TriangleMesh readTriangleMesh(final URL url, final DoublePrecisionContext precision)
             throws IOException {
-        return getDefaultManager().readTriangleMesh(url, precision);
+        return readTriangleMesh(new UrlGeometryInput(url), null, precision);
     }
 
     /** Return a {@link TriangleMesh} containing all triangles from the given input stream.
@@ -410,9 +390,9 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#readTriangleMesh(Path, DoublePrecisionContext)
      */
-    public static TriangleMesh readTriangleMesh(final InputStream in, final String formatName,
+    public static TriangleMesh readTriangleMesh(final GeometryInput in, final GeometryFormat fmt,
             final DoublePrecisionContext precision) throws IOException {
-        return getDefaultManager().readTriangleMesh(in, formatName, precision);
+        return getDefaultManager().readTriangleMesh(in, fmt, precision);
     }
 
     /** Write all boundaries in the stream to given file path. The data format is determined by
@@ -428,7 +408,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#write(Stream, Path)
      */
     public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final Path path) throws IOException {
-        getDefaultManager().write(boundaries, path);
+        write(boundaries, new FileGeometryOutput(path), null);
     }
 
     /** Write all boundaries in the stream to the output stream. The output stream is <em>not</em> closed.
@@ -443,9 +423,9 @@ public final class IO3D {
      * @throws IOException if an I/O error occurs
      * @see BoundaryIOManager3D#write(Stream, OutputStream, String)
      */
-    public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out,
-            final String formatName) throws IOException {
-        getDefaultManager().write(boundaries, out, formatName);
+    public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final GeometryOutput out,
+            final GeometryFormat fmt) throws IOException {
+        getDefaultManager().write(boundaries, out, fmt);
     }
 
     /** Write all boundaries from {@code src} to the given file path. The data format
@@ -460,7 +440,7 @@ public final class IO3D {
      */
     public static void write(final BoundarySource3D src, final Path path)
             throws IOException {
-        getDefaultManager().write(src, path);
+        write(src, new FileGeometryOutput(path), null);
     }
 
     /** Write all boundaries from {@code src} to the given output stream. The output stream
@@ -473,9 +453,9 @@ public final class IO3D {
      * @throws IOException if an I/O error occurs
      * @see org.apache.commons.geometry.io.core.BoundaryIOManager#write(org.apache.commons.geometry.core.partitioning.BoundarySource, OutputStream, String)
      */
-    public static void write(final BoundarySource3D src, final OutputStream out, final String formatName)
+    public static void write(final BoundarySource3D src, final GeometryOutput out, final GeometryFormat fmt)
             throws IOException {
-        getDefaultManager().write(src, out, formatName);
+        getDefaultManager().write(src, out, fmt);
     }
 
     /** Write the given facets to the file path. The data format is determined by the file extension of
@@ -489,7 +469,7 @@ public final class IO3D {
      */
     public static void writeFacets(final Collection<? extends FacetDefinition> facets, final Path path)
             throws IOException {
-        getDefaultManager().writeFacets(facets, path);
+        writeFacets(facets, new FileGeometryOutput(path), null);
     }
 
     /** Write the given collection of facets to the output stream. The output stream
@@ -502,9 +482,9 @@ public final class IO3D {
      * @throws IOException if an I/O error occurs
      * @see BoundaryIOManager3D#writeFacets(Collection, OutputStream, String)
      */
-    public static void writeFacets(final Collection<? extends FacetDefinition> facets, final OutputStream out,
-            final String formatName) throws IOException {
-        getDefaultManager().writeFacets(facets, out, formatName);
+    public static void writeFacets(final Collection<? extends FacetDefinition> facets, final GeometryOutput out,
+            final GeometryFormat fmt) throws IOException {
+        getDefaultManager().writeFacets(facets, out, fmt);
     }
 
     /** Write all facets in the stream to the file path. The data format is determined by the file
@@ -520,7 +500,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#writeFacets(Stream, Path)
      */
     public static void writeFacets(final Stream<? extends FacetDefinition> facets, final Path path) throws IOException {
-        getDefaultManager().writeFacets(facets, path);
+        writeFacets(facets, new FileGeometryOutput(path), null);
     }
 
     /** Write all facets in the stream to the output stream. The output stream is <em>not</em> closed.
@@ -535,9 +515,9 @@ public final class IO3D {
      * @throws IOException if an I/O error occurs
      * @see BoundaryIOManager3D#writeFacets(Collection, OutputStream, String)
      */
-    public static void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out,
-            final String formatName) throws IOException {
-        getDefaultManager().writeFacets(facets, out, formatName);
+    public static void writeFacets(final Stream<? extends FacetDefinition> facets, final GeometryOutput out,
+            final GeometryFormat fmt) throws IOException {
+        getDefaultManager().writeFacets(facets, out, fmt);
     }
 
     /** Get the default {@link BoundaryIOManager3D} instance.
@@ -552,7 +532,13 @@ public final class IO3D {
     private static final class ManagerHolder {
 
         /** Default IO manager instance. */
-        private static final BoundaryIOManager3D DEFAULT_MANAGER = new DefaultBoundaryIOManager3D();
+        private static final BoundaryIOManager3D DEFAULT_MANAGER;
+
+        static
+        {
+            DEFAULT_MANAGER = new BoundaryIOManager3D();
+            DEFAULT_MANAGER.registerDefaultHandlers();
+        }
 
         /** Utility class; no instantiation. */
         private ManagerHolder() {}

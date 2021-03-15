@@ -17,13 +17,13 @@
 package org.apache.commons.geometry.io.euclidean.threed;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collection;
 import java.util.stream.Stream;
 
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.io.core.BoundaryWriteHandler;
+import org.apache.commons.geometry.io.core.output.GeometryOutput;
 
 /** Basic interface for writing 3D geometric boundary representations
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) in a specific data storage
@@ -39,27 +39,33 @@ import org.apache.commons.geometry.io.core.BoundaryWriteHandler;
  */
 public interface BoundaryWriteHandler3D extends BoundaryWriteHandler<PlaneConvexSubset, BoundarySource3D> {
 
-    /** Write all boundaries contained in the stream to the given output stream using the data format
-     * supported by this instance. The output stream is <em>not</em> closed.
-     * @param boundaries stream containing boundaries to write
-     * @param out output stream to write to
-     * @throws IOException if an I/O error occurs
-     */
-    void write(Stream<? extends PlaneConvexSubset> boundaries, OutputStream out) throws IOException;
+    void write(Stream<? extends PlaneConvexSubset> boundaries, GeometryOutput out) throws IOException;
 
-    /** Write the collection of {@link FacetDefinition facets} to the given output stream using the data
-     * format supported by this instance. The output stream is <em>not</em> closed.
-     * @param facets facets to write
-     * @param out output stream to write to
-     * @throws IOException if an I/O error occurs
-     */
-    void writeFacets(Collection<? extends FacetDefinition> facets, OutputStream out) throws IOException;
+    void writeFacets(Collection<? extends FacetDefinition> facets, GeometryOutput out) throws IOException;
 
-    /** Write all {@link FacetDefinition facets} from the stream to the given output stream using the data
-     * format supported by this instance. The output stream is <em>not</em> closed.
-     * @param facets stream containing facets to write
-     * @param out output stream to write to
-     * @throws IOException if an I/O error occurs
-     */
-    void writeFacets(Stream<? extends FacetDefinition> facets, OutputStream out) throws IOException;
+    void writeFacets(Stream<? extends FacetDefinition> facets, GeometryOutput out) throws IOException;
+
+//    /** Write all boundaries contained in the stream to the given output stream using the data format
+//     * supported by this instance. The output stream is <em>not</em> closed.
+//     * @param boundaries stream containing boundaries to write
+//     * @param out output stream to write to
+//     * @throws IOException if an I/O error occurs
+//     */
+//    void write(Stream<? extends PlaneConvexSubset> boundaries, OutputStream out) throws IOException;
+//
+//    /** Write the collection of {@link FacetDefinition facets} to the given output stream using the data
+//     * format supported by this instance. The output stream is <em>not</em> closed.
+//     * @param facets facets to write
+//     * @param out output stream to write to
+//     * @throws IOException if an I/O error occurs
+//     */
+//    void writeFacets(Collection<? extends FacetDefinition> facets, OutputStream out) throws IOException;
+//
+//    /** Write all {@link FacetDefinition facets} from the stream to the given output stream using the data
+//     * format supported by this instance. The output stream is <em>not</em> closed.
+//     * @param facets stream containing facets to write
+//     * @param out output stream to write to
+//     * @throws IOException if an I/O error occurs
+//     */
+//    void writeFacets(Stream<? extends FacetDefinition> facets, OutputStream out) throws IOException;
 }

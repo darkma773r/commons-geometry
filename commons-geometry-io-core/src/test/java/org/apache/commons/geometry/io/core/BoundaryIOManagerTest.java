@@ -16,22 +16,14 @@
  */
 package org.apache.commons.geometry.io.core;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
-import java.net.URL;
-import java.nio.file.Files;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,21 +33,27 @@ import org.apache.commons.geometry.core.partitioning.test.TestLineSegment;
 import org.apache.commons.geometry.core.partitioning.test.TestPoint2D;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
-import org.apache.commons.geometry.io.core.test.CloseCountInputStream;
-import org.apache.commons.geometry.io.core.test.CloseCountOutputStream;
+import org.apache.commons.geometry.io.core.input.GeometryInput;
+import org.apache.commons.geometry.io.core.output.GeometryOutput;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 public class BoundaryIOManagerTest {
 
-    private static final double TEST_EPS = 1e-10;
-
-    private static final DoublePrecisionContext TEST_PRECISION = new EpsilonDoublePrecisionContext(TEST_EPS);
-
     private static final TestLineSegment SEGMENT = new TestLineSegment(TestPoint2D.ZERO, TestPoint2D.PLUS_X);
 
     private static final TestBoundaryList BOUNDARY_LIST = new TestBoundaryList(Collections.singletonList(SEGMENT));
+
+    private static final GeometryFormat FMT_A = new StubGeometryFormat("testA", Arrays.asList("a", "aext"));
+
+    private static final GeometryFormat FMT_A_ALT = new StubGeometryFormat("TESTa", Collections.singletonList("A"));
+
+    private static final GeometryFormat FMT_B = new StubGeometryFormat("testB", Collections.singletonList("b"));
+
+    private static final GeometryFormat FMT_B_ALT = new StubGeometryFormat("TESTb", Collections.singletonList("B"));
+
+    private static final GeometryFormat FMT_C = new StubGeometryFormat("testC", Collections.singletonList("c"));
 
     @TempDir
     Path tempDir;
@@ -63,566 +61,588 @@ public class BoundaryIOManagerTest {
     private final TestManager manager = new TestManager();
 
     @Test
-    public void testRegisterHandlers() {
+    public void testRegisterReadHandler() {
         // arrange
-        final StubReadHandler reader = new StubReadHandler();
-        final StubWriteHandler writer = new StubWriteHandler();
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        final StubReadHandler r2 = new StubReadHandler(FMT_B);
+        final StubReadHandler r3 = new StubReadHandler(FMT_A_ALT);
 
         // act
-        manager.registerReadHandler("TESTReAd", new StubReadHandler());
-        manager.registerReadHandler("TESTReAd", reader);
-        manager.registerWriteHandler("testWRITE", new StubWriteHandler());
-        manager.registerWriteHandler("testWRITE", writer);
+        manager.registerReadHandler(r1); // will be replaced by r3
+        manager.registerReadHandler(r2);
+        manager.registerReadHandler(r2); // register 2x
+        manager.registerReadHandler(r3);
 
         // assert
-        Assertions.assertSame(reader, manager.getReadHandler("testRead"));
-        Assertions.assertNull(manager.getReadHandler("testWrite"));
+        Assertions.assertSame(r3, manager.getReadHandlerForFormat(FMT_A));
+        Assertions.assertSame(r2, manager.getReadHandlerForFormat(FMT_B));
 
-        Assertions.assertTrue(manager.readsFormat("testread"));
-        Assertions.assertFalse(manager.readsFormat("testWrite"));
-        Assertions.assertFalse(manager.readsFormat(null));
+        Assertions.assertSame(r3, manager.getReadHandlerForFileExtension("a"));
+        Assertions.assertNull(manager.getReadHandlerForFileExtension("aext"));
+        Assertions.assertSame(r2, manager.getReadHandlerForFileExtension("b"));
 
-        Assertions.assertEquals(new HashSet<>(Arrays.asList("testread")), manager.getReadFormats());
-
-        Assertions.assertSame(writer, manager.getWriteHandler("testwrite"));
-        Assertions.assertNull(manager.getWriteHandler("testRead"));
-
-        Assertions.assertTrue(manager.writesFormat("testWrite"));
-        Assertions.assertFalse(manager.writesFormat("testRead"));
-        Assertions.assertFalse(manager.writesFormat(null));
-
-        Assertions.assertEquals(new HashSet<>(Arrays.asList("testwrite")), manager.getWriteFormats());
+        Assertions.assertEquals(Arrays.asList(r2, r3), manager.getReadHandlers());
     }
 
     @Test
-    public void testRegisterHandler_illegalArgs() {
+    public void testRegisterReadHandler_multipleFileExtensions() {
+        // arrange
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+
+        // act
+        manager.registerReadHandler(r1);
+
+        // assert
+        Assertions.assertSame(r1, manager.getReadHandlerForFormat(FMT_A_ALT));
+
+        Assertions.assertSame(r1, manager.getReadHandlerForFileExtension("A"));
+        Assertions.assertSame(r1, manager.getReadHandlerForFileExtension("AEXT"));
+    }
+
+    @Test
+    public void testRegisterReadHandler_nullAndMissingFileExt() {
+        // arrange
+        final StubGeometryFormat noExts = new StubGeometryFormat("a", null);
+        final StubGeometryFormat nullExts = new StubGeometryFormat("b", Arrays.asList("bext", null, null));
+
+        final StubReadHandler r1 = new StubReadHandler(noExts);
+        final StubReadHandler r2 = new StubReadHandler(nullExts);
+
+        // act
+        manager.registerReadHandler(r1);
+        manager.registerReadHandler(r2);
+
+        // assert
+        Assertions.assertSame(r1, manager.getReadHandlerForFormat(noExts));
+        Assertions.assertNull(manager.getReadHandlerForFileExtension("a"));
+
+        Assertions.assertSame(r2, manager.getReadHandlerForFormat(nullExts));
+        Assertions.assertSame(r2, manager.getReadHandlerForFileExtension("bext"));
+    }
+
+    @Test
+    public void testRegisterReadHandler_illegalArgs() {
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.registerReadHandler(null, new StubReadHandler()),
+                () -> manager.registerReadHandler(null),
+                NullPointerException.class, "Handler cannot be null");
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.registerReadHandler(new StubReadHandler(null)),
+                NullPointerException.class, "Format cannot be null");
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.registerReadHandler(new StubReadHandler(new StubGeometryFormat(null))),
                 NullPointerException.class, "Format name cannot be null");
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.registerReadHandler("test", null),
-                NullPointerException.class, "Read handler cannot be null");
+    }
+
+    @Test
+    public void testUnregisterReadHandler() {
+        // arrange
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        final StubReadHandler r2 = new StubReadHandler(FMT_B);
+
+        manager.registerReadHandler(r1);
+        manager.registerReadHandler(r2);
+
+        // act
+        manager.unregisterReadHandler(r1);
+
+        // assert
+        Assertions.assertNull(manager.getReadHandlerForFormat(FMT_A));
+        Assertions.assertSame(r2, manager.getReadHandlerForFormat(FMT_B));
+
+        Assertions.assertEquals(Arrays.asList(r2), manager.getReadHandlers());
+    }
+
+    @Test
+    public void testUnregisterReadHandler_argsNotRegistered() {
+        // arrange
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        final StubReadHandler r2 = new StubReadHandler(FMT_B);
+
+        manager.registerReadHandler(r1);
+
+        // act
+        manager.unregisterReadHandler(null);
+        manager.unregisterReadHandler(r2);
+
+        // assert
+        Assertions.assertEquals(Arrays.asList(r1), manager.getReadHandlers());
+    }
+
+    @Test
+    public void testGetReadHandlerForFormat() {
+        // arrange
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        final StubReadHandler r2 = new StubReadHandler(FMT_B);
+
+        manager.registerReadHandler(r1);
+        manager.registerReadHandler(r2);
+
+        // act/assert
+        Assertions.assertSame(r1, manager.getReadHandlerForFormat(FMT_A));
+        Assertions.assertSame(r1, manager.getReadHandlerForFormat(FMT_A_ALT));
+        Assertions.assertSame(r2, manager.getReadHandlerForFormat(FMT_B));
+        Assertions.assertSame(r2, manager.getReadHandlerForFormat(FMT_B_ALT));
+
+        Assertions.assertNull(manager.getReadHandlerForFormat(null));
+        Assertions.assertNull(manager.getReadHandlerForFormat(FMT_C));
+    }
+
+    @Test
+    public void testGetReadHandlerForFileExtension() {
+        // arrange
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        final StubReadHandler r2 = new StubReadHandler(FMT_B);
+
+        manager.registerReadHandler(r1);
+        manager.registerReadHandler(r2);
+
+        // act/assert
+        Assertions.assertSame(r1, manager.getReadHandlerForFileExtension("a"));
+        Assertions.assertSame(r1, manager.getReadHandlerForFileExtension("A"));
+        Assertions.assertSame(r1, manager.getReadHandlerForFileExtension("aext"));
+        Assertions.assertSame(r1, manager.getReadHandlerForFileExtension("AeXt"));
+
+        Assertions.assertSame(r2, manager.getReadHandlerForFileExtension("b"));
+        Assertions.assertSame(r2, manager.getReadHandlerForFileExtension("B"));
+
+        Assertions.assertNull(manager.getReadHandlerForFileExtension(null));
+        Assertions.assertNull(manager.getReadHandlerForFileExtension(""));
+        Assertions.assertNull(manager.getReadHandlerForFileExtension("c"));
+    }
+
+    @Test
+    public void testRequireReadHandler() {
+        // arrange
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        final GeometryInput aInput = new StubGeometryInput("/some/path/to/a/file.AEXT");
+        final GeometryInput bInput = new StubGeometryInput("/some/path/to/a/file.b");
+        final GeometryInput noFileExt = new StubGeometryInput("/some/path/to/a/file");
+        final GeometryInput nullFileName = new StubGeometryInput(null);
+
+        manager.registerReadHandler(r1);
+
+        // act/assert
+        Assertions.assertSame(r1, manager.requireReadHandler(bInput, FMT_A));
+        Assertions.assertSame(r1, manager.requireReadHandler(noFileExt, FMT_A));
+        Assertions.assertSame(r1, manager.requireReadHandler(aInput, null));
 
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.registerWriteHandler(null, new StubWriteHandler()),
+                () -> manager.requireReadHandler(aInput, FMT_B),
+                IllegalArgumentException.class, "Failed to find handler for format \"testB\"");
+
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.requireReadHandler(bInput, null),
+                IllegalArgumentException.class, "Failed to find handler for file extension \"b\"");
+
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.requireReadHandler(noFileExt, null),
+                IllegalArgumentException.class,
+                "Failed to find handler: no format specified and no file extension available");
+
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.requireReadHandler(nullFileName, null),
+                IllegalArgumentException.class,
+                "Failed to find handler: no format specified and no file extension available");
+    }
+
+    @Test
+    public void testGetReadFormats() {
+        // arrange
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        final StubReadHandler r2 = new StubReadHandler(FMT_B);
+        final StubReadHandler r3 = new StubReadHandler(FMT_B);
+
+        manager.registerReadHandler(r1);
+        manager.registerReadHandler(r2);
+        manager.registerReadHandler(r3);
+
+        // act
+        final List<GeometryFormat> formats = manager.getReadFormats();
+
+        // assert
+        Assertions.assertEquals(2, formats.size());
+        Assertions.assertEquals(Arrays.asList(FMT_A, FMT_B), formats);
+    }
+
+    @Test
+    public void testGetReadFormats_empty() {
+        // act/assert
+        Assertions.assertEquals(0, manager.getReadFormats().size());
+    }
+
+    @Test
+    public void testRegisterWriteHandler() {
+        // arrange
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        final StubWriteHandler w2 = new StubWriteHandler(FMT_B);
+        final StubWriteHandler w3 = new StubWriteHandler(FMT_A_ALT);
+
+        // act
+        manager.registerWriteHandler(w1); // will be replaced by w3
+        manager.registerWriteHandler(w2);
+        manager.registerWriteHandler(w2); // register 2x
+        manager.registerWriteHandler(w3);
+
+        // assert
+        Assertions.assertSame(w3, manager.getWriteHandlerForFormat(FMT_A));
+        Assertions.assertSame(w2, manager.getWriteHandlerForFormat(FMT_B));
+
+        Assertions.assertSame(w3, manager.getWriteHandlerForFileExtension("a"));
+        Assertions.assertNull(manager.getWriteHandlerForFileExtension("aext"));
+        Assertions.assertSame(w2, manager.getWriteHandlerForFileExtension("b"));
+
+        Assertions.assertEquals(Arrays.asList(w2, w3), manager.getWriteHandlers());
+    }
+
+    @Test
+    public void testRegisterWriteHandler_multipleFileExtensions() {
+        // arrange
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+
+        // act
+        manager.registerWriteHandler(w1);
+
+        // assert
+        Assertions.assertSame(w1, manager.getWriteHandlerForFormat(FMT_A_ALT));
+
+        Assertions.assertSame(w1, manager.getWriteHandlerForFileExtension("A"));
+        Assertions.assertSame(w1, manager.getWriteHandlerForFileExtension("AEXT"));
+    }
+
+    @Test
+    public void testRegisterWriteHandler_nullAndMissingFileExt() {
+        // arrange
+        final StubGeometryFormat noExts = new StubGeometryFormat("a", null);
+        final StubGeometryFormat nullExts = new StubGeometryFormat("b", Arrays.asList("bext", null, null));
+
+        final StubWriteHandler w1 = new StubWriteHandler(noExts);
+        final StubWriteHandler w2 = new StubWriteHandler(nullExts);
+
+        // act
+        manager.registerWriteHandler(w1);
+        manager.registerWriteHandler(w2);
+
+        // assert
+        Assertions.assertSame(w1, manager.getWriteHandlerForFormat(noExts));
+        Assertions.assertNull(manager.getWriteHandlerForFileExtension("a"));
+
+        Assertions.assertEquals(w2, manager.getWriteHandlerForFormat(nullExts));
+        Assertions.assertEquals(w2, manager.getWriteHandlerForFileExtension("bext"));
+    }
+
+    @Test
+    public void testUnregisterWriteHandler() {
+        // arrange
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        final StubWriteHandler w2 = new StubWriteHandler(FMT_B);
+
+        manager.registerWriteHandler(w1);
+        manager.registerWriteHandler(w2);
+
+        // act
+        manager.unregisterWriteHandler(w1);
+
+        // assert
+        Assertions.assertNull(manager.getWriteHandlerForFormat(FMT_A));
+        Assertions.assertSame(w2, manager.getWriteHandlerForFormat(FMT_B));
+
+        Assertions.assertEquals(Arrays.asList(w2), manager.getWriteHandlers());
+    }
+
+    @Test
+    public void testUnregisterWriteHandler_argsNotRegistered() {
+        // arrange
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        final StubWriteHandler w2 = new StubWriteHandler(FMT_B);
+        final StubWriteHandler w3 = new StubWriteHandler(FMT_C);
+
+        manager.registerWriteHandler(w1);
+        manager.registerWriteHandler(w2);
+
+        // act
+        manager.unregisterWriteHandler(null);
+        manager.unregisterWriteHandler(w3);
+
+        // assert
+        Assertions.assertEquals(Arrays.asList(w1, w2), manager.getWriteHandlers());
+    }
+
+    @Test
+    public void testGetWriteFormats() {
+        // arrange
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        final StubWriteHandler w2 = new StubWriteHandler(FMT_B);
+        final StubWriteHandler w3 = new StubWriteHandler(FMT_B);
+
+        manager.registerWriteHandler(w1);
+        manager.registerWriteHandler(w2);
+        manager.registerWriteHandler(w3);
+
+        // act
+        final List<GeometryFormat> formats = manager.getWriteFormats();
+
+        // assert
+        Assertions.assertEquals(2, formats.size());
+        Assertions.assertEquals(Arrays.asList(FMT_A, FMT_B), formats);
+    }
+
+    @Test
+    public void testGetWriteFormats_empty() {
+        // act/assert
+        Assertions.assertEquals(0, manager.getWriteFormats().size());
+    }
+
+    @Test
+    public void testRegisterWriteHandler_illegalArgs() {
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.registerWriteHandler(null),
+                NullPointerException.class, "Handler cannot be null");
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.registerWriteHandler(new StubWriteHandler(null)),
+                NullPointerException.class, "Format cannot be null");
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.registerWriteHandler(new StubWriteHandler(new StubGeometryFormat(null))),
                 NullPointerException.class, "Format name cannot be null");
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.registerWriteHandler("test", null),
-                NullPointerException.class, "Write handler cannot be null");
     }
 
     @Test
-    public void testRead_inputStream() throws IOException {
+    public void testGetWriteHandlerForFormat() {
         // arrange
-        final StubReadHandler readHandler = new StubReadHandler();
-        manager.registerReadHandler("test", readHandler);
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        final StubWriteHandler w2 = new StubWriteHandler(FMT_B);
 
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        manager.registerWriteHandler(w1);
+        manager.registerWriteHandler(w2);
+
+        // act/assert
+        Assertions.assertSame(w1, manager.getWriteHandlerForFormat(FMT_A));
+        Assertions.assertSame(w1, manager.getWriteHandlerForFormat(FMT_A_ALT));
+        Assertions.assertSame(w2, manager.getWriteHandlerForFormat(FMT_B));
+        Assertions.assertSame(w2, manager.getWriteHandlerForFormat(FMT_B_ALT));
+
+        Assertions.assertNull(manager.getWriteHandlerForFormat(null));
+        Assertions.assertNull(manager.getWriteHandlerForFormat(FMT_C));
+    }
+
+    @Test
+    public void testGetWriteHandlerForFileExtension() {
+        // arrange
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        final StubWriteHandler w2 = new StubWriteHandler(FMT_B);
+
+        manager.registerWriteHandler(w1);
+        manager.registerWriteHandler(w2);
+
+        // act/assert
+        Assertions.assertSame(w1, manager.getWriteHandlerForFileExtension("a"));
+        Assertions.assertSame(w1, manager.getWriteHandlerForFileExtension("A"));
+        Assertions.assertSame(w1, manager.getWriteHandlerForFileExtension("aext"));
+        Assertions.assertSame(w1, manager.getWriteHandlerForFileExtension("AeXt"));
+
+        Assertions.assertSame(w2, manager.getWriteHandlerForFileExtension("b"));
+        Assertions.assertSame(w2, manager.getWriteHandlerForFileExtension("B"));
+
+        Assertions.assertNull(manager.getWriteHandlerForFileExtension(null));
+        Assertions.assertNull(manager.getWriteHandlerForFileExtension(""));
+        Assertions.assertNull(manager.getWriteHandlerForFileExtension("c"));
+    }
+
+    @Test
+    public void testRequireWriteHandler() {
+        // arrange
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        final GeometryOutput aInput = new StubGeometryOutput("/some/path/to/a/file.AEXT");
+        final GeometryOutput bInput = new StubGeometryOutput("/some/path/to/a/file.b");
+        final GeometryOutput noFileExt = new StubGeometryOutput("/some/path/to/a/file");
+        final GeometryOutput nullFileName = new StubGeometryOutput(null);
+
+        manager.registerWriteHandler(w1);
+
+        // act/assert
+        Assertions.assertSame(w1, manager.requireWriteHandler(bInput, FMT_A));
+        Assertions.assertSame(w1, manager.requireWriteHandler(noFileExt, FMT_A));
+        Assertions.assertSame(w1, manager.requireWriteHandler(aInput, null));
+
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.requireWriteHandler(aInput, FMT_B),
+                IllegalArgumentException.class, "Failed to find handler for format \"testB\"");
+
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.requireWriteHandler(bInput, null),
+                IllegalArgumentException.class, "Failed to find handler for file extension \"b\"");
+
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.requireWriteHandler(noFileExt, null),
+                IllegalArgumentException.class,
+                "Failed to find handler: no format specified and no file extension available");
+
+        GeometryTestUtils.assertThrowsWithMessage(
+                () -> manager.requireWriteHandler(nullFileName, null),
+                IllegalArgumentException.class,
+                "Failed to find handler: no format specified and no file extension available");
+    }
+
+    @Test
+    public void testRead_formatGiven() throws IOException {
+        // arrange
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        manager.registerReadHandler(r1);
+
+        final StubGeometryInput in = new StubGeometryInput(null);
+        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-4);
 
         // act
-        final TestBoundaryList result = manager.read(in, "TEST", TEST_PRECISION);
+        final TestBoundaryList result = manager.read(in, FMT_A_ALT, precision);
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, result);
-
-        Assertions.assertEquals(0, in.getCloseCount());
-
-        Assertions.assertSame(in, readHandler.inArg);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
+        Assertions.assertSame(in, r1.inArg);
+        Assertions.assertSame(precision, r1.precisionArg);
     }
 
     @Test
-    public void testRead_inputStream_unknownFormat() {
+    public void testRead_noFormatGiven() throws IOException {
         // arrange
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        manager.registerReadHandler(r1);
 
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.read(in, "TEST", TEST_PRECISION),
-                IllegalArgumentException.class, "No read handler registered for format \"TEST\"");
-
-        Assertions.assertEquals(0, in.getCloseCount());
-    }
-
-    @Test
-    public void testRead_path() throws IOException {
-        // arrange
-        final Path file = tempDir.resolve("input.with.long.name.abc");
-        Files.createFile(file);
-
-        final StubReadHandler readHandler = new StubReadHandler();
-        manager.registerReadHandler("ABC", readHandler);
+        final StubGeometryInput in = new StubGeometryInput("file.aeXT");
+        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-4);
 
         // act
-        final TestBoundaryList result = manager.read(file, TEST_PRECISION);
+        final TestBoundaryList result = manager.read(in, null, precision);
 
         // assert
         Assertions.assertSame(BOUNDARY_LIST, result);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
+        Assertions.assertSame(in, r1.inArg);
+        Assertions.assertSame(precision, r1.precisionArg);
     }
 
     @Test
-    public void testRead_path_unknownFormat() throws IOException {
+    public void testRead_handlerNotFound() throws IOException {
         // arrange
-        final Path file = tempDir.resolve("input.abc");
-        Files.createFile(file);
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        manager.registerReadHandler(r1);
+
+        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-4);
 
         // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.read(file, TEST_PRECISION),
-                IllegalArgumentException.class, "No read handler registered for format \"abc\"");
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> manager.read(new StubGeometryInput("file.a"), FMT_B, precision));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> manager.read(new StubGeometryInput("file.b"), null, precision));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> manager.read(new StubGeometryInput(null), null, precision));
     }
 
     @Test
-    public void testRead_path_noFileExtension() throws IOException {
+    public void testBoundaries_formatGiven() throws IOException {
         // arrange
-        final Path file = tempDir.resolve("input");
-        Files.createFile(file);
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        manager.registerReadHandler(r1);
 
-        final Pattern expectedMsgPattern = Pattern.compile(
-                "^Cannot determine file data format: file name \".*input\" does not have a file extension$");
-
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.read(file, TEST_PRECISION),
-                IllegalArgumentException.class, expectedMsgPattern);
-    }
-
-    @Test
-    public void testRead_url() throws IOException {
-        // arrange
-        final Path file = tempDir.resolve("input.with.long.name.abc");
-        Files.createFile(file);
-        final URL rawUrl = file.toUri().toURL();
-        final URL url = new URL(rawUrl.toString() + "?extra.url.part");
-
-        final StubReadHandler readHandler = new StubReadHandler();
-        manager.registerReadHandler("ABC", readHandler);
+        final StubGeometryInput in = new StubGeometryInput(null);
+        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-4);
 
         // act
-        final TestBoundaryList result = manager.read(url, TEST_PRECISION);
+        final Stream<TestLineSegment> result = manager.boundaries(in, FMT_A_ALT, precision);
 
         // assert
-        Assertions.assertSame(BOUNDARY_LIST, result);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
+        Assertions.assertEquals(BOUNDARY_LIST.getBoundaries(), result.collect(Collectors.toList()));
+        Assertions.assertSame(in, r1.inArg);
+        Assertions.assertSame(precision, r1.precisionArg);
     }
 
     @Test
-    public void testRead_url_unknownFormat() throws IOException {
+    public void testBoundaries_noFormatGiven() throws IOException {
         // arrange
-        final Path file = tempDir.resolve("input.abc");
-        Files.createFile(file);
-        final URL url = file.toUri().toURL();
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        manager.registerReadHandler(r1);
 
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.read(url, TEST_PRECISION),
-                IllegalArgumentException.class, "No read handler registered for format \"abc\"");
-    }
-
-    @Test
-    public void testRead_urlFromJar() throws IOException {
-        // arrange
-        final URL url = BoundaryIOManager.class.getResource("/java/lang/String.class");
-
-        final StubReadHandler readHandler = new StubReadHandler();
-        manager.registerReadHandler("CLASS", readHandler);
+        final StubGeometryInput in = new StubGeometryInput("file.aeXT");
+        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-4);
 
         // act
-        final TestBoundaryList result = manager.read(url, TEST_PRECISION);
+        final Stream<TestLineSegment> result = manager.boundaries(in, null, precision);
 
         // assert
-        Assertions.assertSame(BOUNDARY_LIST, result);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
+        Assertions.assertEquals(BOUNDARY_LIST.getBoundaries(), result.collect(Collectors.toList()));
+        Assertions.assertSame(in, r1.inArg);
+        Assertions.assertSame(precision, r1.precisionArg);
     }
 
     @Test
-    public void testRead_url_noFileExtension() throws IOException {
+    public void testBoundaries_handlerNotFound() throws IOException {
         // arrange
-        final Path file = tempDir.resolve("input");
-        Files.createFile(file);
+        final StubReadHandler r1 = new StubReadHandler(FMT_A);
+        manager.registerReadHandler(r1);
 
-        final URL url = file.toUri().toURL();
-
-        final Pattern expectedMsgPattern = Pattern.compile(
-                "^Cannot determine file data format: file name \".*input\" does not have a file extension$");
+        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-4);
 
         // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.read(url, TEST_PRECISION),
-                IllegalArgumentException.class, expectedMsgPattern);
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> manager.boundaries(new StubGeometryInput("file.a"), FMT_B, precision));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> manager.boundaries(new StubGeometryInput("file.b"), null, precision));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> manager.boundaries(new StubGeometryInput(null), null, precision));
     }
 
     @Test
-    public void testBoundaries_inputStream() throws IOException {
+    public void testWrite_formatGiven() throws IOException {
         // arrange
-        final StubReadHandler readHandler = new StubReadHandler();
-        manager.registerReadHandler("test", readHandler);
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        manager.registerWriteHandler(w1);
 
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        final TestBoundaryList src = BOUNDARY_LIST;
+        final StubGeometryOutput out = new StubGeometryOutput(null);
 
         // act
-        final Stream<TestLineSegment> stream = manager.boundaries(in, "test", TEST_PRECISION);
+        manager.write(BOUNDARY_LIST, out, FMT_A_ALT);
 
         // assert
-        final List<TestLineSegment> segments = stream.collect(Collectors.toList());
-        Assertions.assertEquals(BOUNDARY_LIST.getBoundaries(), segments);
-
-        Assertions.assertEquals(0, in.getCloseCount());
-
-        Assertions.assertSame(in, readHandler.inArg);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
+        Assertions.assertSame(src, w1.list);
+        Assertions.assertSame(out, w1.outArg);
     }
 
     @Test
-    public void testBoundaries_inputStream_unknownFormat() {
+    public void testWrite_noFormatGiven() throws IOException {
         // arrange
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        manager.registerWriteHandler(w1);
 
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.boundaries(in, "TEST", TEST_PRECISION),
-                IllegalArgumentException.class, "No read handler registered for format \"TEST\"");
-
-        Assertions.assertEquals(0, in.getCloseCount());
-    }
-
-    @Test
-    public void testBoundaries_path() throws IOException {
-        // arrange
-        final StubReadHandler readHandler = new StubReadHandler();
-        manager.registerReadHandler("test", readHandler);
-
-        final Path path = tempDir.resolve("input.test");
-        Files.createFile(path);
+        final TestBoundaryList src = BOUNDARY_LIST;
+        final StubGeometryOutput out = new StubGeometryOutput("file.aeXT");
 
         // act
-        final List<TestLineSegment> segments;
-        try (Stream<TestLineSegment> stream = manager.boundaries(path, TEST_PRECISION)) {
-            segments = stream.collect(Collectors.toList());
-        }
+        manager.write(src, out, null);
 
         // assert
-        Assertions.assertEquals(BOUNDARY_LIST.getBoundaries(), segments);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
-
-        Assertions.assertEquals(1, manager.inputCloseCount);
+        Assertions.assertSame(src, w1.list);
+        Assertions.assertSame(out, w1.outArg);
     }
 
     @Test
-    public void testBoundaries_path_fileNotFound() throws IOException {
+    public void testWrite_handlerNotFound() throws IOException {
         // arrange
-        final StubReadHandler readHandler = new StubReadHandler();
-        readHandler.boundariesFail = true;
-        manager.registerReadHandler("test", readHandler);
+        final StubWriteHandler w1 = new StubWriteHandler(FMT_A);
+        manager.registerWriteHandler(w1);
 
-        final Path path = tempDir.resolve("input.test");
+        final TestBoundaryList src = BOUNDARY_LIST;
 
         // act/assert
-        Assertions.assertThrows(FileNotFoundException.class,
-                () -> manager.boundaries(path, TEST_PRECISION));
-    }
-
-    @Test
-    public void testBoundaries_path_inputCloseFails() throws IOException {
-        // arrange
-        manager.inputStreamFailOnClose = true;
-
-        final StubReadHandler readHandler = new StubReadHandler();
-        manager.registerReadHandler("test", readHandler);
-
-        final Path path = tempDir.resolve("input.test");
-        Files.createFile(path);
-
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(() -> {
-            try (Stream<TestLineSegment> stream = manager.boundaries(path, TEST_PRECISION)) {
-                stream.collect(Collectors.toList());
-            }
-        }, UncheckedIOException.class, "IOException: close fail");
-
-        Assertions.assertEquals(1, manager.inputCloseCount);
-    }
-
-    @Test
-    public void testBoundaries_path_readHandlerThrows() throws IOException {
-        // arrange
-        final StubReadHandler readHandler = new StubReadHandler();
-        readHandler.boundariesFail = true;
-        manager.registerReadHandler("test", readHandler);
-
-        final Path path = tempDir.resolve("input.test");
-        Files.createFile(path);
-
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(() -> {
-            manager.boundaries(path, TEST_PRECISION);
-        }, IOException.class, "Test boundaries() failure");
-
-        Assertions.assertEquals(1, manager.inputCloseCount);
-    }
-
-    @Test
-    public void testBoundaries_path_readHandlerThrows_inputCloseFails() throws IOException {
-        // arrange
-        manager.inputStreamFailOnClose = true;
-
-        final StubReadHandler readHandler = new StubReadHandler();
-        readHandler.boundariesFail = true;
-        manager.registerReadHandler("test", readHandler);
-
-        final Path path = tempDir.resolve("input.test");
-        Files.createFile(path);
-
-        // act/assert
-        final Throwable[] suppressed = Assertions.assertThrows(IOException.class,
-                () -> manager.boundaries(path, TEST_PRECISION)).getSuppressed();
-        Assertions.assertEquals(1, suppressed.length);
-        Assertions.assertEquals("close fail", suppressed[0].getMessage());
-
-        Assertions.assertEquals(1, manager.inputCloseCount);
-    }
-
-    @Test
-    public void testBoundaries_url() throws IOException {
-        // arrange
-        final StubReadHandler readHandler = new StubReadHandler();
-        manager.registerReadHandler("test", readHandler);
-
-        final Path path = tempDir.resolve("input.test");
-        Files.createFile(path);
-
-        final URL url = path.toUri().toURL();
-
-        // act
-        final List<TestLineSegment> segments;
-        try (Stream<TestLineSegment> stream = manager.boundaries(url, TEST_PRECISION)) {
-            segments = stream.collect(Collectors.toList());
-        }
-
-        // assert
-        Assertions.assertEquals(BOUNDARY_LIST.getBoundaries(), segments);
-        Assertions.assertSame(TEST_PRECISION, readHandler.precisionArg);
-
-        Assertions.assertEquals(1, manager.inputCloseCount);
-    }
-
-    @Test
-    public void testBoundaries_url_cannotOpenStream() throws IOException {
-        // arrange
-        final StubReadHandler readHandler = new StubReadHandler();
-        readHandler.boundariesFail = true;
-        manager.registerReadHandler("test", readHandler);
-
-        final Path path = tempDir.resolve("input.test");
-        final URL url = path.toUri().toURL();
-
-        // act/assert
-        Assertions.assertThrows(FileNotFoundException.class,
-                () -> manager.boundaries(url, TEST_PRECISION));
-    }
-
-    @Test
-    public void testBoundaries_url_inputCloseFails() throws IOException {
-        // arrange
-        manager.inputStreamFailOnClose = true;
-
-        final StubReadHandler readHandler = new StubReadHandler();
-        manager.registerReadHandler("test", readHandler);
-
-        final Path path = tempDir.resolve("input.test");
-        Files.createFile(path);
-
-        final URL url = path.toUri().toURL();
-
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(() -> {
-            try (Stream<TestLineSegment> stream = manager.boundaries(url, TEST_PRECISION)) {
-                stream.collect(Collectors.toList());
-            }
-        }, UncheckedIOException.class, "IOException: close fail");
-
-        Assertions.assertEquals(1, manager.inputCloseCount);
-    }
-
-    @Test
-    public void testBoundaries_url_readHandlerThrows() throws IOException {
-        // arrange
-        final StubReadHandler readHandler = new StubReadHandler();
-        readHandler.boundariesFail = true;
-        manager.registerReadHandler("test", readHandler);
-
-        final Path path = tempDir.resolve("input.test");
-        Files.createFile(path);
-
-        final URL url = path.toUri().toURL();
-
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(() -> {
-            manager.boundaries(url, TEST_PRECISION);
-        }, IOException.class, "Test boundaries() failure");
-
-        Assertions.assertEquals(1, manager.inputCloseCount);
-    }
-
-    @Test
-    public void testBoundaries_url_readHandlerThrows_inputCloseFails() throws IOException {
-        // arrange
-        manager.inputStreamFailOnClose = true;
-
-        final StubReadHandler readHandler = new StubReadHandler();
-        readHandler.boundariesFail = true;
-        manager.registerReadHandler("test", readHandler);
-
-        final Path path = tempDir.resolve("input.test");
-        Files.createFile(path);
-
-        final URL url = path.toUri().toURL();
-
-        // act/assert
-        final Throwable[] suppressed = Assertions.assertThrows(IOException.class,
-                () -> manager.boundaries(url, TEST_PRECISION)).getSuppressed();
-        Assertions.assertEquals(1, suppressed.length);
-        Assertions.assertEquals("close fail", suppressed[0].getMessage());
-
-        Assertions.assertEquals(1, manager.inputCloseCount);
-    }
-
-    @Test
-    public void testWrite_outputStream() throws IOException {
-        // arrange
-        final StubWriteHandler writeHandler = new StubWriteHandler();
-        manager.registerWriteHandler("TEST", writeHandler);
-
-        final CloseCountOutputStream out = new CloseCountOutputStream(new ByteArrayOutputStream());
-
-        // act
-        manager.write(BOUNDARY_LIST, out, "test");
-
-        // assert
-        Assertions.assertSame(BOUNDARY_LIST, writeHandler.list);
-        Assertions.assertSame(out, writeHandler.outArg);
-
-        Assertions.assertEquals(0, out.getCloseCount());
-    }
-
-    @Test
-    public void testWrite_outputStream_unknownFormat() throws IOException {
-        // arrange
-        final CloseCountOutputStream out = new CloseCountOutputStream(new ByteArrayOutputStream());
-
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.write(BOUNDARY_LIST, out, "test"),
-                IllegalArgumentException.class, "No write handler registered for format \"test\"");
-
-        Assertions.assertEquals(0, out.getCloseCount());
-    }
-
-    @Test
-    public void testWrite_path() throws IOException {
-        // arrange
-        final Path path = tempDir.resolve("output.test");
-
-        final StubWriteHandler writeHandler = new StubWriteHandler();
-        manager.registerWriteHandler("TEST", writeHandler);
-
-        // act
-        manager.write(BOUNDARY_LIST, path);
-
-        // assert
-        Assertions.assertSame(BOUNDARY_LIST, writeHandler.list);
-        Assertions.assertNotNull(writeHandler.outArg);
-
-        Assertions.assertTrue(Files.exists(path));
-    }
-
-    @Test
-    public void testWrite_path_overwritesExisting() throws IOException {
-        // arrange
-        final Path path = tempDir.resolve("output.test");
-        Files.write(path, new byte[8]);
-
-        final StubWriteHandler writeHandler = new StubWriteHandler();
-        manager.registerWriteHandler("TEST", writeHandler);
-
-        // act
-        manager.write(BOUNDARY_LIST, path);
-
-        // assert
-        Assertions.assertSame(BOUNDARY_LIST, writeHandler.list);
-        Assertions.assertNotNull(writeHandler.outArg);
-
-        Assertions.assertTrue(Files.exists(path));
-        Assertions.assertEquals(0L, Files.size(path));
-    }
-
-    @Test
-    public void testWrite_path_unknownFormat() throws IOException {
-        // arrange
-        final Path path = tempDir.resolve("output.test");
-
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.write(BOUNDARY_LIST, path),
-                IllegalArgumentException.class, "No write handler registered for format \"test\"");
-    }
-
-    @Test
-    public void testWrite_path_noFileExtension() throws IOException {
-        // arrange
-        final Path path = tempDir.resolve("output");
-
-        final Pattern expectedMsgPattern = Pattern.compile(
-                "^Cannot determine file data format: file name \".*output\" does not have a file extension$");
-
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> manager.write(BOUNDARY_LIST, path),
-                IllegalArgumentException.class, expectedMsgPattern);
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> manager.write(src, new StubGeometryOutput("file.a"), FMT_B));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> manager.write(src, new StubGeometryOutput("file.b"), null));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> manager.write(src, new StubGeometryOutput(null), null));
     }
 
     private static final class TestManager
         extends BoundaryIOManager<TestLineSegment, TestBoundaryList, StubReadHandler, StubWriteHandler> {
-
-        /** If true, an exception will be thrown when close is called on input streams created by the registry. */
-        private boolean inputStreamFailOnClose = false;
-
-        /** Number of times close is called on an input stream created by the registry. */
-        private int inputCloseCount;
-
-        /** {@inheritDoc} */
-        @Override
-        protected InputStream getInputStream(final URL url) throws IOException {
-            final InputStream in = super.getInputStream(url);
-
-            return new FilterInputStream(in) {
-
-                /** {@inheritDoc} */
-                @Override
-                public void close() throws IOException {
-                    ++inputCloseCount;
-
-                    IOException suppressed = null;
-                    try {
-                        super.close();
-                    } catch (IOException exc) {
-                        suppressed = exc;
-                    }
-
-                    if (inputStreamFailOnClose) {
-                        final IOException exc = new IOException("close fail");
-
-                        if (suppressed != null) {
-                            exc.addSuppressed(suppressed);
-                        }
-
-                        throw exc;
-                    }
-                }
-            };
-        }
     }
 
     private static final class TestBoundaryList extends BoundaryList<TestPoint2D, TestLineSegment> {
@@ -632,17 +652,82 @@ public class BoundaryIOManagerTest {
         }
     }
 
-    private static final class StubReadHandler implements BoundaryReadHandler<TestLineSegment, TestBoundaryList> {
+    private static final class StubGeometryInput implements GeometryInput {
 
-        private InputStream inArg;
+        private final String fileName;
 
-        private DoublePrecisionContext precisionArg;
-
-        private boolean boundariesFail = false;
+        StubGeometryInput(final String fileName) {
+            this.fileName = fileName;
+        }
 
         /** {@inheritDoc} */
         @Override
-        public TestBoundaryList read(final InputStream in, final DoublePrecisionContext precision)
+        public String getFileName() {
+            return fileName;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Charset getCharset() {
+            throw new UnsupportedOperationException();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public InputStream getInputStream() throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
+    private static final class StubGeometryOutput implements GeometryOutput {
+
+        private final String fileName;
+
+        StubGeometryOutput(final String fileName) {
+            this.fileName = fileName;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public String getFileName() {
+            return fileName;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Charset getCharset() {
+            throw new UnsupportedOperationException();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public OutputStream getOutputStream() throws IOException {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static final class StubReadHandler implements BoundaryReadHandler<TestLineSegment, TestBoundaryList> {
+
+        private final GeometryFormat fmt;
+
+        private GeometryInput inArg;
+
+        private DoublePrecisionContext precisionArg;
+
+        StubReadHandler(final GeometryFormat fmt) {
+            this.fmt = fmt;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public GeometryFormat getFormat() {
+            return fmt;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public TestBoundaryList read(final GeometryInput in, final DoublePrecisionContext precision)
                 throws IOException {
             this.inArg = in;
             this.precisionArg = precision;
@@ -652,14 +737,10 @@ public class BoundaryIOManagerTest {
 
         /** {@inheritDoc} */
         @Override
-        public Stream<TestLineSegment> boundaries(final InputStream in,
+        public Stream<TestLineSegment> boundaries(final GeometryInput in,
                 final DoublePrecisionContext precision) throws IOException {
             this.inArg = in;
             this.precisionArg = precision;
-
-            if (boundariesFail) {
-                throw new IOException("Test boundaries() failure");
-            }
 
             return BOUNDARY_LIST.boundaryStream();
         }
@@ -667,13 +748,25 @@ public class BoundaryIOManagerTest {
 
     private static final class StubWriteHandler implements BoundaryWriteHandler<TestLineSegment, TestBoundaryList> {
 
+        private GeometryFormat fmt;
+
         private TestBoundaryList list;
 
-        private OutputStream outArg;
+        private GeometryOutput outArg;
+
+        StubWriteHandler(final GeometryFormat fmt) {
+            this.fmt = fmt;
+        }
 
         /** {@inheritDoc} */
         @Override
-        public void write(final TestBoundaryList boundarySource, final OutputStream out) throws IOException {
+        public GeometryFormat getFormat() {
+            return fmt;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public void write(final TestBoundaryList boundarySource, final GeometryOutput out) throws IOException {
             this.list = boundarySource;
             this.outArg = out;
         }

@@ -28,6 +28,7 @@ import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
+import org.apache.commons.geometry.io.core.output.StreamGeometryOutput;
 import org.apache.commons.geometry.io.core.utils.DoubleFormats;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitions;
@@ -53,7 +54,7 @@ public class OBJBoundaryWriteHandler3DTest {
     @Test
     public void testPropertyDefaults() {
         // act/assert
-        Assertions.assertEquals(StandardCharsets.UTF_8, handler.getCharset());
+        Assertions.assertEquals(StandardCharsets.UTF_8, handler.getDefaultCharset());
         Assertions.assertEquals("\n", handler.getLineSeparator());
         Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, handler.getDoubleFormat());
         Assertions.assertEquals(-1, handler.getMeshBufferBatchSize());
@@ -63,7 +64,7 @@ public class OBJBoundaryWriteHandler3DTest {
     public void testWriteFacets() throws IOException {
         // act
         handler.setDoubleFormat(DoubleFormats.createDefault(0, -6));
-        handler.writeFacets(FACETS, out);
+        handler.writeFacets(FACETS, new StreamGeometryOutput(out));
 
         // assert
         Assertions.assertEquals(
@@ -79,13 +80,13 @@ public class OBJBoundaryWriteHandler3DTest {
     @Test
     public void testWriteFacets_customConfig() throws IOException {
         // arrange
-        handler.setCharset(StandardCharsets.UTF_16);
+        handler.setDefaultCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
         handler.setDoubleFormat(DoubleFormats.createDefault(0, -1));
         handler.setMeshBufferBatchSize(1);
 
         // act
-        handler.writeFacets(FACETS, out);
+        handler.writeFacets(FACETS, new StreamGeometryOutput(out));
 
         // assert
         Assertions.assertEquals(
@@ -108,7 +109,7 @@ public class OBJBoundaryWriteHandler3DTest {
                 .collect(Collectors.toList()));
 
         // act
-        handler.write(src, out);
+        handler.write(src, new StreamGeometryOutput(out));
 
         // assert
         Assertions.assertEquals(
@@ -128,13 +129,13 @@ public class OBJBoundaryWriteHandler3DTest {
                 .map(f -> FacetDefinitions.toPolygon(f, TEST_PRECISION))
                 .collect(Collectors.toList()));
 
-        handler.setCharset(StandardCharsets.UTF_16);
+        handler.setDefaultCharset(StandardCharsets.UTF_16);
         handler.setLineSeparator("\r\n");
         handler.setDoubleFormat(DoubleFormats.createDefault(0, -1));
         handler.setMeshBufferBatchSize(1);
 
         // act
-        handler.write(src, out);
+        handler.write(src, new StreamGeometryOutput(out));
 
         // assert
         Assertions.assertEquals(
@@ -159,7 +160,7 @@ public class OBJBoundaryWriteHandler3DTest {
         final BoundarySource3D src = builder.build();
 
         // act
-        handler.write(src, out);
+        handler.write(src, new StreamGeometryOutput(out));
 
         // assert
         Assertions.assertEquals(

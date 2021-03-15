@@ -17,12 +17,12 @@
 package org.apache.commons.geometry.io.core;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.partitioning.BoundarySource;
 import org.apache.commons.geometry.core.partitioning.HyperplaneConvexSubset;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
+import org.apache.commons.geometry.io.core.input.GeometryInput;
 
 /** Basic interface for reading geometric boundary representations
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) from a specific data storage
@@ -40,6 +40,12 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
  */
 public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B extends BoundarySource<H>> {
 
+    GeometryFormat getFormat();
+
+    B read(GeometryInput input, DoublePrecisionContext precision) throws IOException;
+
+    Stream<H> boundaries(GeometryInput input, DoublePrecisionContext precision) throws IOException;
+
     /** Return a {@link BoundarySource} containing all boundary information from the given input stream.
      * The stream is expected to contain data in the format supported by this handler. The exact type of the
      * return value will vary depending on the implementation and the details of the data storage format.
@@ -50,7 +56,7 @@ public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B exte
      * @return an object containing all boundary information from the input stream
      * @throws IOException if an I/O or data format error occurs
      */
-    B read(InputStream in, DoublePrecisionContext precision) throws IOException;
+//    B read(InputStream in, DoublePrecisionContext precision) throws IOException;
 
     /** Return a {@link Stream} that can be used to access all boundary information from the given input stream.
      * The input stream is expected to contain data in the format supported by this handler. Unlike the
@@ -68,5 +74,5 @@ public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B exte
      * @return stream providing access to the boundary information from the given input stream
      * @throws IOException if an I/O error occurs during stream creation
      */
-    Stream<H> boundaries(InputStream in, DoublePrecisionContext precision) throws IOException;
+//    Stream<H> boundaries(InputStream in, DoublePrecisionContext precision) throws IOException;
 }

@@ -14,33 +14,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.io.euclidean.threed;
+package org.apache.commons.geometry.io.euclidean.threed.txt;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.stream.Stream;
 
-import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
-import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
+import org.apache.commons.geometry.io.core.GeometryFormat;
 import org.apache.commons.geometry.io.core.output.GeometryOutput;
+import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 
-/** Abstract base class for {@link BoundaryWriteHandler3D} implementations.
- */
-public abstract class AbstractBoundaryWriteHandler3D implements BoundaryWriteHandler3D {
+public class CsvBoundaryWriteHandler3D extends AbstractTextBoundaryWriteHandler3D {
 
     /** {@inheritDoc} */
     @Override
-    public void write(final BoundarySource3D src, final GeometryOutput out)
-            throws IOException {
-        try (Stream<PlaneConvexSubset> stream = src.boundaryStream()) {
-            write(stream, out);
-        }
+    public GeometryFormat getFormat() {
+        return GeometryFormat3D.CSV;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void writeFacets(final Collection<? extends FacetDefinition> facets, final GeometryOutput out)
-            throws IOException {
-        writeFacets(facets.stream(), out);
+    protected TextFacetDefinitionWriter getFacetDefinitionWriter(final GeometryOutput out) throws IOException {
+        final TextFacetDefinitionWriter facetWriter = super.getFacetDefinitionWriter(out);
+
+        facetWriter.setVertexComponentSeparator(TextFacetDefinitionWriter.CSV_SEPARATOR);
+        facetWriter.setVertexSeparator(TextFacetDefinitionWriter.CSV_SEPARATOR);
+        facetWriter.setFacetVertexCount(TextFacetDefinitionWriter.CSV_FACET_VERTEX_COUNT);
+
+        return facetWriter;
     }
 }

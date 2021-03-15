@@ -16,8 +16,9 @@
  */
 package org.apache.commons.geometry.io.euclidean.threed.obj;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.stream.Stream;
@@ -25,11 +26,13 @@ import java.util.stream.Stream;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.mesh.Mesh;
-import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
+import org.apache.commons.geometry.io.core.GeometryFormat;
+import org.apache.commons.geometry.io.core.output.GeometryOutput;
 import org.apache.commons.geometry.io.core.utils.DoubleFormat;
 import org.apache.commons.geometry.io.core.utils.DoubleFormats;
 import org.apache.commons.geometry.io.euclidean.threed.AbstractBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
+import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 
 /** {@link org.apache.commons.geometry.io.euclidean.threed.BoundaryWriteHandler3D BoundaryWriteHandler3D}
  * implementation for writing OBJ content. Output is written using the UTF-8 charset by default.
@@ -43,7 +46,7 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     private static final int DEFAULT_MESH_BUFFER_BATCH_SIZE = -1;
 
     /** Charset used for text output. */
-    private Charset charset = OBJConstants.DEFAULT_CHARSET;
+    private Charset defaultCharset = OBJConstants.DEFAULT_CHARSET;
 
     /** Line separator string. */
     private String lineSeparator = DEFAULT_LINE_SEPARATOR;
@@ -54,18 +57,24 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     /** Batch size used for mesh buffer creation. */
     private int meshBufferBatchSize = DEFAULT_MESH_BUFFER_BATCH_SIZE;
 
-    /** Get the text output charset.
-     * @return text output charset
-     */
-    public Charset getCharset() {
-        return charset;
+    /** {@inheritDoc} */
+    @Override
+    public GeometryFormat getFormat() {
+        return GeometryFormat3D.OBJ;
     }
 
-    /** Set the text output charset.
-     * @param charset text output charset
+    /** Get the text output default charset.
+     * @return text output default charset
      */
-    public void setCharset(final Charset charset) {
-        this.charset = charset;
+    public Charset getDefaultCharset() {
+        return defaultCharset;
+    }
+
+    /** Set the text output default charset.
+     * @param charset text output default charset
+     */
+    public void setDefaultCharset(final Charset charset) {
+        this.defaultCharset = charset;
     }
 
     /** Get the line separator. This value defaults to {@value #DEFAULT_LINE_SEPARATOR}.
@@ -120,7 +129,7 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** {@inheritDoc} */
     @Override
-    public void write(final BoundarySource3D src, final OutputStream out)
+    public void write(final BoundarySource3D src, final GeometryOutput out)
             throws IOException {
         // write meshes directly instead of iterating through boundaries
         if (src instanceof Mesh) {
@@ -134,7 +143,7 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** {@inheritDoc} */
     @Override
-    public void write(final Stream<? extends PlaneConvexSubset> boundaries, final OutputStream out)
+    public void write(final Stream<? extends PlaneConvexSubset> boundaries, final GeometryOutput out)
             throws IOException {
         try (OBJWriter writer = createOBJWriter(out)) {
             final OBJWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
@@ -150,7 +159,7 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** {@inheritDoc} */
     @Override
-    public void writeFacets(final Stream<? extends FacetDefinition> facets, final OutputStream out)
+    public void writeFacets(final Stream<? extends FacetDefinition> facets, final GeometryOutput out)
             throws IOException {
         try (OBJWriter writer = createOBJWriter(out)) {
             final OBJWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
@@ -169,8 +178,13 @@ public class OBJBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
      * @param out output stream to write to
      * @return new {@code OBJWriter} for writing content to the given output stream
      */
-    private OBJWriter createOBJWriter(final OutputStream out) {
-        final OBJWriter writer = new OBJWriter(GeometryIOUtils.createCloseShieldWriter(out, charset));
+    private OBJWriter createOBJWriter(final GeometryOutput out) throws IOException {
+        final Charset charset = out.getCharset() != null ?
+                out.getCharset() :
+                defaultCharset;
+
+        final OBJWriter writer =
+                new OBJWriter(new BufferedWriter(new OutputStreamWriter(out.getOutputStream(), charset)));
         writer.setLineSeparator(lineSeparator);
         writer.setDoubleFormat(doubleFormat);
 
