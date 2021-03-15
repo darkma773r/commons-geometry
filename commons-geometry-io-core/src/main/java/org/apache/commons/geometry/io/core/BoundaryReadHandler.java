@@ -26,9 +26,7 @@ import org.apache.commons.geometry.io.core.input.GeometryInput;
 
 /** Basic interface for reading geometric boundary representations
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) from a specific data storage
- * format. This interface is intentionally kept simple to reduce the amount of work required by implementers.
- * Callers may prefer to access this functionality using the more convenient
- * {@link BoundaryIOManager} class instead.
+ * format. This interface is intended primarily for use with {@link BoundaryIOManager}.
  *
  * <p><strong>Implementation note:</strong> implementations of this interface <em>must</em>
  * be thread-safe.</p>
@@ -40,39 +38,43 @@ import org.apache.commons.geometry.io.core.input.GeometryInput;
  */
 public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B extends BoundarySource<H>> {
 
+    /** Get the {@link GeometryFormat data format} read by this handler.
+     * @return data format read by this handler
+     */
     GeometryFormat getFormat();
 
+    /** Return an object containing all boundaries read from {@code input} using the handler's
+     * supported data format.
+     * @param input input to read form
+     * @param precision precision context used for floating point comparisons
+     * @return object containing all boundaries read from {@code input}
+     * @throws IOException if an IO error occurs
+     */
     B read(GeometryInput input, DoublePrecisionContext precision) throws IOException;
 
-    Stream<H> boundaries(GeometryInput input, DoublePrecisionContext precision) throws IOException;
-
-    /** Return a {@link BoundarySource} containing all boundary information from the given input stream.
-     * The stream is expected to contain data in the format supported by this handler. The exact type of the
-     * return value will vary depending on the implementation and the details of the data storage format.
-     *
-     * <p>The input stream is <em>not</em> closed.</p>
-     * @param in input stream to read from; this is <em>not</em> closed
-     * @param precision precision context used for floating point comparisons
-     * @return an object containing all boundary information from the input stream
-     * @throws IOException if an I/O or data format error occurs
-     */
-//    B read(InputStream in, DoublePrecisionContext precision) throws IOException;
-
-    /** Return a {@link Stream} that can be used to access all boundary information from the given input stream.
-     * The input stream is expected to contain data in the format supported by this handler. Unlike the
+    /** Return a {@link Stream} that can be used to access all boundary information from the given input,
+     * which is expected to contain data in the format supported by this handler. Unlike the
      * {@link #read(InputStream, DoublePrecisionContext) read} method, this method does not <em>require</em>
      * that all input be read immediately and stored in memory (although implementations of this interface are
      * still free to do so). Callers may therefore prefer to use this method in cases where memory usage is a
      * concern or transformations and/or filters must be applied to the boundaries before use.
      *
+     * <p>Implementing class will usually keep the source input stream open during stream iteration. Callers
+     * should therefore use the returned stream in a try-with-resources statement to ensure that all resources
+     * are properly closed. Ex:
+     * </p>
+     * <pre>
+     *  try (Stream&lt;H&gt; stream = handler.boundaries(in, precision)) {
+     *      // access stream content
+     *  }
+     * </pre>
+     *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     *
-     * <p>The input stream is <em>not</em> closed when the returned stream is closed.</p>
-     * @param in input stream to read from; this is <em>not</em> closed when the returned stream is closed
+     * @param in input to read from
      * @param precision precision context used for floating point comparisons
-     * @return stream providing access to the boundary information from the given input stream
+     * @return stream providing access to the boundary information from the given input
      * @throws IOException if an I/O error occurs during stream creation
      */
-//    Stream<H> boundaries(InputStream in, DoublePrecisionContext precision) throws IOException;
+    Stream<H> boundaries(GeometryInput in, DoublePrecisionContext precision) throws IOException;
 }
