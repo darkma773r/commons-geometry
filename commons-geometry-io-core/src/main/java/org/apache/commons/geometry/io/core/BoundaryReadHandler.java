@@ -38,8 +38,8 @@ import org.apache.commons.geometry.io.core.input.GeometryInput;
  */
 public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B extends BoundarySource<H>> {
 
-    /** Get the {@link GeometryFormat data format} read by this handler.
-     * @return data format read by this handler
+    /** Get the {@link GeometryFormat data format} supported by this handler.
+     * @return data format supported by this handler
      */
     GeometryFormat getFormat();
 

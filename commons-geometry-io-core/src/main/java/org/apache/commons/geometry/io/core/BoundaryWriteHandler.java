@@ -36,15 +36,16 @@ import org.apache.commons.geometry.io.core.output.GeometryOutput;
  */
 public interface BoundaryWriteHandler<H extends HyperplaneConvexSubset<?>, B extends BoundarySource<H>> {
 
+    /** Get the {@link GeometryFormat data format} supported by this handler.
+     * @return data format supported by this handler
+     */
     GeometryFormat getFormat();
 
-    void write(B src, GeometryOutput out) throws IOException;
-
-    /** Write all boundary information from the given source to the output stream using the
-     * data format supported by this instance. The output stream is <em>not</em> closed.
-     * @param src object containing geometric boundary information to write
-     * @param out output stream to write content to; <em>not</em> closed by this method
-     * @throws IOException if an I/O error occurs
+    /** Write all boundaries from {@code src} to the given output, using the data format for
+     * the instance.
+     * @param src boundary source
+     * @param out output to write to
+     * @throws IOException if an IO error occurs
      */
-//    void write(B src, OutputStream out) throws IOException;
+    void write(B src, GeometryOutput out) throws IOException;
 }
