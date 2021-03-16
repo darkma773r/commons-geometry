@@ -29,7 +29,10 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 /** Class containing utility methods for IO operations.
@@ -38,6 +41,38 @@ public final class GeometryIOUtils {
 
     /** Utility class; no instantiation. */
     private GeometryIOUtils() {}
+
+    /** Get the file name of the given path or null if one does not exist
+     * or is the empty string.
+     * @param path path to get the file name of
+     * @return file name of the given path
+     */
+    public static String getFileName(final Path path) {
+        if (path != null) {
+            final Path file = path.getFileName();
+            if (file != null) {
+                final String name = file.toString();
+                if (!name.isEmpty()) {
+                    return name;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /** Get the file name of the given url or null if one does not exist or is
+     * the empty string.
+     * @param url url to get the file name of
+     * @return file name of the given url
+     */
+    public static String getFileName(final URL url) {
+        if (url != null) {
+            return getFileName(Paths.get(url.getPath()));
+        }
+
+        return null;
+    }
 
     /** Get the part of the file name after the last dot.
      * @param fileName file name to get the extension for

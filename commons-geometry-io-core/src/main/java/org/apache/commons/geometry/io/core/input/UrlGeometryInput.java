@@ -21,7 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.Paths;
+
+import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
 
 /** {@link GeometryInput} implementation for reading content from a URL.
  */
@@ -43,7 +44,7 @@ public class UrlGeometryInput extends AbstractGeometryInput {
      * @param charset charset to use when reading content
      */
     public UrlGeometryInput(final URL url, final Charset charset) {
-        super(getUrlFileName(url), charset);
+        super(GeometryIOUtils.getFileName(url), charset);
 
         this.url = url;
     }
@@ -74,13 +75,5 @@ public class UrlGeometryInput extends AbstractGeometryInput {
             .append(']');
 
         return sb.toString();
-    }
-
-    /** Get the file name for the given URL.
-     * @param url URL to get the file name of
-     * @return URL file name
-     */
-    private static String getUrlFileName(final URL url) {
-        return Paths.get(url.getPath()).getFileName().toString();
     }
 }

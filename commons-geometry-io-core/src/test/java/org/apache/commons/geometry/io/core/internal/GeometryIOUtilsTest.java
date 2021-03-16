@@ -25,7 +25,11 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,6 +41,26 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class GeometryIOUtilsTest {
+
+    @Test
+    public void testGetFileName_path() {
+        // act/assert
+        Assertions.assertNull(GeometryIOUtils.getFileName((Path) null));
+        Assertions.assertNull(GeometryIOUtils.getFileName(Paths.get("")));
+
+        Assertions.assertEquals("myfile", GeometryIOUtils.getFileName(Paths.get("myfile")));
+        Assertions.assertEquals("myfile.txt", GeometryIOUtils.getFileName(Paths.get("path/to/myfile.txt")));
+    }
+
+    @Test
+    public void testGetFileName_url() throws MalformedURLException {
+        // act/assert
+        Assertions.assertNull(GeometryIOUtils.getFileName((URL) null));
+        Assertions.assertNull(GeometryIOUtils.getFileName(new URL("http://test.com/")));
+
+        Assertions.assertEquals("myfile.txt",
+                GeometryIOUtils.getFileName(new URL("http://test.com/myfile.txt?a=otherfile.txt")));
+    }
 
     @Test
     public void testGetFileExtension() {

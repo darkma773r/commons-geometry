@@ -23,6 +23,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
+
 /** {@link GeometryInput} implementation for reading content from a file.
  */
 public class FileGeometryInput extends AbstractGeometryInput {
@@ -43,7 +45,7 @@ public class FileGeometryInput extends AbstractGeometryInput {
      * @param charset charset to use when reading from the input file
      */
     public FileGeometryInput(final Path file, final Charset charset) {
-        super(file.getFileName().toString(), charset);
+        super(GeometryIOUtils.getFileName(file), charset);
 
         this.file = file;
     }
