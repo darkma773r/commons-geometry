@@ -62,8 +62,7 @@ public class OBJBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
     /** {@inheritDoc} */
     @Override
     public FacetDefinitionReader facetDefinitionReader(final GeometryInput in) throws IOException {
-//        return new OBJFacetDefinitionReader(new BufferedReader(new InputStreamReader(in, charset)));
-        return null;
+        return new OBJFacetDefinitionReader(createReader(in));
     }
 
     /** {@inheritDoc} */
@@ -75,6 +74,11 @@ public class OBJBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
         }
     }
 
+    /** Creat a {@link Reader} for reading character data from the given input.
+     * @param in input to read from
+     * @return reader instance
+     * @throws IOException if an IO error occurs
+     */
     private Reader createReader(final GeometryInput in) throws IOException {
         final Charset charset = in.getCharset() != null ?
                 in.getCharset() :

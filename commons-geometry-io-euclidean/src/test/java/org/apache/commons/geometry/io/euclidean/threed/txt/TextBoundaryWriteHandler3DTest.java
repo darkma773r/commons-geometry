@@ -69,20 +69,6 @@ public class TextBoundaryWriteHandler3DTest {
         Assertions.assertEquals(-1, handler.getFacetVertexCount());
     }
 
-//    @Test
-//    public void testPropertyDefaults_csv() {
-//        // arrange
-//        final TextBoundaryWriteHandler3D handler = TextBoundaryWriteHandler3D.csvFormat();
-//
-//        // act/assert
-//        Assertions.assertEquals(StandardCharsets.UTF_8, handler.getCharset());
-//        Assertions.assertEquals("\n", handler.getLineSeparator());
-//        Assertions.assertEquals(",", handler.getVertexComponentSeparator());
-//        Assertions.assertEquals(",", handler.getVertexSeparator());
-//        Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, handler.getDoubleFormat());
-//        Assertions.assertEquals(3, handler.getFacetVertexCount());
-//    }
-
     @Test
     public void testWriteFacets() throws IOException {
         // arrange
@@ -93,38 +79,10 @@ public class TextBoundaryWriteHandler3DTest {
         handler.writeFacets(TRI_FACETS, new StreamGeometryOutput(closeOut));
 
         // assert
-        Assertions.assertEquals(0, closeOut.getCloseCount());
+        Assertions.assertEquals(1, closeOut.getCloseCount());
         Assertions.assertEquals(
                 "0.0 0.0 0.0; 0.3333333333333333 0.0 0.0; 1.0 1.0 0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
-
-//    @Test
-//    public void testWriteFacets_csv() throws IOException {
-//        // arrange
-//        final TextBoundaryWriteHandler3D handler = TextBoundaryWriteHandler3D.csvFormat();
-//        final CloseCountOutputStream closeOut = new CloseCountOutputStream(out);
-//
-//        // act
-//        handler.writeFacets(TRI_FACETS, closeOut);
-//
-//        // assert
-//        Assertions.assertEquals(0, closeOut.getCloseCount());
-//        Assertions.assertEquals(
-//                "0.0,0.0,0.0,0.3333333333333333,0.0,0.0,1.0,1.0,0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
-//    }
-
-//    @Test
-//    public void testWriteFacets_csv_wrongFacetCount() throws IOException {
-//        // arrange
-//        final TextBoundaryWriteHandler3D handler = TextBoundaryWriteHandler3D.csvFormat();
-//        final CloseCountOutputStream closeOut = new CloseCountOutputStream(out);
-//
-//        // act/assert
-//        Assertions.assertThrows(IllegalArgumentException.class,
-//                () -> handler.writeFacets(QUAD_FACETS, closeOut));
-//
-//        Assertions.assertEquals(0, closeOut.getCloseCount());
-//    }
 
     @Test
     public void testWriteFacets_customConfiguration() throws IOException {
@@ -143,7 +101,7 @@ public class TextBoundaryWriteHandler3DTest {
         handler.writeFacets(QUAD_FACETS, new StreamGeometryOutput(closeOut));
 
         // assert
-        Assertions.assertEquals(0, closeOut.getCloseCount());
+        Assertions.assertEquals(1, closeOut.getCloseCount());
         Assertions.assertEquals(
                 "0.0|0.0|0.0 | 0.3|0.0|0.0 | 1.0|1.0|0.0 | 0.0|1.0|0.0\r\n", new String(out.toByteArray(), StandardCharsets.UTF_16));
     }
@@ -158,26 +116,10 @@ public class TextBoundaryWriteHandler3DTest {
         handler.write(QUAD_SRC, new StreamGeometryOutput(closeOut));
 
         // assert
-        Assertions.assertEquals(0, closeOut.getCloseCount());
+        Assertions.assertEquals(1, closeOut.getCloseCount());
         Assertions.assertEquals(
                 "0.0 0.0 0.0; 0.3333333333333333 0.0 0.0; 1.0 1.0 0.0; 0.0 1.0 0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
     }
-
-//    @Test
-//    public void testWriteBoundarySource_csv() throws IOException {
-//        // arrange
-//        final TextBoundaryWriteHandler3D handler = TextBoundaryWriteHandler3D.csvFormat();
-//        final CloseCountOutputStream closeOut = new CloseCountOutputStream(out);
-//
-//        // act
-//        handler.write(QUAD_SRC, closeOut);
-//
-//        // assert
-//        Assertions.assertEquals(0, closeOut.getCloseCount());
-//        Assertions.assertEquals(
-//                "0.3333333333333333,0.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0\n" +
-//                "0.3333333333333333,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
-//    }
 
     @Test
     public void testWriteBoundarySource_customConfiguration() throws IOException {
@@ -196,7 +138,7 @@ public class TextBoundaryWriteHandler3DTest {
         handler.write(QUAD_SRC, new StreamGeometryOutput(closeOut));
 
         // assert
-        Assertions.assertEquals(0, closeOut.getCloseCount());
+        Assertions.assertEquals(1, closeOut.getCloseCount());
         Assertions.assertEquals(
                 "0.0|0.0|0.0 | 0.3|0.0|0.0 | 1.0|1.0|0.0 | 0.0|1.0|0.0\r\n", new String(out.toByteArray(), StandardCharsets.UTF_16));
     }

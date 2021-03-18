@@ -119,7 +119,7 @@ public class OBJBoundaryReadHandler3DTest {
         final TriangleMesh mesh = handler.readTriangleMesh(new StreamGeometryInput(in), TEST_PRECISION);
 
         // assert
-        Assertions.assertEquals(0, in.getCloseCount());
+        Assertions.assertEquals(1, in.getCloseCount());
 
         Assertions.assertEquals(3, mesh.getVertexCount());
         Assertions.assertEquals(1, mesh.getFaceCount());
@@ -143,7 +143,7 @@ public class OBJBoundaryReadHandler3DTest {
         final TriangleMesh mesh = handler.readTriangleMesh(new StreamGeometryInput(in), TEST_PRECISION);
 
         // assert
-        Assertions.assertEquals(0, in.getCloseCount());
+        Assertions.assertEquals(1, in.getCloseCount());
 
         Assertions.assertEquals(3, mesh.getVertexCount());
         Assertions.assertEquals(1, mesh.getFaceCount());

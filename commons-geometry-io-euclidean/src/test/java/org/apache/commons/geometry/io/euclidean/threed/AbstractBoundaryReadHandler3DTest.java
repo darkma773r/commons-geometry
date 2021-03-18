@@ -62,18 +62,16 @@ public class AbstractBoundaryReadHandler3DTest {
         final List<FacetDefinition> facets = Arrays.asList(FACET_1, FACET_2);
         final TestReadHandler3D handler = new TestReadHandler3D(facets);
 
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        final GeometryInput in = new StreamGeometryInput(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final BoundarySource3D result = handler.read(new StreamGeometryInput(in), TEST_PRECISION);
+        final BoundarySource3D result = handler.read(in, TEST_PRECISION);
 
         // assert
-        Assertions.assertNotNull(handler.inArg);
+        Assertions.assertSame(in, handler.inArg);
 
         Assertions.assertEquals(BoundaryList3D.class, result.getClass());
         Assertions.assertEquals(2, result.toList().getBoundaries().size());
-
-        Assertions.assertEquals(0, in.getCloseCount());
     }
 
     @Test
@@ -82,19 +80,17 @@ public class AbstractBoundaryReadHandler3DTest {
         final List<FacetDefinition> facets = Arrays.asList(FACET_1, FACET_2);
         final TestReadHandler3D handler = new TestReadHandler3D(facets);
 
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        final GeometryInput in = new StreamGeometryInput(new ByteArrayInputStream(new byte[0]));
 
         // act
-        final TriangleMesh result = handler.readTriangleMesh(new StreamGeometryInput(in), TEST_PRECISION);
+        final TriangleMesh result = handler.readTriangleMesh(in, TEST_PRECISION);
 
         // assert
-        Assertions.assertNotNull(handler.inArg);
+        Assertions.assertSame(in, handler.inArg);
 
         Assertions.assertEquals(SimpleTriangleMesh.class, result.getClass());
         Assertions.assertEquals(6, result.getVertexCount());
         Assertions.assertEquals(4, result.getFaceCount());
-
-        Assertions.assertEquals(0, in.getCloseCount());
     }
 
     @Test
@@ -103,19 +99,22 @@ public class AbstractBoundaryReadHandler3DTest {
         final List<FacetDefinition> facets = Arrays.asList(FACET_1, FACET_2);
         final TestReadHandler3D handler = new TestReadHandler3D(facets);
 
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        final CloseCountInputStream inputStream = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        final GeometryInput in = new StreamGeometryInput(inputStream);
 
         // act
         final List<PlaneConvexSubset> list;
-        try (Stream<PlaneConvexSubset> stream = handler.boundaries(new StreamGeometryInput(in), TEST_PRECISION)) {
+        try (Stream<PlaneConvexSubset> stream = handler.boundaries(in, TEST_PRECISION)) {
             list = stream.collect(Collectors.toList());
+
+            Assertions.assertEquals(0, inputStream.getCloseCount());
         }
 
         // assert
         Assertions.assertSame(in, handler.inArg);
 
         Assertions.assertEquals(2, list.size());
-        Assertions.assertEquals(0, in.getCloseCount());
+        Assertions.assertEquals(1, inputStream.getCloseCount());
     }
 
     @Test
@@ -124,19 +123,22 @@ public class AbstractBoundaryReadHandler3DTest {
         final List<FacetDefinition> facets = Arrays.asList(FACET_1, FACET_2);
         final TestReadHandler3D handler = new TestReadHandler3D(facets);
 
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        final CloseCountInputStream inputStream = new CloseCountInputStream(new ByteArrayInputStream(new byte[0]));
+        final GeometryInput in = new StreamGeometryInput(inputStream);
 
         // act
         final List<FacetDefinition> list;
-        try (Stream<FacetDefinition> stream = handler.facets(new StreamGeometryInput(in))) {
+        try (Stream<FacetDefinition> stream = handler.facets(in)) {
             list = stream.collect(Collectors.toList());
+
+            Assertions.assertEquals(0, inputStream.getCloseCount());
         }
 
         // assert
         Assertions.assertSame(in, handler.inArg);
 
         Assertions.assertEquals(2, list.size());
-        Assertions.assertEquals(0, in.getCloseCount());
+        Assertions.assertEquals(1, inputStream.getCloseCount());
     }
 
     @Test
@@ -167,7 +169,6 @@ public class AbstractBoundaryReadHandler3DTest {
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(it::next, UncheckedIOException.class, "IOException: Read failure");
     }
-
 
     private static final class TestReadHandler3D extends AbstractBoundaryReadHandler3D {
 

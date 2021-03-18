@@ -52,17 +52,24 @@ public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSu
     /** Return a {@link Stream} that can be used to access all facet information from the given input stream.
      * The input stream is expected to contain data in the format supported by this handler.
      *
+     * <p>The underlying input stream is closed when the returned stream is closed. Callers should therefore
+     * use the returned stream in a try-with-resources statement to ensure that all resources are properly closed.
+     * <pre>
+     *  try (Stream&lt;FacetDefinition&gt; stream = handler.facets(in)) {
+     *      // access stream content
+     *  }
+     * </pre>
+     * </p>
+     *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
-     *
-     * <p>The input stream is <em>not</em> closed when the returned stream is closed.</p>
      * @param in input stream to read from; this is <em>not</em> closed when the returned stream is closed
      * @return stream providing access to the facet information from the given input stream
      * @throws IOException if an I/O or data format error occurs during stream creation
      */
     Stream<FacetDefinition> facets(GeometryInput in) throws IOException;
 
-    /** Read a triangle mesh from the given input stream. The input stream is <em>not</em> closed.
+    /** Read a triangle mesh from the given input.
      * @param in input stream to read from
      * @param precision precision context used for floating point comparisons
      * @return triangle mesh containing the data from the given input stream

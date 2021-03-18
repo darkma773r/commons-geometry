@@ -39,33 +39,30 @@ import org.apache.commons.geometry.io.core.output.GeometryOutput;
  */
 public interface BoundaryWriteHandler3D extends BoundaryWriteHandler<PlaneConvexSubset, BoundarySource3D> {
 
+    /** Write all boundaries in the stream to the given output using the data format supported by this
+     * instance. The stream passed as an argument is <em>not</em> closed, meaning that callers are responsible
+     * for closing the stream if necessary (for example, if the stream fetches data from the file system).
+     * @param boundaries stream containing boundaries to write
+     * @param out output to write to
+     * @throws IOException if an I/O error occurs
+     */
     void write(Stream<? extends PlaneConvexSubset> boundaries, GeometryOutput out) throws IOException;
 
+    /** Write all {@link FacetDefinition facets} in the collection to the output using the data format
+     * supported by this instance.
+     * @param facets facets to write
+     * @param out output to write to
+     * @throws IOException if an I/O error occurs
+     */
     void writeFacets(Collection<? extends FacetDefinition> facets, GeometryOutput out) throws IOException;
 
+    /** Write all {@link FacetDefinition facets} in the stream to the output using the data format
+     * supported by this instance. The stream passed as an argument is <em>not</em> closed, meaning
+     * that callers are responsible for closing the stream if necessary (for example, if the stream
+     * fetches data from the file system).
+     * @param facets stream containing facets to write
+     * @param out output to write to
+     * @throws IOException if an I/O error occurs
+     */
     void writeFacets(Stream<? extends FacetDefinition> facets, GeometryOutput out) throws IOException;
-
-//    /** Write all boundaries contained in the stream to the given output stream using the data format
-//     * supported by this instance. The output stream is <em>not</em> closed.
-//     * @param boundaries stream containing boundaries to write
-//     * @param out output stream to write to
-//     * @throws IOException if an I/O error occurs
-//     */
-//    void write(Stream<? extends PlaneConvexSubset> boundaries, OutputStream out) throws IOException;
-//
-//    /** Write the collection of {@link FacetDefinition facets} to the given output stream using the data
-//     * format supported by this instance. The output stream is <em>not</em> closed.
-//     * @param facets facets to write
-//     * @param out output stream to write to
-//     * @throws IOException if an I/O error occurs
-//     */
-//    void writeFacets(Collection<? extends FacetDefinition> facets, OutputStream out) throws IOException;
-//
-//    /** Write all {@link FacetDefinition facets} from the stream to the given output stream using the data
-//     * format supported by this instance. The output stream is <em>not</em> closed.
-//     * @param facets stream containing facets to write
-//     * @param out output stream to write to
-//     * @throws IOException if an I/O error occurs
-//     */
-//    void writeFacets(Stream<? extends FacetDefinition> facets, OutputStream out) throws IOException;
 }

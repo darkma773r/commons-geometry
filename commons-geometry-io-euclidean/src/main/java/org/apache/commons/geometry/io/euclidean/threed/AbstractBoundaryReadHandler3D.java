@@ -90,10 +90,12 @@ public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandl
     /** {@inheritDoc} */
     @Override
     public Stream<FacetDefinition> facets(final GeometryInput in) throws IOException {
-        final FacetDefinitionReader fdReader = facetDefinitionReader(in);
-        final FacetDefinitionReaderIterator it = new FacetDefinitionReaderIterator(fdReader);
+        return GeometryIOUtils.createCloseableStream(inputStream -> {
+            final FacetDefinitionReader fdReader = facetDefinitionReader(in);
+            final FacetDefinitionReaderIterator it = new FacetDefinitionReaderIterator(fdReader);
 
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED), false);
+            return StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED), false);
+        }, in::getInputStream);
     }
 
     /** Class exposing a {@link FacetDefinitionReader} as an iterator. {@link IOException}s are wrapped

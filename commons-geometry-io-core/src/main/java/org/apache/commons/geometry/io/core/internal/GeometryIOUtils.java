@@ -16,21 +16,11 @@
  */
 package org.apache.commons.geometry.io.core.internal;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.Closeable;
-import java.io.FilterInputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.io.UncheckedIOException;
-import java.io.Writer;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
@@ -102,48 +92,6 @@ public final class GeometryIOUtils {
         return new UncheckedIOException(msg, exc);
     }
 
-    /** Return an input stream that delegates all calls to the argument but does not
-     * close the argument when {@link InputStream#close() close()} is called.
-     * @param in input stream to wrap
-     * @return an input stream that delegates all calls to {@code in} except for {@code close()}
-     */
-    public static InputStream createCloseShieldInputStream(final InputStream in) {
-        return new CloseShieldInputStream(in);
-    }
-
-    /** Return an output stream that delegates all calls to the argument but does not close
-     * the argument when {@link OutputStream#close() close()} is called.
-     * @param out output stream to wrap
-     * @return an output stream that delegates all calls to {@code out} except for {@code close()}
-     */
-    public static OutputStream createCloseShieldOutputStream(final OutputStream out) {
-        return new CloseShieldOutputStream(out);
-    }
-
-    /** Return a buffered reader that reads characters of the given charset from {@code in} but
-     * does not close {@code in} when {@link Reader#close() close()} is called.
-     * @param in input stream to read from
-     * @param charset reader charset
-     * @return a buffered reader that reads characters from {@code in} but does not close it when
-     *      {@code close()} is called
-     */
-    public static Reader createCloseShieldReader(final InputStream in, final Charset charset) {
-        final InputStream shielded = createCloseShieldInputStream(in);
-        return new BufferedReader(new InputStreamReader(shielded, charset));
-    }
-
-    /** Return a buffered writer that writer characters of the given charset to {@code out} but
-     * does not close {@code out} when {@link Writer#close() close} is called.
-     * @param out output stream to write to
-     * @param charset writer charset
-     * @return a buffered writer that writes characters to {@code out} but does not close it
-     *      when {@code close()} is called
-     */
-    public static Writer createCloseShieldWriter(final OutputStream out, final Charset charset) {
-        final OutputStream shielded = createCloseShieldOutputStream(out);
-        return new BufferedWriter(new OutputStreamWriter(shielded, charset));
-    }
-
     /** Pass a supplied {@link Closeable} instance to {@code function} and return the result.
      * The {@code Closeable} instance returned by the supplier is closed if function execution
      * fails, otherwise the instance is <em>not</em> closed.
@@ -204,45 +152,5 @@ public final class GeometryIOUtils {
                 throw createUnchecked(exc);
             }
         };
-    }
-
-    /** Internal class used to wrap an input stream and prevent it from being closed
-     * when {@link #close()} is invoked on the wrapper instance.
-     */
-    private static final class CloseShieldInputStream extends FilterInputStream {
-
-        /** Construct a new instance wrapping the argument.
-         * @param in input stream to wrap
-         */
-        CloseShieldInputStream(final InputStream in) {
-            super(in);
-        }
-
-        /** Do nothing. The underlying stream is <em>not</em> closed.
-         */
-        @Override
-        public void close() throws IOException {
-            // do nothing
-        }
-    }
-
-    /** Internal class used to wrap an output stream and prevent it from being closed
-     * when {@link #close()} is invoked on the wrapper instance.
-     */
-    private static final class CloseShieldOutputStream extends FilterOutputStream {
-
-        /** Construct a new instance wrapping the argument.
-         * @param out output stream to wrap
-         */
-        CloseShieldOutputStream(final OutputStream out) {
-            super(out);
-        }
-
-        /** Do nothing. The underlying stream is <em>not</em> closed.
-         */
-        @Override
-        public void close() throws IOException {
-            // do nothing
-        }
     }
 }

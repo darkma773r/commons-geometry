@@ -17,17 +17,11 @@
 package org.apache.commons.geometry.io.core.internal;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
 import java.io.UncheckedIOException;
-import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -36,7 +30,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.io.core.test.CloseCountInputStream;
-import org.apache.commons.geometry.io.core.test.CloseCountOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -85,71 +78,6 @@ public class GeometryIOUtilsTest {
         // assert
         Assertions.assertEquals("FileNotFoundException: test", result.getMessage());
         Assertions.assertSame(exc, result.getCause());
-    }
-
-    @Test
-    public void testCreateCloseShieldInputStream() throws IOException {
-        // arrange
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[] {1}));
-
-        // act
-        final InputStream result = GeometryIOUtils.createCloseShieldInputStream(in);
-
-        // assert
-        Assertions.assertEquals(1, result.read());
-
-        result.close();
-        Assertions.assertEquals(0, in.getCloseCount());
-    }
-
-    @Test
-    public void testCreateCloseShieldReader() throws IOException {
-        // arrange
-        final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[] {10}));
-
-        // act
-        final Reader result = GeometryIOUtils.createCloseShieldReader(in, StandardCharsets.US_ASCII);
-
-        // assert
-        Assertions.assertEquals('\n', result.read());
-
-        result.close();
-        Assertions.assertEquals(0, in.getCloseCount());
-    }
-
-    @Test
-    public void testCreateCloseShieldOutputStream() throws IOException {
-        // arrange
-        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        final CloseCountOutputStream out = new CloseCountOutputStream(bytes);
-
-        // act
-        final OutputStream result = GeometryIOUtils.createCloseShieldOutputStream(out);
-
-        // assert
-        result.write(10);
-        Assertions.assertArrayEquals(new byte[] {10}, bytes.toByteArray());
-
-        result.close();
-        Assertions.assertEquals(0, out.getCloseCount());
-    }
-
-    @Test
-    public void testCreateCloseShieldWriter() throws IOException {
-        // arrange
-        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        final CloseCountOutputStream out = new CloseCountOutputStream(bytes);
-
-        // act
-        final Writer result = GeometryIOUtils.createCloseShieldWriter(out, StandardCharsets.US_ASCII);
-
-        // assert
-        result.write('\n');
-        result.flush();
-        Assertions.assertArrayEquals(new byte[] {10}, bytes.toByteArray());
-
-        result.close();
-        Assertions.assertEquals(0, out.getCloseCount());
     }
 
     @Test

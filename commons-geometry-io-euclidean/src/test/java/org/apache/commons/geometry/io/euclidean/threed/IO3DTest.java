@@ -293,14 +293,14 @@ public class IO3DTest {
         try (CloseCountInputStream in = new CloseCountInputStream(Files.newInputStream(path))) {
             orig = readFn.read(fmt, new StreamGeometryInput(in));
 
-            Assertions.assertEquals(0, in.getCloseCount());
+            Assertions.assertEquals(1, in.getCloseCount());
         }
         assertRegion(expected, orig, eps);
 
         try (CloseCountOutputStream out = new CloseCountOutputStream(Files.newOutputStream(tmp))) {
             writeFn.write(orig, fmt, new StreamGeometryOutput(out));
 
-            Assertions.assertEquals(0, out.getCloseCount());
+            Assertions.assertEquals(1, out.getCloseCount());
         }
 
         final BoundarySource3D result;
@@ -343,13 +343,15 @@ public class IO3DTest {
     }
 
     private static BoundaryList3D readerToBoundaryList(final FacetDefinitionReader reader) throws IOException {
-        final List<PlaneConvexSubset> list = new ArrayList<>();
-        FacetDefinition f;
-        while ((f = reader.readFacet()) != null) {
-            list.add(FacetDefinitions.toPolygon(f, MODEL_PRECISION));
-        }
+        try (final FacetDefinitionReader toClose = reader) {
+            final List<PlaneConvexSubset> list = new ArrayList<>();
+            FacetDefinition f;
+            while ((f = reader.readFacet()) != null) {
+                list.add(FacetDefinitions.toPolygon(f, MODEL_PRECISION));
+            }
 
-        return new BoundaryList3D(list);
+            return new BoundaryList3D(list);
+        }
     }
 
     private static BoundaryList3D facetsToBoundaryList(final Stream<FacetDefinition> stream) throws IOException {
