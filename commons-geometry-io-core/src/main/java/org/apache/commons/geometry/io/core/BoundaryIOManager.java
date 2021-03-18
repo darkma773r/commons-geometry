@@ -203,7 +203,7 @@ public class BoundaryIOManager<
 
     /** Return a {@link Stream} providing access to all boundaries from the given input. The underlying input
      * stream is closed when the returned stream is closed. Callers should therefore use the returned stream
-     * in a try-with-resources statement to ensure that all resources are properly closed. Ex:
+     * in a try-with-resources statement to ensure that all resources are properly released. Ex:
      * <pre>
      *  try (Stream&lt;H&gt; stream = manager.boundaries(in, fmt, precision)) {
      *      // access stream content

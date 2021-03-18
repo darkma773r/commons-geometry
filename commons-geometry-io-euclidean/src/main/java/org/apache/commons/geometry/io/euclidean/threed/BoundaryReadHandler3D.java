@@ -53,7 +53,7 @@ public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSu
      * The input stream is expected to contain data in the format supported by this handler.
      *
      * <p>The underlying input stream is closed when the returned stream is closed. Callers should therefore
-     * use the returned stream in a try-with-resources statement to ensure that all resources are properly closed.
+     * use the returned stream in a try-with-resources statement to ensure that all resources are properly released.
      * <pre>
      *  try (Stream&lt;FacetDefinition&gt; stream = handler.facets(in)) {
      *      // access stream content

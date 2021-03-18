@@ -56,6 +56,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * @param fmt format of the input; if null, the format is determined implicitly from the
      *      file extension of the input {@link GeometryInput#getFileName() file name}
      * @return facet definition reader
+     * @throws IllegalArgumentException if no read handler can be found for the input format
      * @throws IOException if an I/O or data format error occurs
      */
     public FacetDefinitionReader facetDefinitionReader(final GeometryInput in, final GeometryFormat fmt)
@@ -65,7 +66,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
 
     /** Return a {@link Stream} providing access to all facets from the given input. The underlying input
      * stream is closed when the returned stream is closed. Callers should therefore use the returned stream
-     * in a try-with-resources statement to ensure that all resources are properly closed.
+     * in a try-with-resources statement to ensure that all resources are properly released.
      * <pre>
      *  try (Stream&lt;FacetDefinition&gt; stream = manager.facets(in, fmt)) {
      *      // access stream content
@@ -77,6 +78,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * @param fmt format of the input; if null, the format is determined implicitly from the
      *      file extension of the input {@link GeometryInput#getFileName() file name}
      * @return stream providing access to the facets in the input
+     * @throws IllegalArgumentException if no read handler can be found for the input format
      * @throws IOException if stream creation fails
      */
     public Stream<FacetDefinition> facets(final GeometryInput in, final GeometryFormat fmt) throws IOException {
@@ -85,7 +87,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
 
     /** Return a {@link Stream} providing access to all triangles from the given input. The underlying input
      * stream is closed when the returned stream is closed. Callers should therefore use the returned stream
-     * in a try-with-resources statement to ensure that all resources are properly closed.
+     * in a try-with-resources statement to ensure that all resources are properly released.
      * <pre>
      *  try (Stream&lt;Triangle3D&gt; stream = manager.triangles(in, fmt, precision)) {
      *      // access stream content
@@ -98,6 +100,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      *      file extension of the input {@link GeometryInput#getFileName() file name}
      * @param precision precision context used for floating point comparisons
      * @return stream providing access to the triangles in the input
+     * @throws IllegalArgumentException if no read handler can be found for the input format
      * @throws IOException if stream creation fails
      */
     public Stream<Triangle3D> triangles(final GeometryInput in, final GeometryFormat fmt,
@@ -112,6 +115,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      *      file extension of the input {@link GeometryInput#getFileName() file name}
      * @param precision precision context used for floating point comparisons
      * @return mesh containing all triangles from the input
+     * @throws IllegalArgumentException if no read handler can be found for the input format
      * @throws IOException
      */
     public TriangleMesh readTriangleMesh(final GeometryInput in, final GeometryFormat fmt,
@@ -128,6 +132,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * @param out output to write to
      * @param fmt format of the output; if null, the format is determined implicitly from the
      *      file extension of the output {@link GeometryOutput#getFileName() file name}
+     * @throws IllegalArgumentException if no write handler can be found for the output format
      * @throws IOException if an I/O error occurs
      */
     public void write(final Stream<? extends PlaneConvexSubset> boundaries, final GeometryOutput out,
@@ -144,6 +149,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * @param out output to write to
      * @param fmt format of the output; if null, the format is determined implicitly from the
      *      file extension of the output {@link GeometryOutput#getFileName() file name}
+     * @throws IllegalArgumentException if no write handler can be found for the output format
      * @throws IOException if an I/O error occurs
      */
     public void writeFacets(final Stream<? extends FacetDefinition> facets, final GeometryOutput out,
@@ -156,6 +162,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * @param out output to write to
      * @param fmt format of the output; if null, the format is determined implicitly from the
      *      file extension of the output {@link GeometryOutput#getFileName() file name}
+     * @throws IllegalArgumentException if no write handler can be found for the output format
      * @throws IOException if an I/O error occurs
      */
     public void writeFacets(final Collection<? extends FacetDefinition> facets, final GeometryOutput out,

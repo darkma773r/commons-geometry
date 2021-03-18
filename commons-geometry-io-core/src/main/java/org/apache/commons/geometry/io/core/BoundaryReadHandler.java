@@ -61,7 +61,7 @@ public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B exte
      *
      * <p>Implementing class will usually keep the source input stream open during stream iteration. Callers
      * should therefore use the returned stream in a try-with-resources statement to ensure that all resources
-     * are properly closed. Ex:
+     * are properly released. Ex:
      * </p>
      * <pre>
      *  try (Stream&lt;H&gt; stream = handler.boundaries(in, precision)) {
