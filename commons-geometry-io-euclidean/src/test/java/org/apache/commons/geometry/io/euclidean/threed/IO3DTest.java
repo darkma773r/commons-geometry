@@ -343,7 +343,7 @@ public class IO3DTest {
     }
 
     private static BoundaryList3D readerToBoundaryList(final FacetDefinitionReader reader) throws IOException {
-        try (final FacetDefinitionReader toClose = reader) {
+        try (FacetDefinitionReader toClose = reader) {
             final List<PlaneConvexSubset> list = new ArrayList<>();
             FacetDefinition f;
             while ((f = reader.readFacet()) != null) {

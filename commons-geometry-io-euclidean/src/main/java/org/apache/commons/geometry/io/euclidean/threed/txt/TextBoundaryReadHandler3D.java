@@ -30,7 +30,7 @@ import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitionReader;
 import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 
 /** {@link org.apache.commons.geometry.io.euclidean.threed.BoundaryReadHandler3D BoundaryReadHandler3D}
- * implementation for reading simple text and CSV data. Input is read using the UTF-8 charset by default.
+ * implementation for the non-standard {@link GeometryFormat3D#TXT TXT}.
  * @see TextFacetDefinitionReader
  */
 public class TextBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
@@ -38,15 +38,17 @@ public class TextBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
     /** Default charset for reading text input. */
     private Charset defaultCharset = StandardCharsets.UTF_8;
 
-    /** Get the text input default charset.
+    /** Get the text input default charset, used if the input does not
+     * specify a charset.
      * @return text input default charset
      */
     public Charset getDefaultCharset() {
         return defaultCharset;
     }
 
-    /** Set the text input default charset.
-     * @param charset text input default charset
+    /** Set the text input default charset, used if the input does not
+     * specify a charset.
+     * @param defaultCharset text input default charset
      */
     public void setDefaultCharset(final Charset defaultCharset) {
         this.defaultCharset = defaultCharset;

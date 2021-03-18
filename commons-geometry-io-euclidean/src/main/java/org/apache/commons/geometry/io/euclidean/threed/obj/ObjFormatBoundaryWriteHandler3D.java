@@ -63,14 +63,16 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
         return GeometryFormat3D.OBJ;
     }
 
-    /** Get the text output default charset.
+    /** Get the text output default charset, used if the output does not
+     * specify a charset.
      * @return text output default charset
      */
     public Charset getDefaultCharset() {
         return defaultCharset;
     }
 
-    /** Set the text output default charset.
+    /** Set the text output default charset, used if the output does not
+     * specify a charset.
      * @param charset text output default charset
      */
     public void setDefaultCharset(final Charset charset) {
@@ -133,7 +135,7 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
             throws IOException {
         // write meshes directly instead of iterating through boundaries
         if (src instanceof Mesh) {
-            try (ObjFormatWriter writer = createOBJWriter(out)) {
+            try (ObjFormatWriter writer = createWriter(out)) {
                 writer.writeMesh((Mesh<?>) src);
             }
         } else {
@@ -145,7 +147,7 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
     @Override
     public void write(final Stream<? extends PlaneConvexSubset> boundaries, final GeometryOutput out)
             throws IOException {
-        try (ObjFormatWriter writer = createOBJWriter(out)) {
+        try (ObjFormatWriter writer = createWriter(out)) {
             final ObjFormatWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
 
             final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
@@ -161,7 +163,7 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
     @Override
     public void writeFacets(final Stream<? extends FacetDefinition> facets, final GeometryOutput out)
             throws IOException {
-        try (ObjFormatWriter writer = createOBJWriter(out)) {
+        try (ObjFormatWriter writer = createWriter(out)) {
             final ObjFormatWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
 
             final Iterator<? extends FacetDefinition> it = facets.iterator();
@@ -173,12 +175,12 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
         }
     }
 
-    /** Construct a new, configured {@link OBJWriter} instance for writing content to the given
+    /** Construct a new, configured {@link ObjFormatWriter} instance for writing content to the given
      * output stream.
      * @param out output stream to write to
      * @return new {@code OBJWriter} for writing content to the given output stream
      */
-    private ObjFormatWriter createOBJWriter(final GeometryOutput out) throws IOException {
+    private ObjFormatWriter createWriter(final GeometryOutput out) throws IOException {
         final Charset charset = out.getCharset() != null ?
                 out.getCharset() :
                 defaultCharset;

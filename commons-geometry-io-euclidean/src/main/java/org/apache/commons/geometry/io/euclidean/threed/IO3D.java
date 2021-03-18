@@ -572,8 +572,7 @@ public final class IO3D {
         /** Default IO manager instance. */
         private static final BoundaryIOManager3D DEFAULT_MANAGER;
 
-        static
-        {
+        static {
             DEFAULT_MANAGER = new BoundaryIOManager3D();
             DEFAULT_MANAGER.registerDefaultHandlers();
         }

@@ -45,14 +45,16 @@ public class ObjFormatBoundaryReadHandler3D extends AbstractBoundaryReadHandler3
         return GeometryFormat3D.OBJ;
     }
 
-    /** Get the text input default charset.
+    /** Get the text input default charset, used if the input does not
+     * specify a charset.
      * @return text input default charset
      */
     public Charset getDefaultCharset() {
         return defaultCharset;
     }
 
-    /** Set the text input default charset.
+    /** Set the text input default charset, used if the input does not
+     * specify a charset.
      * @param charset text input default charset
      */
     public void setDefaultCharset(final Charset charset) {

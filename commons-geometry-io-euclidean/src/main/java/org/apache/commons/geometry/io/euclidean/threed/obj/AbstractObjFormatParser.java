@@ -195,7 +195,8 @@ public abstract class AbstractObjFormatParser {
      * @throws IllegalStateException if a double value is not able to be parsed
      */
     protected double nextDouble() throws IOException {
-        return parser.nextWithLineContinuation(ObjFormatConstants.LINE_CONTINUATION_CHAR, SimpleTextParser::isNotWhitespace)
+        return parser.nextWithLineContinuation(ObjFormatConstants.LINE_CONTINUATION_CHAR,
+                SimpleTextParser::isNotWhitespace)
             .getCurrentTokenAsDouble();
     }
 

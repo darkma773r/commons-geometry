@@ -401,7 +401,7 @@ public class BoundaryIOManager3DTest {
     }
 
     @FunctionalInterface
-    private static interface ThrowingBiConsumer<T, V> {
+    private interface ThrowingBiConsumer<T, V> {
         void accept(T t, V v) throws Exception;
     }
 

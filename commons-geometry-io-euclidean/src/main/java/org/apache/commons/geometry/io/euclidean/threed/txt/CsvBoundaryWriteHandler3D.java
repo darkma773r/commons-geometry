@@ -22,6 +22,9 @@ import org.apache.commons.geometry.io.core.GeometryFormat;
 import org.apache.commons.geometry.io.core.output.GeometryOutput;
 import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 
+/** {@link org.apache.commons.geometry.io.euclidean.threed.BoundaryWriteHandler3D BoundaryWriteHandler3D}
+ * implementation for the non-standard {@link GeometryFormat3D#CSV CSV} format.
+ */
 public class CsvBoundaryWriteHandler3D extends AbstractTextBoundaryWriteHandler3D {
 
     /** {@inheritDoc} */

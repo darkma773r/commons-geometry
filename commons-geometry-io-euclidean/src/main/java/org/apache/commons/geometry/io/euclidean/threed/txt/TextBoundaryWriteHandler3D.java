@@ -23,7 +23,7 @@ import org.apache.commons.geometry.io.core.output.GeometryOutput;
 import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 
 /** {@link org.apache.commons.geometry.io.euclidean.threed.BoundaryWriteHandler3D BoundaryWriteHandler3D}
- * implementation designed to write simple text data formats using {@link TextFacetDefinitionWriter}. Output is
+ * implementation for the non-standard {@link GeometryFormat3D#TXT TXT] format. Output is
  * written using the UTF-8 charset by default.
  * @see org.apache.commons.geometry.io.euclidean.threed.BoundaryWriteHandler3D
  * @see TextFacetDefinitionWriter

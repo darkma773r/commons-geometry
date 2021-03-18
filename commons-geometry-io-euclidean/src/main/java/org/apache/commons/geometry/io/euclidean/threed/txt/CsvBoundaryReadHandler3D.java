@@ -19,6 +19,9 @@ package org.apache.commons.geometry.io.euclidean.threed.txt;
 import org.apache.commons.geometry.io.core.GeometryFormat;
 import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 
+/** {@link org.apache.commons.geometry.io.euclidean.threed.BoundaryReadHandler3D BoundaryReadHandler3D}
+ * implementation for the non-standard {@link GeometryFormat3D#CSV CSV} format.
+ */
 public class CsvBoundaryReadHandler3D extends TextBoundaryReadHandler3D {
 
     /** {@inheritDoc} */

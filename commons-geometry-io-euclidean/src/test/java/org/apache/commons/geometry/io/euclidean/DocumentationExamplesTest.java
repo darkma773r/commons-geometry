@@ -17,23 +17,35 @@
 package org.apache.commons.geometry.io.euclidean;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
+import org.apache.commons.geometry.euclidean.threed.AffineTransformMatrix3D;
 import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
+import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
 import org.apache.commons.geometry.euclidean.threed.shape.Sphere;
+import org.apache.commons.geometry.io.core.input.FileGeometryInput;
+import org.apache.commons.geometry.io.core.input.GeometryInput;
+import org.apache.commons.geometry.io.core.output.FileGeometryOutput;
+import org.apache.commons.geometry.io.core.output.GeometryOutput;
 import org.apache.commons.geometry.io.euclidean.threed.IO3D;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class DocumentationExamplesTest {
 
     private static final double TEST_EPS = 1e-12;
+
+    @TempDir
+    Path tempDir;
 
     @Test
     public void testIndexPageExample() throws IOException {
@@ -63,5 +75,30 @@ public class DocumentationExamplesTest {
         // -----------
         Assertions.assertEquals(0.11509505362599505, size, TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, centroid, TEST_EPS);
+    }
+
+    @Test
+    public void testIO3DExample() throws Exception {
+
+        final Path inputPath = Paths.get(EuclideanIOTestUtils.resource("/models/cube.obj").toURI());
+        final Path outputPath = tempDir.resolve("scaled.csv");
+
+        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-6);
+
+        final GeometryInput input = new FileGeometryInput(inputPath);
+        final GeometryOutput scaledOutput = new FileGeometryOutput(outputPath);
+        final AffineTransformMatrix3D transform = AffineTransformMatrix3D.createScale(2);
+
+        // Use the input triangle stream in a try-with-resources statement to ensure
+        // all resources are properly released.
+        try (Stream<Triangle3D> stream = IO3D.triangles(input, null, precision)) {
+            IO3D.write(stream.map(t -> t.transform(transform)), scaledOutput, null);
+        }
+
+        // -------------
+        final RegionBSPTree3D result = IO3D.read(outputPath, precision).toTree();
+
+        Assertions.assertEquals(8.0, result.getSize(), TEST_EPS);
+
     }
 }
