@@ -36,7 +36,7 @@ import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class OBJBoundaryWriteHandler3DTest {
+public class ObjFormatBoundaryWriteHandler3DTest {
 
     private static final double TEST_EPS = 1e-10;
 
@@ -49,7 +49,7 @@ public class OBJBoundaryWriteHandler3DTest {
 
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    private final OBJBoundaryWriteHandler3D handler = new OBJBoundaryWriteHandler3D();
+    private final ObjFormatBoundaryWriteHandler3D handler = new ObjFormatBoundaryWriteHandler3D();
 
     @Test
     public void testPropertyDefaults() {

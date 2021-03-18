@@ -16,7 +16,8 @@
  */
 /** This package contains types for reading and writing the
  * <a href="https://en.wikipedia.org/wiki/Wavefront_.obj_file">OBJ</a>
- * geometric data file format.
+ * geometric data file format. The classes use the name "ObjFormat" instead of
+ * simply "Obj" to avoid confusion with classes related to Java objects.
  * @see <a href="https://en.wikipedia.org/wiki/Wavefront_.obj_file">Wavefront OBJ</a>
  */
 package org.apache.commons.geometry.io.euclidean.threed.obj;

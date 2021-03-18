@@ -31,7 +31,7 @@ import org.apache.commons.geometry.io.core.test.CloseCountReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class OBJTriangleMeshReaderTest {
+public class ObjFormatTriangleMeshReaderTest {
 
     private static final double TEST_EPS = 1e-10;
 
@@ -41,7 +41,7 @@ public class OBJTriangleMeshReaderTest {
     @Test
     public void testDefaults() {
         // arrange
-        final OBJTriangleMeshReader reader = reader("");
+        final ObjFormatTriangleMeshReader reader = reader("");
 
         // act/assert
         Assertions.assertFalse(reader.getFailOnNonPolygonKeywords());
@@ -53,7 +53,7 @@ public class OBJTriangleMeshReaderTest {
         final CloseCountReader closeReader = new CloseCountReader(new StringReader(""));
 
         // act/assert
-        try (OBJTriangleMeshReader reader = new OBJTriangleMeshReader(closeReader, TEST_PRECISION)) {
+        try (ObjFormatTriangleMeshReader reader = new ObjFormatTriangleMeshReader(closeReader, TEST_PRECISION)) {
             Assertions.assertEquals(0, closeReader.getCloseCount());
         }
 
@@ -63,7 +63,7 @@ public class OBJTriangleMeshReaderTest {
     @Test
     public void testReadTriangleMesh_withNormal() throws IOException {
         // arrange
-        final OBJTriangleMeshReader reader = reader(
+        final ObjFormatTriangleMeshReader reader = reader(
                 "o test\n\n" +
                 "v 0 0 0\r\n" +
                 "v 0.5 0 0\n" +
@@ -102,7 +102,7 @@ public class OBJTriangleMeshReaderTest {
     @Test
     public void testReadTriangleMesh_withoutNormal() throws IOException {
         // arrange
-        final OBJTriangleMeshReader reader = reader(
+        final ObjFormatTriangleMeshReader reader = reader(
                 "o test\n\n" +
                 "v -1 0 0\n" +
                 "v 0 0 0\r\n" +
@@ -131,7 +131,7 @@ public class OBJTriangleMeshReaderTest {
     @Test
     public void testReadTriangleMesh_failOnNonPolygon() throws IOException {
         // arrange
-        final OBJTriangleMeshReader reader = reader(
+        final ObjFormatTriangleMeshReader reader = reader(
                 "o test\n\n" +
                 "v 0 0 0\r\n" +
                 "v 1 0 0\n" +
@@ -149,7 +149,7 @@ public class OBJTriangleMeshReaderTest {
                 IOException.class, Pattern.compile("^Parsing failed.*"));
     }
 
-    private static OBJTriangleMeshReader reader(final String str) {
-        return new OBJTriangleMeshReader(new StringReader(str), TEST_PRECISION);
+    private static ObjFormatTriangleMeshReader reader(final String str) {
+        return new ObjFormatTriangleMeshReader(new StringReader(str), TEST_PRECISION);
     }
 }

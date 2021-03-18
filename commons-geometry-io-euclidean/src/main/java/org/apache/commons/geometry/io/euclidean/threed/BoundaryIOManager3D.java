@@ -29,8 +29,8 @@ import org.apache.commons.geometry.io.core.BoundaryIOManager;
 import org.apache.commons.geometry.io.core.GeometryFormat;
 import org.apache.commons.geometry.io.core.input.GeometryInput;
 import org.apache.commons.geometry.io.core.output.GeometryOutput;
-import org.apache.commons.geometry.io.euclidean.threed.obj.OBJBoundaryReadHandler3D;
-import org.apache.commons.geometry.io.euclidean.threed.obj.OBJBoundaryWriteHandler3D;
+import org.apache.commons.geometry.io.euclidean.threed.obj.ObjFormatBoundaryReadHandler3D;
+import org.apache.commons.geometry.io.euclidean.threed.obj.ObjFormatBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.txt.CsvBoundaryReadHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.txt.CsvBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.txt.TextBoundaryReadHandler3D;
@@ -168,8 +168,8 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      */
     public void registerDefaultHandlers() {
         // obj
-        registerReadHandler(new OBJBoundaryReadHandler3D());
-        registerWriteHandler(new OBJBoundaryWriteHandler3D());
+        registerReadHandler(new ObjFormatBoundaryReadHandler3D());
+        registerWriteHandler(new ObjFormatBoundaryWriteHandler3D());
 
         // txt
         registerReadHandler(new TextBoundaryReadHandler3D());

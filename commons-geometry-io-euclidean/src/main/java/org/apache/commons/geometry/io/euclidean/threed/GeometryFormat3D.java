@@ -12,37 +12,48 @@ public enum GeometryFormat3D implements GeometryFormat {
     /** Value representing the OBJ file format.
      * @see <a href="https://en.wikipedia.org/wiki/Wavefront_.obj_file">Wavefront .obj file</a>
      */
-    OBJ(Collections.singletonList("obj")),
+    OBJ("obj"),
 
-    /** Value representing the simple text format described by
-     * {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionReader TextFacetDefinitionReader}
-     * and
-     * {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter TextFacetDefinitionWriter}.
-     * This format describes facets by listing the coordinates of its vertices in order, with one facet
-     * described per line. Facets may have 3 or more vertices and do not need to all have the same
-     * number of vertices.
+    /** Value representing a simple, <em>non-standard</em> text geometry format that defines facets one per line
+     * by listing the coordinates of the facet vertices in order, separated by non-numeric characters (e.g. whitespace,
+     * commas, semicolons, etc). Each line follows the pattern
+     * <p>
+     * <pre>
+     *      p1<sub>x</sub> p1<sub>y</sub> p1<sub>z</sub> p2<sub>x</sub> p2<sub>y</sub> p2<sub>z</sub> p3<sub>x</sub> p3<sub>y</sub> p3<sub>z</sub> ...
+     * </pre>
+     * </p>
+     * <p>where the <em>p1</em> elements contain the coordinates of the first facet vertex,
+     * <em>p2</em> those of the second, and so on. Facets may have 3 or more vertices and do not need to all have
+     * the same number of vertices.
+     *
+     * <p>This format is non-standard and no guarantees are made regarding its compatibility with other systems.
+     * It is intended primarily to provide a convenient, human-readable format for data input and analysis.</p>
+     * @see {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionReader TextFacetDefinitionReader}
+     * @see {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter TextFacetDefinitionWriter}
      */
-    TXT(Collections.singletonList("txt")),
+    TXT("txt"),
 
-    /** Value representing the CSV file format as described by
-     * {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter#csvFormat(java.io.Writer)
-     * TextFacetDefinitionWriter}. When used to represent 3D geometry information, the coordinates of the vertices of
-     * the facets are listed in order, with one facet defined per row. This is similar to the {@link #TXT} format
-     * with the exception that facets are converted to triangles before writing so that all rows have the same
-     * number of columns.
+    /** Value representing a simple, <em>non-standard</em> CSV geometry format that defines triangular facets
+     * one per line by listing the facet vertex coordinates in order, separated by commas. This format is a subset
+     * of the {@link #TXT} format with commas as separators and facets written as triangles (to ensure that
+     * all rows have the same number of columns).
+     *
+     * <p>This format is non-standard and no guarantees are made regarding its compatibility with other systems.
+     * It is intended primarily to provide a convenient, human-readable format for data input and analysis.</p>
+     * @see {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter#csvFormat(java.io.Writer) TextFacetDefinitionWriter}
      */
-    CSV(Collections.singletonList("csv"));
+    CSV("csv");
 
     /** List of file extensions associated with the format. The first file extension
      * listed is taken as the default.
      */
     private final List<String> fileExtensions;
 
-    /** Construct a new instance with the given file extensions.
-     * @param fileExtensions file extensions
+    /** Construct a new instance with the given file extension.
+     * @param fileExt file extension
      */
-    GeometryFormat3D(final List<String> fileExtensions) {
-        this.fileExtensions = fileExtensions;
+    GeometryFormat3D(final String fileExt) {
+        this.fileExtensions = Collections.singletonList(fileExt);
     }
 
     /** {@inheritDoc} */

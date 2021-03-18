@@ -25,20 +25,20 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
 /** Abstract base class for types that read OBJ polygon content using
  * {@link PolygonOBJParser}.
  */
-public abstract class AbstractOBJPolygonReader implements Closeable {
+public abstract class AbstractObjFormatPolygonReader implements Closeable {
 
     /** Underlying reader. */
     private final Reader reader;
 
     /** OBJ polygon parser. */
-    private final PolygonOBJParser parser;
+    private final PolygonObjFormatParser parser;
 
     /** Construct a new instance that reads OBJ content from the given reader.
      * @param reader reader to read characters from
      */
-    protected AbstractOBJPolygonReader(final Reader reader) {
+    protected AbstractObjFormatPolygonReader(final Reader reader) {
         this.reader = reader;
-        this.parser = new PolygonOBJParser(reader);
+        this.parser = new PolygonObjFormatParser(reader);
     }
 
     /** Get the flag indicating whether or not an {@link IOException} will be thrown
@@ -72,16 +72,16 @@ public abstract class AbstractOBJPolygonReader implements Closeable {
      * @return the next face from the OBJ content or null if no face is found
      * @throws IOException if an I/O or data format error occurs
      */
-    protected PolygonOBJParser.Face readFace() throws IOException {
+    protected PolygonObjFormatParser.Face readFace() throws IOException {
         while (parser.nextKeyword()) {
             switch (parser.getCurrentKeyword()) {
-            case OBJConstants.VERTEX_KEYWORD:
+            case ObjFormatConstants.VERTEX_KEYWORD:
                 handleVertex(parser.readVector());
                 break;
-            case OBJConstants.VERTEX_NORMAL_KEYWORD:
+            case ObjFormatConstants.VERTEX_NORMAL_KEYWORD:
                 handleNormal(parser.readVector());
                 break;
-            case OBJConstants.FACE_KEYWORD:
+            case ObjFormatConstants.FACE_KEYWORD:
                 return parser.readFace();
             default:
                 break;

@@ -31,14 +31,14 @@ import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class OBJFacetDefinitionReaderTest {
+public class ObjFacetDefinitionReaderTest {
 
     private static final double TEST_EPS = 1e-10;
 
     @Test
     public void testDefaults() {
         // arrange
-        final OBJFacetDefinitionReader reader = reader("");
+        final ObjFormatFacetDefinitionReader reader = reader("");
 
         // act/assert
         Assertions.assertFalse(reader.getFailOnNonPolygonKeywords());
@@ -50,7 +50,7 @@ public class OBJFacetDefinitionReaderTest {
         final CloseCountReader closeReader = new CloseCountReader(new StringReader(""));
 
         // act/assert
-        try (OBJFacetDefinitionReader reader = new OBJFacetDefinitionReader(closeReader)) {
+        try (ObjFormatFacetDefinitionReader reader = new ObjFormatFacetDefinitionReader(closeReader)) {
             Assertions.assertEquals(0, closeReader.getCloseCount());
         }
 
@@ -60,7 +60,7 @@ public class OBJFacetDefinitionReaderTest {
     @Test
     public void testReadFacet_withNormal() throws IOException {
         // arrange
-        final OBJFacetDefinitionReader reader = reader(
+        final ObjFormatFacetDefinitionReader reader = reader(
                 "o test\n\n" +
                 "v 0 0 0\r\n" +
                 "v 1 0 0\n" +
@@ -84,7 +84,7 @@ public class OBJFacetDefinitionReaderTest {
     @Test
     public void testReadFacet_withoutNormal() throws IOException {
         // arrange
-        final OBJFacetDefinitionReader reader = reader(
+        final ObjFormatFacetDefinitionReader reader = reader(
                 "o test\n\n" +
                 "v 0 0 0\r\n" +
                 "v 1 0 0\n" +
@@ -105,7 +105,7 @@ public class OBJFacetDefinitionReaderTest {
     @Test
     public void testReadFacet_failOnNonPolygon() throws IOException {
         // arrange
-        final OBJFacetDefinitionReader reader = reader(
+        final ObjFormatFacetDefinitionReader reader = reader(
                 "o test\n\n" +
                 "v 0 0 0\r\n" +
                 "v 1 0 0\n" +
@@ -123,7 +123,7 @@ public class OBJFacetDefinitionReaderTest {
                 IOException.class, Pattern.compile("^Parsing failed.*"));
     }
 
-    private static OBJFacetDefinitionReader reader(final String str) {
-        return new OBJFacetDefinitionReader(new StringReader(str));
+    private static ObjFormatFacetDefinitionReader reader(final String str) {
+        return new ObjFormatFacetDefinitionReader(new StringReader(str));
     }
 }

@@ -37,14 +37,14 @@ import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitionReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class OBJBoundaryReadHandler3DTest {
+public class ObjFormatBoundaryReadHandler3DTest {
 
     private static final double TEST_EPS = 1e-10;
 
     private static final DoublePrecisionContext TEST_PRECISION =
             new EpsilonDoublePrecisionContext(TEST_EPS);
 
-    private final OBJBoundaryReadHandler3D handler = new OBJBoundaryReadHandler3D();
+    private final ObjFormatBoundaryReadHandler3D handler = new ObjFormatBoundaryReadHandler3D();
 
     @Test
     public void testDefaults() {

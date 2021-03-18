@@ -30,14 +30,14 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class PolygonOBJParserTest {
+public class PolygonObjFormatParserTest {
 
     private static final double EPS = 1e-10;
 
     @Test
     public void testInitialState() {
         // act
-        final PolygonOBJParser p = parser("");
+        final PolygonObjFormatParser p = parser("");
 
         // assert
         Assertions.assertNull(p.getCurrentKeyword());
@@ -50,7 +50,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testNextKeyword() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "#comment",
                 "",
                 "  \t",
@@ -83,7 +83,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testNextKeyword_polygonKeywordsOnly_valid() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "v",
                 "vn",
                 "vt",
@@ -113,7 +113,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testNextKeyword_polygonKeywordsOnly_invalid() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "",
                 "curv2 abc"
         ));
@@ -130,7 +130,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testNextKeyword_emptyContent() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser("");
+        final PolygonObjFormatParser p = parser("");
 
         // act/assert
         assertNextKeyword(null, p);
@@ -139,7 +139,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testNextKeyword_unexpectedContent() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                     " f",
                     "-- bad comment attempt"
                 ));
@@ -159,7 +159,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadDataLine() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "  line\t",
                 "",
                 " \\",
@@ -179,7 +179,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testDiscardDataLine() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "  line\t",
                 "",
                 " \\",
@@ -210,7 +210,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadVector() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "1.01 3e-02 123.999 extra"
         ));
 
@@ -221,7 +221,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadVector_parseFailures() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "0.1 0.2 a",
                 "1",
                 ""
@@ -242,7 +242,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadDoubles() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "0.1 0.2 3e2 4e2 500.01",
                 "  12.001  ",
                 "  ",
@@ -271,7 +271,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadDoubles_parseFailures() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "0.1 0.2 a",
                 "b"
         ));
@@ -291,7 +291,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadFace() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "# test content",
                 "o test",
                 "v 0 0 0",
@@ -396,7 +396,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadFace_notEnoughVertices() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "# test content",
                 "v 0 0 0",
                 "v 1 0 0",
@@ -415,7 +415,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadFace_invalidVertexIndex() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "# test content",
                 "f 1 2 3",
                 "v 0 0 0",
@@ -455,7 +455,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadFace_invalidTextureIndex() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "# test content",
                 "v 0 0 0",
                 "v 1 0 0",
@@ -498,7 +498,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testReadFace_invalidNormalIndex() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "# test content",
                 "v 0 0 0",
                 "v 1 0 0",
@@ -541,7 +541,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testParse() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "# test content",
                 "o test",
                 "g test",
@@ -629,7 +629,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testFace_getDefinedCompositeNormal() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 1 1 0",
@@ -677,7 +677,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testFace_computeNormalFromVertices() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 2 0 0",
@@ -708,7 +708,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testFace_getVertexAttributesCounterClockwise() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 0 1 0",
@@ -723,11 +723,11 @@ public class PolygonOBJParserTest {
         final IntFunction<Vector3D> vertexFn = vertices::get;
 
         nextMatchingKeyword("f", p);
-        final PolygonOBJParser.Face f = p.readFace();
+        final PolygonObjFormatParser.Face f = p.readFace();
 
-        final List<PolygonOBJParser.VertexAttributes> attrs = f.getVertexAttributes();
+        final List<PolygonObjFormatParser.VertexAttributes> attrs = f.getVertexAttributes();
 
-        final List<PolygonOBJParser.VertexAttributes> reverseAttrs = new ArrayList<>(attrs);
+        final List<PolygonObjFormatParser.VertexAttributes> reverseAttrs = new ArrayList<>(attrs);
         Collections.reverse(reverseAttrs);
 
         // act/assert
@@ -744,7 +744,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testFace_getVertices() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 1 1 0",
@@ -772,7 +772,7 @@ public class PolygonOBJParserTest {
     @Test
     public void testFace_getVerticesCounterClockwise() throws IOException {
         // arrange
-        final PolygonOBJParser p = parser(lines(
+        final PolygonObjFormatParser p = parser(lines(
                 "v 0 0 0",
                 "v 1 0 0",
                 "v 0 1 0",
@@ -792,7 +792,7 @@ public class PolygonOBJParserTest {
         Collections.reverse(reverseFaceVertices);
 
         nextMatchingKeyword("f", p);
-        final PolygonOBJParser.Face f = p.readFace();
+        final PolygonObjFormatParser.Face f = p.readFace();
 
         // act/assert
         Assertions.assertEquals(faceVertices, f.getVerticesCounterClockwise(null, vertexFn));
@@ -805,8 +805,8 @@ public class PolygonOBJParserTest {
         Assertions.assertEquals(reverseFaceVertices, f.getVerticesCounterClockwise(Vector3D.of(1, 0, -0.1), vertexFn));
     }
 
-    private static PolygonOBJParser parser(final String content) {
-        return new PolygonOBJParser(new StringReader(content));
+    private static PolygonObjFormatParser parser(final String content) {
+        return new PolygonObjFormatParser(new StringReader(content));
     }
 
     private static String lines(final String... lines) {
@@ -821,11 +821,11 @@ public class PolygonOBJParserTest {
         return sb.toString();
     }
 
-    private static void nextFace(final PolygonOBJParser parser) throws IOException {
-        nextMatchingKeyword(OBJConstants.FACE_KEYWORD, parser);
+    private static void nextFace(final PolygonObjFormatParser parser) throws IOException {
+        nextMatchingKeyword(ObjFormatConstants.FACE_KEYWORD, parser);
     }
 
-    private static void nextMatchingKeyword(final String keyword, final PolygonOBJParser parser) throws IOException {
+    private static void nextMatchingKeyword(final String keyword, final PolygonObjFormatParser parser) throws IOException {
         while (parser.nextKeyword()) {
             if (keyword.equals(parser.getCurrentKeyword())) {
                 return;
@@ -833,12 +833,12 @@ public class PolygonOBJParserTest {
         }
     }
 
-    private static void assertNextKeyword(final String expected, final PolygonOBJParser parser) throws IOException {
+    private static void assertNextKeyword(final String expected, final PolygonObjFormatParser parser) throws IOException {
         Assertions.assertEquals(expected != null, parser.nextKeyword());
         Assertions.assertEquals(expected, parser.getCurrentKeyword());
     }
 
-    private static void assertFace(final int[][] vertexAttributes, final PolygonOBJParser.Face face) {
+    private static void assertFace(final int[][] vertexAttributes, final PolygonObjFormatParser.Face face) {
         Assertions.assertEquals(vertexAttributes.length, face.getVertexAttributes().size());
 
         final int[] expectedVertexIndices = new int[vertexAttributes.length];
@@ -846,7 +846,7 @@ public class PolygonOBJParserTest {
         final int[] expectedNormalIndices = new int[vertexAttributes.length];
 
         // check the indices directly on the vertex attributes
-        PolygonOBJParser.VertexAttributes attrs;
+        PolygonObjFormatParser.VertexAttributes attrs;
         String msg;
         for (int i = 0; i < vertexAttributes.length; ++i) {
             attrs = face.getVertexAttributes().get(i);

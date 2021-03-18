@@ -34,7 +34,7 @@ import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class OBJWriterTest {
+public class ObjFormatWriterTest {
 
     private static final double TEST_EPS = 1e-10;
 
@@ -47,7 +47,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act/assert
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             Assertions.assertEquals("\n", meshWriter.getLineSeparator());
             Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, meshWriter.getDoubleFormat());
             Assertions.assertEquals(0, meshWriter.getVertexCount());
@@ -61,7 +61,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act/assert
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.close();
         }
     }
@@ -72,7 +72,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.setLineSeparator("\r\n");
 
             meshWriter.writeComment("line 1");
@@ -93,7 +93,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.setDoubleFormat(DoubleFormats.createDefault(0, -1));
 
             meshWriter.writeVertex(Vector3D.of(1.09, 2.05, 3.06));
@@ -109,7 +109,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.writeComment("test");
             meshWriter.writeComment(" a\r\n multi-line\ncomment");
         }
@@ -128,7 +128,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.writeObjectName("test-object");
         }
 
@@ -142,7 +142,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.writeGroupName("test-group");
         }
 
@@ -159,7 +159,7 @@ public class OBJWriterTest {
         final int index1;
         final int index2;
         final int count;
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.setDoubleFormat(DoubleFormats.createDefault(0, -1));
 
             index1 = meshWriter.writeVertex(Vector3D.of(1.09, 2.1, 3.005));
@@ -186,7 +186,7 @@ public class OBJWriterTest {
         final int index1;
         final int index2;
         final int count;
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.setDoubleFormat(DoubleFormats.createDefault(0, -1));
 
             index1 = meshWriter.writeVertexNormal(Vector3D.of(1.09, 2.1, 3.005));
@@ -210,7 +210,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.writeVertex(Vector3D.ZERO);
             meshWriter.writeVertex(Vector3D.of(1, 0, 0));
             meshWriter.writeVertex(Vector3D.of(1, 1, 0));
@@ -236,7 +236,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.writeVertex(Vector3D.ZERO);
             meshWriter.writeVertex(Vector3D.of(1, 0, 0));
             meshWriter.writeVertex(Vector3D.of(1, 1, 0));
@@ -268,7 +268,7 @@ public class OBJWriterTest {
 
         // act
         GeometryTestUtils.assertThrowsWithMessage(() -> {
-            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
                 meshWriter.writeFace(1, 2);
             }
         }, IllegalArgumentException.class, "Face must have more than 3 vertices; found 2");
@@ -281,7 +281,7 @@ public class OBJWriterTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(() -> {
-            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
                 meshWriter.writeVertex(Vector3D.ZERO);
                 meshWriter.writeVertex(Vector3D.of(1, 1, 1));
 
@@ -290,7 +290,7 @@ public class OBJWriterTest {
         }, IndexOutOfBoundsException.class, "Vertex index out of bounds: 2");
 
         GeometryTestUtils.assertThrowsWithMessage(() -> {
-            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
                 meshWriter.writeVertex(Vector3D.ZERO);
                 meshWriter.writeVertex(Vector3D.of(1, 1, 1));
 
@@ -306,7 +306,7 @@ public class OBJWriterTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(() -> {
-            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
                 meshWriter.writeVertex(Vector3D.ZERO);
                 meshWriter.writeVertex(Vector3D.of(1, 1, 1));
                 meshWriter.writeVertex(Vector3D.of(0, 2, 0));
@@ -318,7 +318,7 @@ public class OBJWriterTest {
         }, IndexOutOfBoundsException.class, "Normal index out of bounds: 1");
 
         GeometryTestUtils.assertThrowsWithMessage(() -> {
-            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
                 meshWriter.writeVertex(Vector3D.ZERO);
                 meshWriter.writeVertex(Vector3D.of(1, 1, 1));
                 meshWriter.writeVertex(Vector3D.of(0, 2, 0));
@@ -337,7 +337,7 @@ public class OBJWriterTest {
 
         // act
         GeometryTestUtils.assertThrowsWithMessage(() -> {
-            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
                 meshWriter.writeFace(new int[] {0, 1, 2, 3}, new int[] {0, 1, 2});
             }
         }, IllegalArgumentException.class, "Face normal index count must equal vertex index count; expected 4 but was 3");
@@ -354,7 +354,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.writeMesh(mesh);
         }
 
@@ -373,8 +373,8 @@ public class OBJWriterTest {
         // arrange
         final StringWriter writer = new StringWriter();
 
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            OBJWriter.MeshBuffer buf = meshWriter.meshBuffer();
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
+            ObjFormatWriter.MeshBuffer buf = meshWriter.meshBuffer();
 
             // act
             buf.add(new SimpleFacetDefinition(Arrays.asList(
@@ -406,8 +406,8 @@ public class OBJWriterTest {
         // arrange
         final StringWriter writer = new StringWriter();
 
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            OBJWriter.MeshBuffer buf = meshWriter.meshBuffer(2);
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
+            ObjFormatWriter.MeshBuffer buf = meshWriter.meshBuffer(2);
 
             // act
             buf.add(new SimpleFacetDefinition(Arrays.asList(
@@ -441,8 +441,8 @@ public class OBJWriterTest {
         // arrange
         final StringWriter writer = new StringWriter();
 
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
-            OBJWriter.MeshBuffer buf = meshWriter.meshBuffer(2);
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
+            ObjFormatWriter.MeshBuffer buf = meshWriter.meshBuffer(2);
 
             // act
             meshWriter.writeVertex(Vector3D.ZERO);
@@ -496,7 +496,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.writeBoundaries(mesh);
         }
 
@@ -521,7 +521,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.writeBoundaries(src);
         }
 
@@ -546,7 +546,7 @@ public class OBJWriterTest {
         final StringWriter writer = new StringWriter();
 
         // act
-        try (OBJWriter meshWriter = new OBJWriter(writer)) {
+        try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
             meshWriter.writeBoundaries(src, 1);
         }
 
@@ -574,7 +574,7 @@ public class OBJWriterTest {
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(() -> {
-            try (OBJWriter meshWriter = new OBJWriter(writer)) {
+            try (ObjFormatWriter meshWriter = new ObjFormatWriter(writer)) {
                 meshWriter.writeBoundaries(src);
             } catch (final IOException exc) {
                 throw new UncheckedIOException(exc);

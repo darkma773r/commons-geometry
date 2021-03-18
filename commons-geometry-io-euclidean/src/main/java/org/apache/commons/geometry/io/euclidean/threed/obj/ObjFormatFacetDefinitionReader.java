@@ -28,7 +28,7 @@ import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 
 /** Class for reading {@link FacetDefinition facets} from OBJ content.
  */
-public class OBJFacetDefinitionReader extends AbstractOBJPolygonReader
+public class ObjFormatFacetDefinitionReader extends AbstractObjFormatPolygonReader
     implements FacetDefinitionReader {
 
     /** List of vertices encountered in the input. */
@@ -40,14 +40,14 @@ public class OBJFacetDefinitionReader extends AbstractOBJPolygonReader
     /** Construct a new instance that reads OBJ content from the given reader.
      * @param reader reader to read from
      */
-    public OBJFacetDefinitionReader(final Reader reader) {
+    public ObjFormatFacetDefinitionReader(final Reader reader) {
         super(reader);
     }
 
     /** {@inheritDoc} */
     @Override
     public FacetDefinition readFacet() throws IOException {
-        final PolygonOBJParser.Face face = readFace();
+        final PolygonObjFormatParser.Face face = readFace();
         if (face != null) {
             final List<Vector3D> faceVertices = face.getVertices(vertices::get);
             final Vector3D definedNormal = face.getDefinedCompositeNormal(normals::get);
