@@ -35,6 +35,7 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.io.core.input.GeometryInput;
 import org.apache.commons.geometry.io.core.output.GeometryOutput;
+import org.apache.commons.geometry.io.core.test.StubGeometryFormat;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

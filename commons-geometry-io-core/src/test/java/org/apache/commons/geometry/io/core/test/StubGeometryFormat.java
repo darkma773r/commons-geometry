@@ -14,10 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.io.core;
+package org.apache.commons.geometry.io.core.test;
 
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.geometry.io.core.GeometryFormat;
 
 /** Stub implementation of {@link GeometryFormat} for use in tests.
  */

@@ -34,10 +34,10 @@ import org.apache.commons.geometry.io.core.input.UrlGeometryInput;
 import org.apache.commons.geometry.io.core.output.FileGeometryOutput;
 import org.apache.commons.geometry.io.core.output.GeometryOutput;
 
-/** Utility class providing convenient access to 3D IO functionality. The static read and write functions delegate
- * to a default {@link #getDefaultManager() DefaultBoundaryIOManager3D} instance. The default configuration should
- * be suitable for most purposes. If customization is required, consider directly creating and configuring and a
- * {@link BoundaryIOManager3D} instance instead.
+/** Utility class providing convenient access to 3D IO functionality. The static read and write methods here
+ * delegate to a default {@link #getDefaultManager() BoundaryIOManager3D} instance. The default
+ * configuration should be sufficient for most purposes. If customization is required, consider directly
+ * creating and configuring and a {@link BoundaryIOManager3D} instance instead.
  *
  * <p><strong>Examples</strong></p>
  * <p>The example below reads an OBJ file as a stream of triangles, transforms each triangle, and writes the
