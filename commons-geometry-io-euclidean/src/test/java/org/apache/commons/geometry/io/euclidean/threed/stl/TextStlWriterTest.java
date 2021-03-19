@@ -22,12 +22,24 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
+import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
+import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
+import org.apache.commons.geometry.euclidean.threed.ConvexPolygon3D;
+import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.io.core.test.CloseCountWriter;
+import org.apache.commons.geometry.io.core.utils.DoubleFormats;
+import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
+import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TextStlWriterTest {
+
+    private static final double TEST_EPS = 1e-10;
+
+    private static final DoublePrecisionContext TEST_PRECISION =
+            new EpsilonDoublePrecisionContext(TEST_EPS);
 
     private final StringWriter out = new StringWriter();
 
@@ -44,6 +56,30 @@ public class TextStlWriterTest {
         // assert
         Assertions.assertEquals(1, countWriter.getCloseCount());
         Assertions.assertEquals("", out.toString());
+    }
+
+    @Test
+    public void testStartSolid_alreadyStarted() throws IOException {
+        // arrange
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+
+            // act/assert
+            GeometryTestUtils.assertThrowsWithMessage(
+                    () -> writer.startSolid(),
+                    IllegalStateException.class, "Cannot start solid definition: a solid is already being written");
+        }
+    }
+
+    @Test
+    public void testEndSolid_notStarted() throws IOException {
+        // arrange
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            // act/assert
+            GeometryTestUtils.assertThrowsWithMessage(
+                    () -> writer.endSolid(),
+                    IllegalStateException.class, "Cannot end solid definition: no solid has been started");
+        }
     }
 
     @Test
@@ -163,6 +199,215 @@ public class TextStlWriterTest {
             "vertex 0.0 0.0 0.0\n" +
             "vertex 1.0 0.0 0.0\n" +
             "vertex 0.0 1.0 0.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWrite_boundary() throws IOException {
+        // arrange
+        final ConvexPolygon3D boundary = Planes.convexPolygonFromVertices(
+                Arrays.asList(Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 0, 1), Vector3D.of(0, 0, 1)),
+                TEST_PRECISION);
+
+        // act
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+
+            writer.write(boundary);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet 0.0 -1.0 0.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 1.0 0.0 0.0\n" +
+            "vertex 1.0 0.0 1.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "facet 0.0 -1.0 0.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 1.0 0.0 1.0\n" +
+            "vertex 0.0 0.0 1.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWrite_facetDefinition_noNormal() throws IOException {
+        // arrange
+        final FacetDefinition facet = new SimpleFacetDefinition(Arrays.asList(
+                Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0), Vector3D.of(0, 1, 0)));
+
+        // act
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+
+            writer.write(facet);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet 0.0 0.0 0.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 1.0 0.0 0.0\n" +
+            "vertex 1.0 1.0 0.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "facet 0.0 0.0 0.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 1.0 1.0 0.0\n" +
+            "vertex 0.0 1.0 0.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWrite_facetDefinition_withNormal() throws IOException {
+        // arrange
+        final Vector3D normal = Vector3D.Unit.PLUS_Z;
+        final FacetDefinition facet = new SimpleFacetDefinition(Arrays.asList(
+                Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0), Vector3D.of(0, 1, 0)),
+                normal);
+
+        // act
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+
+            writer.write(facet);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet 0.0 0.0 1.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 1.0 0.0 0.0\n" +
+            "vertex 1.0 1.0 0.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "facet 0.0 0.0 1.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 1.0 1.0 0.0\n" +
+            "vertex 0.0 1.0 0.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWrite_noSolidStarted() throws IOException {
+        // arrange
+        final List<Vector3D> vertices = Arrays.asList(
+                Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(0, 1, 0));
+        final Vector3D normal = Vector3D.Unit.PLUS_Z;
+
+        final String msg = "Cannot write triangle: no solid has been started";
+
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+
+            // act/assert
+            GeometryTestUtils.assertThrowsWithMessage(
+                    () -> writer.write(vertices, normal),
+                    IllegalStateException.class, msg);
+
+            GeometryTestUtils.assertThrowsWithMessage(
+                    () -> writer.write(new SimpleFacetDefinition(vertices, normal)),
+                    IllegalStateException.class, msg);
+
+            GeometryTestUtils.assertThrowsWithMessage(
+                    () -> writer.write(Planes.convexPolygonFromVertices(vertices, TEST_PRECISION)),
+                    IllegalStateException.class, msg);
+        }
+    }
+
+    @Test
+    public void testWrite_customFormat() throws IOException {
+        // arrange
+        final List<Vector3D> vertices = Arrays.asList(
+                Vector3D.ZERO, Vector3D.of(1.0 / 3.0, 0, 0), Vector3D.of(0, 1.0 / 3.0, 0));
+        final Vector3D normal = Vector3D.Unit.PLUS_Z;
+
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+
+            writer.setDoubleFormat(DoubleFormats.createDefault(0, -3));
+            writer.setLineSeparator("\r\n");
+
+            // act
+            writer.startSolid();
+            writer.write(vertices, normal);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \r\n" +
+            "facet 0.0 0.0 1.0\r\n" +
+            "outer loop\r\n" +
+            "vertex 0.0 0.0 0.0\r\n" +
+            "vertex 0.333 0.0 0.0\r\n" +
+            "vertex 0.0 0.333 0.0\r\n" +
+            "endloop\r\n" +
+            "endfacet\r\n" +
+            "endsolid \r\n", out.toString());
+    }
+
+    @Test
+    public void testWrite_badFacet_withNormal() throws IOException {
+        // arrange
+        final List<Vector3D> vertices = Arrays.asList(
+                Vector3D.ZERO, Vector3D.ZERO, Vector3D.ZERO);
+        final Vector3D normal = Vector3D.Unit.PLUS_Z;
+
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            // act
+            writer.startSolid();
+            writer.write(vertices, normal);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet 0.0 0.0 1.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWrite_badFacet_noNormal() throws IOException {
+        // arrange
+        final List<Vector3D> vertices = Arrays.asList(
+                Vector3D.ZERO, Vector3D.ZERO, Vector3D.ZERO);
+
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            // act
+            writer.startSolid();
+            writer.write(vertices, null);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet 0.0 0.0 0.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 0.0 0.0 0.0\n" +
             "endloop\n" +
             "endfacet\n" +
             "endsolid \n", out.toString());
