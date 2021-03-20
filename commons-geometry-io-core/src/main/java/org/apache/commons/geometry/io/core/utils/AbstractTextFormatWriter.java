@@ -16,13 +16,14 @@
  */
 package org.apache.commons.geometry.io.core.utils;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.Writer;
 
 /** Base type for classes that write text-based data formats. This class
  * provides a number of common configuration options and utility methods.
  */
-public abstract class AbstractTextFormatWriter implements AutoCloseable {
+public abstract class AbstractTextFormatWriter implements Closeable {
 
     /** The default line separator value. */
     private static final String DEFAULT_LINE_SEPARATOR = "\n";

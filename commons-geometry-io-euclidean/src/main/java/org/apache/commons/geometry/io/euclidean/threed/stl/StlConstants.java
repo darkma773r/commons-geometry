@@ -16,6 +16,7 @@
  */
 package org.apache.commons.geometry.io.euclidean.threed.stl;
 
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -70,6 +71,15 @@ public final class StlConstants {
 
     /** Keyword used to indicate a vertex definition. */
     static final String VERTEX_KEYWORD = "vertex";
+
+    /** Number of bytes in the binary format header. */
+    static final int BINARY_HEADER_BYTES = 80;
+
+    /** Number of bytes for each triangle in the binary format. */
+    static final int BINARY_TRIANGLE_BYTES = 50;
+
+    /** Byte order for binary data. */
+    static final ByteOrder BINARY_BYTE_ORDER = ByteOrder.LITTLE_ENDIAN;
 
     /** Utility class; no instantiation. */
     private StlConstants() {}

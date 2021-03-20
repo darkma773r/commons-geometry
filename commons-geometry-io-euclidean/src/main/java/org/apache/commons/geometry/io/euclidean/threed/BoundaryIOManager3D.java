@@ -31,6 +31,8 @@ import org.apache.commons.geometry.io.core.input.GeometryInput;
 import org.apache.commons.geometry.io.core.output.GeometryOutput;
 import org.apache.commons.geometry.io.euclidean.threed.obj.ObjFormatBoundaryReadHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.obj.ObjFormatBoundaryWriteHandler3D;
+import org.apache.commons.geometry.io.euclidean.threed.stl.StlBoundaryReadHandler3D;
+import org.apache.commons.geometry.io.euclidean.threed.stl.StlBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.txt.CsvBoundaryReadHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.txt.CsvBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.txt.TextBoundaryReadHandler3D;
@@ -177,6 +179,10 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
         // obj
         registerReadHandler(new ObjFormatBoundaryReadHandler3D());
         registerWriteHandler(new ObjFormatBoundaryWriteHandler3D());
+
+        // stl
+        registerReadHandler(new StlBoundaryReadHandler3D());
+        registerWriteHandler(new StlBoundaryWriteHandler3D());
 
         // txt
         registerReadHandler(new TextBoundaryReadHandler3D());

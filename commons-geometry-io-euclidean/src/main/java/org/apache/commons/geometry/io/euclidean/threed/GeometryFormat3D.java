@@ -30,6 +30,11 @@ public enum GeometryFormat3D implements GeometryFormat {
      */
     OBJ("obj"),
 
+    /** Value representing the STL file format in both the text (i.e. "ASCII") and binary forms.
+     * @see <a href="https://en.wikipedia.org/wiki/STL_(file_format)>STL</a>
+     */
+    STL("stl"),
+
     /** Value representing a simple, <em>non-standard</em> text geometry format that defines facets one per line
      * by listing the coordinates of the facet vertices in order, separated by non-numeric characters (e.g. whitespace,
      * commas, semicolons, etc). Each line follows the pattern

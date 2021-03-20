@@ -21,27 +21,21 @@ import java.util.List;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 
+/** Facet definition class that provides access to the 2-byte attribute value
+ * stored with each triangle in the binary STL format.
+ */
 public class BinaryStlFacetDefinition extends SimpleFacetDefinition {
-
-    /** Default value for the STL binary facet attribute. */
-    private static final int DEFAULT_ATTRIBUTE_VALUE = 0;
 
     /** Attribute value for the facet (2 bytes). */
     private final int attributeValue;
 
-    public BinaryStlFacetDefinition(final List<Vector3D> vertices) {
-        this(vertices, null, DEFAULT_ATTRIBUTE_VALUE);
-    }
-
-    public BinaryStlFacetDefinition(final List<Vector3D> vertices, final int attributeValue) {
-        this(vertices, null, attributeValue);
-    }
-
-    public BinaryStlFacetDefinition(final List<Vector3D> vertices, final Vector3D normal) {
-        this(vertices, normal, DEFAULT_ATTRIBUTE_VALUE);
-    }
-
-    public BinaryStlFacetDefinition(final List<Vector3D> vertices, final Vector3D normal, final int attributeValue) {
+    /** Construct a new instance.
+     * @param vertices facet vertices
+     * @param normal facet normal
+     * @param attributeValue 2-byte attribute value
+     */
+    public BinaryStlFacetDefinition(final List<Vector3D> vertices, final Vector3D normal,
+            final int attributeValue) {
         super(vertices, normal);
         this.attributeValue = attributeValue;
     }
