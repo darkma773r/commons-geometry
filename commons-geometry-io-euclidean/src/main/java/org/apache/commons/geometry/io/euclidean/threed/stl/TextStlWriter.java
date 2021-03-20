@@ -18,11 +18,8 @@ package org.apache.commons.geometry.io.euclidean.threed.stl;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 
-import org.apache.commons.geometry.euclidean.internal.Vectors;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
@@ -74,7 +71,7 @@ public class TextStlWriter extends AbstractTextFormatWriter {
         }
 
         name = solidName;
-        writeBeginEndLine(StlConstants.SOLID_START_KEYWORD);
+        writeBeginOrEndLine(StlConstants.SOLID_START_KEYWORD);
 
         started = true;
     }
@@ -89,13 +86,14 @@ public class TextStlWriter extends AbstractTextFormatWriter {
             throw new IllegalStateException("Cannot end solid definition: no solid has been started");
         }
 
-        writeBeginEndLine(StlConstants.SOLID_END_KEYWORD);
+        writeBeginOrEndLine(StlConstants.SOLID_END_KEYWORD);
         name = null;
         started = false;
     }
 
     /** Write the given boundary to the output as triangles.
      * @param boundary boundary to write
+     * @throws IllegalStateException if no solid has been started yet
      * @throws IOException if an I/O error occurs
      * @see PlaneConvexSubset#toTriangles()
      */
@@ -107,6 +105,7 @@ public class TextStlWriter extends AbstractTextFormatWriter {
 
     /** Write the given facet definition to the output as triangles.
      * @param facet facet definition to write
+     * @throws IllegalStateException if no solid has been started yet
      * @throws IOException if an I/O error occurs
      */
     public void write(final FacetDefinition facet) throws IOException {
@@ -116,30 +115,29 @@ public class TextStlWriter extends AbstractTextFormatWriter {
     /** Write the facet defined by the given vertices and normal to the output as triangles.
      * @param vertices vertices defining the facet
      * @param normal facet normal; may be null
+     * @throws IllegalStateException if no solid has been started yet
      * @throws IOException if an I/O error occurs
      */
     public void write(final List<Vector3D> vertices, final Vector3D normal) throws IOException {
-        for (final List<Vector3D> triangle : Planes.convexPolygonToTriangleFan(vertices, Function.identity())) {
-            writeTriangle(triangle, normal);
+        for (final List<Vector3D> triangle : Planes.convexPolygonToTriangleFan(vertices, t -> t)) {
+            writeTriangle(
+                    triangle.get(0),
+                    triangle.get(1),
+                    triangle.get(2),
+                    normal);
         }
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public void close() throws IOException {
-        if (started) {
-            endSolid();
-        }
-
-        super.close();
-    }
-
-    /** Write the triangle defined by the arguments to the output.
-     * @param vertices triangle vertices
-     * @param normal triangle normal; may be null
+    /** Write a triangle to the output.
+     * @param p1 first point
+     * @param p2 second point
+     * @param p3 third point
+     * @param normal normal; may be null, in which case the zero vector is used
+     * @throws IllegalStateException if no solid has been started yet
      * @throws IOException if an I/O error occurs
      */
-    private void writeTriangle(final List<Vector3D> vertices, final Vector3D normal) throws IOException {
+    public void writeTriangle(final Vector3D p1, final Vector3D p2, final Vector3D p3, final Vector3D normal)
+            throws IOException {
         if (!started) {
             throw new IllegalStateException("Cannot write triangle: no solid has been started");
         }
@@ -154,17 +152,41 @@ public class TextStlWriter extends AbstractTextFormatWriter {
         write(StlConstants.LOOP_START_KEYWORD);
         writeNewLine();
 
-        for (final Vector3D vertex : getTriangleVerticesCounterClockwise(vertices, normal)) {
-            write(StlConstants.VERTEX_KEYWORD);
-            write(SPACE);
-            writeVector(vertex);
-            writeNewLine();
+        writeTriangleVertex(p1);
+
+        if (StlUtils.pointsAreCounterClockwise(p1, p2, p3, normal)) {
+            writeTriangleVertex(p2);
+            writeTriangleVertex(p3);
+        } else {
+            writeTriangleVertex(p3);
+            writeTriangleVertex(p2);
         }
 
         write(StlConstants.LOOP_END_KEYWORD);
         writeNewLine();
 
         write(StlConstants.FACET_END_KEYWORD);
+        writeNewLine();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void close() throws IOException {
+        if (started) {
+            endSolid();
+        }
+
+        super.close();
+    }
+
+    /** Write a triangle vertex to the output.
+     * @param vertex triangle vertex
+     * @throws IOException if an I/O error occurs
+     */
+    private void writeTriangleVertex(final Vector3D vertex) throws IOException {
+        write(StlConstants.VERTEX_KEYWORD);
+        write(SPACE);
+        writeVector(vertex);
         writeNewLine();
     }
 
@@ -184,7 +206,7 @@ public class TextStlWriter extends AbstractTextFormatWriter {
      * @param keyword keyword at the start of the line
      * @throws IOException if an I/O error occurs
      */
-    private void writeBeginEndLine(final String keyword) throws IOException {
+    private void writeBeginOrEndLine(final String keyword) throws IOException {
         write(keyword);
         write(SPACE);
 
@@ -193,26 +215,5 @@ public class TextStlWriter extends AbstractTextFormatWriter {
         }
 
         writeNewLine();
-    }
-
-    /** Get the vertices for the triangle defined by the arguments in a counter-clockwise direction. The
-     * vertices are returned unchanged if the normal is null.
-     * @param vertices triangle vertices
-     * @param normal triangle normal; may be null
-     * @return the triangle vertices in a counter-clockwise direction relation to the given normal
-     */
-    private List<Vector3D> getTriangleVerticesCounterClockwise(final List<Vector3D> vertices, final Vector3D normal) {
-        if (normal != null) {
-            final Vector3D p0 = vertices.get(0);
-            final Vector3D p1 = vertices.get(1);
-            final Vector3D p2 = vertices.get(2);
-
-            final Vector3D computedNormal = Vectors.tryNormalize(p0.vectorTo(p1).cross(p0.vectorTo(p2)));
-            if (computedNormal != null && normal.dot(computedNormal) < 0) {
-                return Arrays.asList(p0, p2, p1); // reverse direction
-            }
-        }
-
-        return vertices;
     }
 }

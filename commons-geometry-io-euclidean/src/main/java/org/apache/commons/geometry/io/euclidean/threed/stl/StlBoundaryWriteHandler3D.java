@@ -16,11 +16,17 @@
  */
 package org.apache.commons.geometry.io.euclidean.threed.stl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
+import org.apache.commons.geometry.euclidean.threed.Planes;
+import org.apache.commons.geometry.euclidean.threed.Triangle3D;
+import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.io.core.GeometryFormat;
 import org.apache.commons.geometry.io.core.output.GeometryOutput;
 import org.apache.commons.geometry.io.euclidean.threed.AbstractBoundaryWriteHandler3D;
@@ -34,8 +40,11 @@ import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
  */
 public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
-    /** Default binary STL facet attribute value. */
-    private static final int DEFAULT_ATTR = 0;
+    /** Initial size of the data buffer. */
+    private static final int DEFAULT_BUFFER_SIZE = 1000 * StlConstants.BINARY_TRIANGLE_BYTES;
+
+    /** Size of the data buffer. */
+    private int bufferSize = DEFAULT_BUFFER_SIZE;
 
     /** {@inheritDoc} */
     @Override
@@ -43,16 +52,53 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
         return GeometryFormat3D.STL;
     }
 
+    /** Get the size of the data buffers used by this instance.
+     * @return buffer size
+     */
+    public int getBufferSize() {
+        return bufferSize;
+    }
+
+    /** Set the size of the data buffers used by this instance.
+     * @param bufferSize buffer size
+     */
+    public void setBufferSize(final int bufferSize) {
+        if (bufferSize < 1) {
+            throw new IllegalArgumentException("Buffer size must be greater than 1");
+        }
+        this.bufferSize = bufferSize;
+    }
+
     /** {@inheritDoc} */
     @Override
     public void write(final Stream<? extends PlaneConvexSubset> boundaries, GeometryOutput out)
             throws IOException {
-        try (BinaryStlWriter writer = new BinaryStlWriter(out.getOutputStream())) {
+
+        // write the triangle data to a buffer and track how many we write
+        int triangleCount = 0;
+        final ByteArrayOutputStream data = new ByteArrayOutputStream(bufferSize);
+
+        try (BinaryStlWriter dataWriter = new BinaryStlWriter(data)) {
             final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
 
             while (it.hasNext()) {
-                writer.write(it.next(), DEFAULT_ATTR);
+                for (final Triangle3D tri : it.next().toTriangles()) {
+
+                    dataWriter.writeTriangle(
+                            tri.getPoint1(),
+                            tri.getPoint2(),
+                            tri.getPoint3(),
+                            tri.getPlane().getNormal());
+
+                    ++triangleCount;
+                }
             }
+        }
+
+        // write the header and copy the data
+        try (OutputStream os = out.getOutputStream()) {
+            BinaryStlWriter.writeHeader(null, triangleCount, os);
+            data.writeTo(os);
         }
     }
 
@@ -60,12 +106,51 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     @Override
     public void writeFacets(final Stream<? extends FacetDefinition> facets, GeometryOutput out)
             throws IOException {
-        try (BinaryStlWriter writer = new BinaryStlWriter(out.getOutputStream())) {
+
+        // write the triangle data to a buffer and track how many we write
+        int triangleCount = 0;
+        final ByteArrayOutputStream data = new ByteArrayOutputStream(bufferSize);
+
+        try (BinaryStlWriter dataWriter = new BinaryStlWriter(data)) {
             final Iterator<? extends FacetDefinition> it = facets.iterator();
 
+            FacetDefinition facet;
+            int attributeValue;
+
             while (it.hasNext()) {
-                writer.write(it.next(), DEFAULT_ATTR);
+                facet = it.next();
+                attributeValue = getFacetAttributeValue(facet);
+
+                for (final List<Vector3D> tri : Planes.convexPolygonToTriangleFan(facet.getVertices(), t -> t)) {
+
+                    dataWriter.writeTriangle(
+                            tri.get(0),
+                            tri.get(1),
+                            tri.get(2),
+                            facet.getNormal(),
+                            attributeValue);
+
+                    ++triangleCount;
+                }
             }
         }
+
+        // write the header and copy the data
+        try (OutputStream os = out.getOutputStream()) {
+            BinaryStlWriter.writeHeader(null, triangleCount, os);
+            data.writeTo(os);
+        }
+    }
+
+    /** Get the attribute value that should be used for the given facet.
+     * @param facet facet to get the attribute value for
+     * @return attribute value
+     */
+    private int getFacetAttributeValue(final FacetDefinition facet) {
+        if (facet instanceof BinaryStlFacetDefinition) {
+            return ((BinaryStlFacetDefinition) facet).getAttributeValue();
+        }
+
+        return 0;
     }
 }

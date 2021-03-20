@@ -34,9 +34,7 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
     private final InputStream in;
 
     /** Buffer used to read triangle definitions. */
-    private final ByteBuffer triangleBuffer =
-            ByteBuffer.allocate(StlConstants.BINARY_TRIANGLE_BYTES)
-                .order(StlConstants.BINARY_BYTE_ORDER);
+    private final ByteBuffer triangleBuffer = StlUtils.byteBuffer(StlConstants.BINARY_TRIANGLE_BYTES);
 
     /** Number of bytes remaining to be read in the header. */
     private int headerBytesRemaining;
@@ -122,8 +120,7 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
                 throw new IOException("Failed to locate end of header content");
             }
 
-            ByteBuffer buf = ByteBuffer.allocate(Integer.BYTES)
-                    .order(StlConstants.BINARY_BYTE_ORDER);
+            ByteBuffer buf = StlUtils.byteBuffer(Integer.BYTES);
 
             int read = fill(buf);
             if (read < buf.capacity()) {
@@ -165,8 +162,8 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
      * @throws IOException if an I/O error occurs
      */
     private int fill(final ByteBuffer buf) throws IOException {
-        buf.rewind();
         int read = in.read(buf.array());
+        buf.rewind();
 
         return read;
     }
