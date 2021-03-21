@@ -43,8 +43,8 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     /** Initial size of the data buffer. */
     private static final int DEFAULT_BUFFER_SIZE = 1000 * StlConstants.BINARY_TRIANGLE_BYTES;
 
-    /** Size of the data buffer. */
-    private int bufferSize = DEFAULT_BUFFER_SIZE;
+    /** Initial size of data buffers used during write operations. */
+    private int initialBufferSize = DEFAULT_BUFFER_SIZE;
 
     /** {@inheritDoc} */
     @Override
@@ -52,21 +52,21 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
         return GeometryFormat3D.STL;
     }
 
-    /** Get the size of the data buffers used by this instance.
-     * @return buffer size
+    /** Get the initial size of the data buffers used by this instance.
+     * @return initial buffer size
      */
-    public int getBufferSize() {
-        return bufferSize;
+    public int getinitialBufferSize() {
+        return initialBufferSize;
     }
 
-    /** Set the size of the data buffers used by this instance.
-     * @param bufferSize buffer size
+    /** Set the initial size of the data buffers used by this instance.
+     * @param initialBufferSize initial buffer size
      */
-    public void setBufferSize(final int bufferSize) {
-        if (bufferSize < 1) {
+    public void setInitialBufferSize(final int initialBufferSize) {
+        if (initialBufferSize < 1) {
             throw new IllegalArgumentException("Buffer size must be greater than 1");
         }
-        this.bufferSize = bufferSize;
+        this.initialBufferSize = initialBufferSize;
     }
 
     /** {@inheritDoc} */
@@ -76,7 +76,7 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
         // write the triangle data to a buffer and track how many we write
         int triangleCount = 0;
-        final ByteArrayOutputStream data = new ByteArrayOutputStream(bufferSize);
+        final ByteArrayOutputStream data = new ByteArrayOutputStream(initialBufferSize);
 
         try (BinaryStlWriter dataWriter = new BinaryStlWriter(data)) {
             final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
@@ -109,7 +109,7 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
         // write the triangle data to a buffer and track how many we write
         int triangleCount = 0;
-        final ByteArrayOutputStream data = new ByteArrayOutputStream(bufferSize);
+        final ByteArrayOutputStream data = new ByteArrayOutputStream(initialBufferSize);
 
         try (BinaryStlWriter dataWriter = new BinaryStlWriter(data)) {
             final Iterator<? extends FacetDefinition> it = facets.iterator();

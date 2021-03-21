@@ -97,9 +97,9 @@ public class TextStlWriter extends AbstractTextFormatWriter {
      * @throws IOException if an I/O error occurs
      * @see PlaneConvexSubset#toTriangles()
      */
-    public void write(final PlaneConvexSubset boundary) throws IOException {
+    public void writeTriangles(final PlaneConvexSubset boundary) throws IOException {
         for (final Triangle3D tri : boundary.toTriangles()) {
-            write(tri.getVertices(), tri.getPlane().getNormal());
+            writeTriangles(tri.getVertices(), tri.getPlane().getNormal());
         }
     }
 
@@ -108,17 +108,21 @@ public class TextStlWriter extends AbstractTextFormatWriter {
      * @throws IllegalStateException if no solid has been started yet
      * @throws IOException if an I/O error occurs
      */
-    public void write(final FacetDefinition facet) throws IOException {
-        write(facet.getVertices(), facet.getNormal());
+    public void writeTriangles(final FacetDefinition facet) throws IOException {
+        writeTriangles(facet.getVertices(), facet.getNormal());
     }
 
     /** Write the facet defined by the given vertices and normal to the output as triangles.
+     * If the the given list of vertices contains more than 3 vertices, it is converted to
+     * triangles using a triangle fan. Callers are responsible for ensuring that the given
+     * vertices represent a valid convex polygon.
      * @param vertices vertices defining the facet
      * @param normal facet normal; may be null
-     * @throws IllegalStateException if no solid has been started yet
+     * @throws IllegalStateException if no solid has been started yet or fewer than 3 vertices
+     *      are given
      * @throws IOException if an I/O error occurs
      */
-    public void write(final List<Vector3D> vertices, final Vector3D normal) throws IOException {
+    public void writeTriangles(final List<Vector3D> vertices, final Vector3D normal) throws IOException {
         for (final List<Vector3D> triangle : Planes.convexPolygonToTriangleFan(vertices, t -> t)) {
             writeTriangle(
                     triangle.get(0),

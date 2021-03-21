@@ -19,6 +19,7 @@ package org.apache.commons.geometry.io.euclidean.threed.stl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.Arrays;
 
@@ -36,8 +37,8 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
     /** Buffer used to read triangle definitions. */
     private final ByteBuffer triangleBuffer = StlUtils.byteBuffer(StlConstants.BINARY_TRIANGLE_BYTES);
 
-    /** Number of bytes remaining to be read in the header. */
-    private int headerBytesRemaining;
+    /** Header content. */
+    private ByteBuffer header = StlUtils.byteBuffer(StlConstants.BINARY_HEADER_BYTES);
 
     /** Total number of triangles declared to be present in the input. */
     private long triangleTotal;
@@ -45,47 +46,87 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
     /** Number of triangles read so far. */
     private long trianglesRead;
 
+    /** True when the header content has been read. */
+    private boolean hasReadHeader;
+
     /** Construct a new instance that reads from the given input stream.
      * @param in input stream to read from.
      */
     public BinaryStlFacetDefinitionReader(final InputStream in) {
-        this(in, 0);
+        this(in, null);
     }
 
-    /** Construct a new instance that reads from the given input stream. Callers can
-     * specify how many bytes of the header content have already been read outside
-     * of this class.
+    /** Construct a new instance that reads from the given input stream.
      * @param in input stream
-     * @param headerBytesRead number of header bytes that have been read from the
-     *      input stream at the time of instantiation
-     * @throws IllegalArgumentException if {@code headerBytesRead} is less than zero
-     *      or greater than the number of bytes in a binary STL header
+     * @param headerBytes bytes of the header read externally to this class, for example
+     *      to determine the type of STL file
+     * @throws IllegalArgumentException if {@code headerBytes} it provided and its length
+     *      exceeds the STL header length of 80 bytes
      */
-    BinaryStlFacetDefinitionReader(final InputStream in, final int headerBytesRead) {
-        if (headerBytesRead < 0 || headerBytesRead > StlConstants.BINARY_HEADER_BYTES) {
+    public BinaryStlFacetDefinitionReader(final InputStream in, final byte[] headerBytes) {
+        if (headerBytes != null && headerBytes.length > StlConstants.BINARY_HEADER_BYTES) {
             throw new IllegalArgumentException(MessageFormat.format(
-                    "Invalid number of header bytes read: value must be between {} and {} but was {}",
-                    0, StlConstants.BINARY_HEADER_BYTES, headerBytesRead));
+                    "Provided STL header length of {0} exceeds maximum length of {1}",
+                    headerBytes.length, StlConstants.BINARY_HEADER_BYTES));
         }
 
         this.in = in;
-        this.headerBytesRemaining = StlConstants.BINARY_HEADER_BYTES - headerBytesRead;
+
+        // copy the given header bytes
+        if (headerBytes != null) {
+            this.header.put(headerBytes, 0, Math.min(StlConstants.BINARY_HEADER_BYTES, headerBytes.length));
+
+            this.hasReadHeader = this.header.position() >= StlConstants.BINARY_HEADER_BYTES;
+        }
+    }
+
+    /** Get a read-only buffer containing the 80 bytes of the STL header. The header does not
+     * include the 4-byte value indicating the total number of triangles in the STL file.
+     * @return the STL header content
+     * @throws IOException if an I/O error occurs
+     */
+    public ByteBuffer getHeader() throws IOException {
+        beginRead();
+        return ByteBuffer.wrap(header.array().clone());
+    }
+
+    /** Return the header content as a string decoded using the UTF-8 charset. Control
+     * characters (such as '\0') are not included in the result.
+     * @return the header content decoded as a UTF-8 string
+     * @throws IOException if an I/O error occurs
+     */
+    public String getHeaderAsString() throws IOException {
+        return getHeaderAsString(StlConstants.DEFAULT_CHARSET);
+    }
+
+    /** Return the header content as a string decoded using the given charset. Control
+     * characters (such as '\0') are not included in the result.
+     * @param charset charset to decode the header with
+     * @return the header content decoded as a string
+     * @throws IOException if an I/O error occurs
+     */
+    public String getHeaderAsString(final Charset charset) throws IOException {
+        // decode the entire header as characters in the given charset
+        final String raw = charset.decode(getHeader()).toString();
+
+        // strip out any control characters, such as '\0'
+        final StringBuilder sb = new StringBuilder();
+        for (char c : raw.toCharArray()) {
+            if (!Character.isISOControl(c)) {
+                sb.append(c);
+            }
+        }
+
+        return sb.toString();
     }
 
     /** Get the total number of triangles (i.e. facets) declared to be present in the input.
-     * @return total number of triangle declared to be present in the input
+     * @return total number of triangle in the input
      * @throws IOException if an I/O error occurs
      */
-    public long getTriangleCount() throws IOException {
+    public long getNumTriangles() throws IOException {
         beginRead();
         return triangleTotal;
-    }
-
-    /** Get the number of triangles (i.e. facets) read so far.
-     * @return number of triangles read so far
-     */
-    public long getTrianglesRead() {
-        return trianglesRead;
     }
 
     /** {@inheritDoc} */
@@ -114,22 +155,27 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
      * @throws IOException if an I/O error occurs
      */
     private void beginRead() throws IOException {
-        if (headerBytesRemaining > 0) {
-            headerBytesRemaining -= in.skip(headerBytesRemaining);
-            if (headerBytesRemaining > 0) {
-                throw new IOException("Failed to locate end of header content");
+        if (!hasReadHeader) {
+            // read header content
+            int remaining = StlConstants.BINARY_HEADER_BYTES - header.position();
+            remaining -= in.read(header.array(), header.position(), remaining);
+
+            if (remaining > 0) {
+                throw dataNotAvailable("header");
             }
 
+            header.rewind();
+
+            // read the triangle total
             ByteBuffer buf = StlUtils.byteBuffer(Integer.BYTES);
 
-            int read = fill(buf);
-            if (read < buf.capacity()) {
-                throw new IOException(MessageFormat.format(
-                        "Failed to read triangle total count: expected {} bytes but only found {} available",
-                        buf.capacity(), read));
+            if (fill(buf) < buf.capacity()) {
+                throw dataNotAvailable("triangle count");
             }
 
             triangleTotal = Integer.toUnsignedLong(buf.getInt());
+
+            hasReadHeader = true;
         }
     }
 
@@ -137,11 +183,8 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
      * @return facet read from the input
      */
     private BinaryStlFacetDefinition readFacetInternal() throws IOException {
-        int read = fill(triangleBuffer);
-        if (read < triangleBuffer.capacity()) {
-            throw new IOException(MessageFormat.format(
-                    "Failed to read triangle at index {}: expected {} bytes but only found {} available",
-                    trianglesRead, triangleBuffer.capacity(), read));
+        if (fill(triangleBuffer) < triangleBuffer.capacity()) {
+            throw dataNotAvailable("triangle at index " + trianglesRead);
         }
 
         final Vector3D normal = readVector(triangleBuffer);
@@ -179,5 +222,14 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
         final double z = buf.getFloat();
 
         return Vector3D.of(x, y, z);
+    }
+
+    /** Return an IOException stating that data is not available for the file
+     * component with the given name.
+     * @param name name of the file component missing data
+     * @return exception instance
+     */
+    private static IOException dataNotAvailable(final String name) {
+        return new IOException("Failed to read STL " + name + ": data not available");
     }
 }

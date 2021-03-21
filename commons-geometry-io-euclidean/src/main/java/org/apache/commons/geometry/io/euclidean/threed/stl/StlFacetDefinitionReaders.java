@@ -65,7 +65,7 @@ public final class StlFacetDefinitionReaders {
                     true);
         } else {
             // this is a binary file
-            return new BinaryStlFacetDefinitionReader(in, actualBytes.length);
+            return new BinaryStlFacetDefinitionReader(in, actualBytes);
         }
     }
 }

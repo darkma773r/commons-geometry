@@ -44,6 +44,15 @@ public class TextStlWriterTest {
     private final StringWriter out = new StringWriter();
 
     @Test
+    public void testDefaultProperties() throws IOException {
+        // act/assert
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, writer.getDoubleFormat());
+            Assertions.assertEquals("\n", writer.getLineSeparator());
+        }
+    }
+
+    @Test
     public void testNoContent() throws IOException {
         // arrange
         final CloseCountWriter countWriter = new CloseCountWriter(out);
@@ -161,6 +170,87 @@ public class TextStlWriterTest {
     }
 
     @Test
+    public void testWriteTriangle_noNormal() throws IOException {
+        // act
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+            writer.writeTriangle(
+                    Vector3D.of(0, 4, 0),
+                    Vector3D.of(1.0 / 3.0, 0, 0),
+                    Vector3D.of(0, 0.5, 10),
+                    null);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet 0.0 0.0 0.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 4.0 0.0\n" +
+            "vertex 0.3333333333333333 0.0 0.0\n" +
+            "vertex 0.0 0.5 10.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWriteTriangle_withNormal_correctOrientation() throws IOException {
+        // arrange
+        final Vector3D p1 = Vector3D.of(0, 4, 0);
+        final Vector3D p2 = Vector3D.of(1.0 / 3.0, 0, 0);
+        final Vector3D p3 = Vector3D.of(0, 0.5, 10);
+
+        final Vector3D normal = p1.vectorTo(p2).cross(p1.vectorTo(p3)).normalize();
+
+        // act
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+            writer.writeTriangle(p1, p2, p3, normal);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet -0.9961250701090868 -0.08301042250909056 -0.029053647878181696\n" +
+            "outer loop\n" +
+            "vertex 0.0 4.0 0.0\n" +
+            "vertex 0.3333333333333333 0.0 0.0\n" +
+            "vertex 0.0 0.5 10.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWriteTriangle_withNormal_reversedOrientation() throws IOException {
+        // arrange
+        final Vector3D p1 = Vector3D.of(0, 4, 0);
+        final Vector3D p2 = Vector3D.of(1.0 / 3.0, 0, 0);
+        final Vector3D p3 = Vector3D.of(0, 0.5, 10);
+
+        final Vector3D normal = p1.vectorTo(p2).cross(p1.vectorTo(p3)).normalize();
+
+        // act
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+            writer.writeTriangle(p1, p2, p3, normal.negate());
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet 0.9961250701090868 0.08301042250909056 0.029053647878181696\n" +
+            "outer loop\n" +
+            "vertex 0.0 4.0 0.0\n" +
+            "vertex 0.0 0.5 10.0\n" +
+            "vertex 0.3333333333333333 0.0 0.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
     public void testWrite_verticesAndNormal() throws IOException {
         // arrange
         final List<Vector3D> vertices = Arrays.asList(
@@ -172,9 +262,9 @@ public class TextStlWriterTest {
         try (TextStlWriter writer = new TextStlWriter(out)) {
             writer.startSolid();
 
-            writer.write(vertices, n1);
-            writer.write(vertices, n2);
-            writer.write(vertices, null);
+            writer.writeTriangles(vertices, n1);
+            writer.writeTriangles(vertices, n2);
+            writer.writeTriangles(vertices, null);
         }
 
         // assert
@@ -205,6 +295,56 @@ public class TextStlWriterTest {
     }
 
     @Test
+    public void testWrite_verticesAndNormal_moreThanThreeVertices() throws IOException {
+        // arrange
+        final List<Vector3D> vertices = Arrays.asList(
+                Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 0), Vector3D.of(0, 1, 0));
+        final Vector3D normal = Vector3D.Unit.PLUS_Z;
+
+        // act
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+
+            writer.writeTriangles(vertices, normal);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet 0.0 0.0 1.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 1.0 0.0 0.0\n" +
+            "vertex 1.0 1.0 0.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "facet 0.0 0.0 1.0\n" +
+            "outer loop\n" +
+            "vertex 0.0 0.0 0.0\n" +
+            "vertex 1.0 1.0 0.0\n" +
+            "vertex 0.0 1.0 0.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWrite_verticesAndNormal_fewerThanThreeVertices() throws IOException {
+        // arrange
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+
+            // act/assert
+            Assertions.assertThrows(IllegalArgumentException.class,
+                    () -> writer.writeTriangles(Arrays.asList(), null));
+            Assertions.assertThrows(IllegalArgumentException.class,
+                    () -> writer.writeTriangles(Arrays.asList(Vector3D.ZERO), null));
+            Assertions.assertThrows(IllegalArgumentException.class,
+                    () -> writer.writeTriangles(Arrays.asList(Vector3D.ZERO, Vector3D.of(1, 1, 1)), null));
+        }
+    }
+
+    @Test
     public void testWrite_boundary() throws IOException {
         // arrange
         final ConvexPolygon3D boundary = Planes.convexPolygonFromVertices(
@@ -215,7 +355,7 @@ public class TextStlWriterTest {
         try (TextStlWriter writer = new TextStlWriter(out)) {
             writer.startSolid();
 
-            writer.write(boundary);
+            writer.writeTriangles(boundary);
         }
 
         // assert
@@ -248,7 +388,7 @@ public class TextStlWriterTest {
         try (TextStlWriter writer = new TextStlWriter(out)) {
             writer.startSolid();
 
-            writer.write(facet);
+            writer.writeTriangles(facet);
         }
 
         // assert
@@ -283,7 +423,7 @@ public class TextStlWriterTest {
         try (TextStlWriter writer = new TextStlWriter(out)) {
             writer.startSolid();
 
-            writer.write(facet);
+            writer.writeTriangles(facet);
         }
 
         // assert
@@ -319,15 +459,19 @@ public class TextStlWriterTest {
 
             // act/assert
             GeometryTestUtils.assertThrowsWithMessage(
-                    () -> writer.write(vertices, normal),
+                    () -> writer.writeTriangle(vertices.get(0), vertices.get(1), vertices.get(2), normal),
                     IllegalStateException.class, msg);
 
             GeometryTestUtils.assertThrowsWithMessage(
-                    () -> writer.write(new SimpleFacetDefinition(vertices, normal)),
+                    () -> writer.writeTriangles(vertices, normal),
                     IllegalStateException.class, msg);
 
             GeometryTestUtils.assertThrowsWithMessage(
-                    () -> writer.write(Planes.convexPolygonFromVertices(vertices, TEST_PRECISION)),
+                    () -> writer.writeTriangles(new SimpleFacetDefinition(vertices, normal)),
+                    IllegalStateException.class, msg);
+
+            GeometryTestUtils.assertThrowsWithMessage(
+                    () -> writer.writeTriangles(Planes.convexPolygonFromVertices(vertices, TEST_PRECISION)),
                     IllegalStateException.class, msg);
         }
     }
@@ -346,7 +490,7 @@ public class TextStlWriterTest {
 
             // act
             writer.startSolid();
-            writer.write(vertices, normal);
+            writer.writeTriangles(vertices, normal);
         }
 
         // assert
@@ -372,7 +516,7 @@ public class TextStlWriterTest {
         try (TextStlWriter writer = new TextStlWriter(out)) {
             // act
             writer.startSolid();
-            writer.write(vertices, normal);
+            writer.writeTriangles(vertices, normal);
         }
 
         // assert
@@ -397,7 +541,7 @@ public class TextStlWriterTest {
         try (TextStlWriter writer = new TextStlWriter(out)) {
             // act
             writer.startSolid();
-            writer.write(vertices, null);
+            writer.writeTriangles(vertices, null);
         }
 
         // assert
