@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 /** This package contains IO utilities intended for internal use only.
- * No guarantees are made for the stability of the contained APIs.
+ * No guarantees are made for the stability of the contained APIs
+ * across library versions.
  */
 package org.apache.commons.geometry.io.core.internal;

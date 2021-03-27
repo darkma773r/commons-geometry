@@ -27,8 +27,7 @@ import org.apache.commons.geometry.io.core.output.GeometryOutput;
 
 /** Basic interface for writing 3D geometric boundary representations
  * (<a href="https://en.wikipedia.org/wiki/Boundary_representation">B-reps</a>) in a specific data storage
- * format. Callers may prefer to access this functionality using the more convenient
- * {@link BoundaryIOManager3D} class instead.
+ * format. This interface is primarily intended for use with {@link BoundaryIOManager3D}.
  *
  * <p><strong>Implementation note:</strong> implementations of this interface <em>must</em>
  * be thread-safe.</p>
