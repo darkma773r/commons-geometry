@@ -158,36 +158,6 @@ public class TextStlFacetDefinitionReaderTest {
     }
 
     @Test
-    public void testSkipSolidKeyword() throws IOException {
-        // arrange
-        final TextStlFacetDefinitionReader reader = new TextStlFacetDefinitionReader(new StringReader(
-                " test\n" +
-                "facet normal 1 2 3 " +
-                    "outer loop " +
-                        "vertex 4 5 6 " +
-                        "vertex 7 8 9 " +
-                        "vertex 10 11 12 " +
-                    "endloop " +
-                "endfacet " +
-                "endsolid test"), true);
-
-        // act
-        final List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(reader);
-
-        // assert
-        Assertions.assertEquals("test", reader.getSolidName());
-
-        Assertions.assertEquals(1, facets.size());
-
-        EuclideanIOTestUtils.assertFacetVerticesAndNormal(
-                facets.get(0),
-                Arrays.asList(Vector3D.of(4, 5, 6), Vector3D.of(7, 8, 9), Vector3D.of(10, 11, 12)),
-                Vector3D.of(1, 2, 3), TEST_EPS);
-
-        Assertions.assertNull(reader.readFacet());
-    }
-
-    @Test
     public void testNoName() throws IOException {
         // arrange
         final TextStlFacetDefinitionReader reader = facetReader(

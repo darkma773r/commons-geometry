@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PushbackInputStream;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -59,13 +60,17 @@ public final class StlFacetDefinitionReaders {
                     actualBytes.length, read));
         }
 
+        // "unread" the test bytes so that the created readers can start from the
+        // beginning of the content
+        final PushbackInputStream pushbackInput = new PushbackInputStream(in, actualBytes.length);
+        pushbackInput.unread(actualBytes);
+
         if (Arrays.equals(testBytes, actualBytes)) {
             // this is a text file
-            return new TextStlFacetDefinitionReader(new BufferedReader(new InputStreamReader(in, inputCharset)),
-                    true);
+            return new TextStlFacetDefinitionReader(new BufferedReader(new InputStreamReader(pushbackInput, inputCharset)));
         } else {
             // this is a binary file
-            return new BinaryStlFacetDefinitionReader(in, actualBytes);
+            return new BinaryStlFacetDefinitionReader(pushbackInput);
         }
     }
 }

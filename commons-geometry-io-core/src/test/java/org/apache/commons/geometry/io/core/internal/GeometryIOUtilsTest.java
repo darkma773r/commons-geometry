@@ -56,6 +56,21 @@ public class GeometryIOUtilsTest {
     }
 
     @Test
+    public void testGetFileName_string() {
+        // act/assert
+        Assertions.assertNull(GeometryIOUtils.getFileName((String) null));
+        Assertions.assertNull(GeometryIOUtils.getFileName(""));
+        Assertions.assertNull(GeometryIOUtils.getFileName("some/path/"));
+        Assertions.assertNull(GeometryIOUtils.getFileName("some\\path\\"));
+
+        Assertions.assertEquals("myfile", GeometryIOUtils.getFileName("myfile"));
+        Assertions.assertEquals("myfile.txt", GeometryIOUtils.getFileName(Paths.get("path/to/myfile.txt")));
+        Assertions.assertEquals("myfile.txt", GeometryIOUtils.getFileName(Paths.get("/myfile.txt")));
+        Assertions.assertEquals("myfile.txt", GeometryIOUtils.getFileName(Paths.get("path\\to\\myfile.txt")));
+        Assertions.assertEquals("myfile.txt", GeometryIOUtils.getFileName(Paths.get("C:\\myfile.txt")));
+    }
+
+    @Test
     public void testGetFileExtension() {
         // act/assert
         Assertions.assertEquals(null, GeometryIOUtils.getFileExtension(null));

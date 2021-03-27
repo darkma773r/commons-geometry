@@ -22,12 +22,17 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 /** Class containing utility methods for IO operations.
  */
 public final class GeometryIOUtils {
+
+    /** Path separator character used on Unix-like systems. */
+    private static final char UNIX_PATH_SEP = '/';
+
+    /** Path separator character used on Windows. */
+    private static final char WINDOWS_PATH_SEP = '\\';
 
     /** Utility class; no instantiation. */
     private GeometryIOUtils() {}
@@ -39,13 +44,7 @@ public final class GeometryIOUtils {
      */
     public static String getFileName(final Path path) {
         if (path != null) {
-            final Path file = path.getFileName();
-            if (file != null) {
-                final String name = file.toString();
-                if (!name.isEmpty()) {
-                    return name;
-                }
-            }
+            return getFileName(path.toString());
         }
 
         return null;
@@ -58,7 +57,29 @@ public final class GeometryIOUtils {
      */
     public static String getFileName(final URL url) {
         if (url != null) {
-            return getFileName(Paths.get(url.getPath()));
+            return getFileName(url.getPath());
+        }
+
+        return null;
+    }
+
+    /** Get the file name from the given path string, defined as
+     * the substring following the last path separator character.
+     * Null is returned if the argument is null or the file name is
+     * the empty string.
+     * @param path path to get the file name from
+     * @return file name of the given path string or null if a
+     *      non-empty file name does not exist
+     */
+    public static String getFileName(final String path) {
+        if (path != null) {
+            final int lastSep = Math.max(
+                    path.lastIndexOf(UNIX_PATH_SEP),
+                    path.lastIndexOf(WINDOWS_PATH_SEP));
+
+            if (lastSep < path.length() - 1) {
+                return path.substring(lastSep + 1);
+            }
         }
 
         return null;

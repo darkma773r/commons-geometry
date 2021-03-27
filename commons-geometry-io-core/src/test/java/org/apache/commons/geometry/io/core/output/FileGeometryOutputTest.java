@@ -90,6 +90,7 @@ public class FileGeometryOutputTest {
         final String result = out.toString();
 
         // assert
-        Assertions.assertEquals("FileGeometryOutput[file= some/path/test.txt]", result);
+        Assertions.assertEquals("FileGeometryOutput[file= some/path/test.txt]", 
+                result.replaceAll("\\\\", "/"));
     }
 }

@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.text.MessageFormat;
 import java.util.Arrays;
 
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
@@ -53,31 +52,7 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
      * @param in input stream to read from.
      */
     public BinaryStlFacetDefinitionReader(final InputStream in) {
-        this(in, null);
-    }
-
-    /** Construct a new instance that reads from the given input stream.
-     * @param in input stream
-     * @param headerBytes bytes of the header read externally to this class, for example
-     *      to determine the type of STL file
-     * @throws IllegalArgumentException if {@code headerBytes} it provided and its length
-     *      exceeds the STL header length of 80 bytes
-     */
-    public BinaryStlFacetDefinitionReader(final InputStream in, final byte[] headerBytes) {
-        if (headerBytes != null && headerBytes.length > StlConstants.BINARY_HEADER_BYTES) {
-            throw new IllegalArgumentException(MessageFormat.format(
-                    "Provided STL header length of {0} exceeds maximum length of {1}",
-                    headerBytes.length, StlConstants.BINARY_HEADER_BYTES));
-        }
-
         this.in = in;
-
-        // copy the given header bytes
-        if (headerBytes != null) {
-            this.header.put(headerBytes, 0, Math.min(StlConstants.BINARY_HEADER_BYTES, headerBytes.length));
-
-            this.hasReadHeader = this.header.position() >= StlConstants.BINARY_HEADER_BYTES;
-        }
     }
 
     /** Get a read-only buffer containing the 80 bytes of the STL header. The header does not
@@ -157,23 +132,23 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
     private void beginRead() throws IOException {
         if (!hasReadHeader) {
             // read header content
-            int remaining = StlConstants.BINARY_HEADER_BYTES - header.position();
-            remaining -= in.read(header.array(), header.position(), remaining);
+            final int headerBytesRead =
+                    in.read(header.array(), 0, StlConstants.BINARY_HEADER_BYTES);
 
-            if (remaining > 0) {
+            if (headerBytesRead < StlConstants.BINARY_HEADER_BYTES) {
                 throw dataNotAvailable("header");
             }
 
             header.rewind();
 
             // read the triangle total
-            ByteBuffer buf = StlUtils.byteBuffer(Integer.BYTES);
+            final ByteBuffer triangleBuf = StlUtils.byteBuffer(Integer.BYTES);
 
-            if (fill(buf) < buf.capacity()) {
+            if (fill(triangleBuf) < triangleBuf.capacity()) {
                 throw dataNotAvailable("triangle count");
             }
 
-            triangleTotal = Integer.toUnsignedLong(buf.getInt());
+            triangleTotal = Integer.toUnsignedLong(triangleBuf.getInt());
 
             hasReadHeader = true;
         }

@@ -37,9 +37,6 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
     /** Text parser. */
     private SimpleTextParser parser;
 
-    /** If true, the check for the "solid" keyword at the beginning of the file is skipped. */
-    private boolean skipSolidKeyword;
-
     /** Flag indicating if the start of a solid definition was detected. */
     private boolean foundSolidStart;
 
@@ -53,19 +50,8 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
      * @param reader reader to read characters from
      */
     public TextStlFacetDefinitionReader(final Reader reader) {
-        this(reader, false);
-    }
-
-    /** Construct a new instance for reading text STL content from the given reader.
-     * @param reader reader to read characters from
-     * @param skipSolidKeyword if true, the check for the "solid" keyword at the beginning
-     *      of the STL content is skipped. This may be set to true in cases where the
-     *      keyword was used to determine if the STL content was in text or binary format.
-     */
-    TextStlFacetDefinitionReader(final Reader reader, final boolean skipSolidKeyword) {
         this.reader = reader;
         this.parser = new SimpleTextParser(reader);
-        this.skipSolidKeyword = skipSolidKeyword;
     }
 
     /** Get the name of the STL solid being read or null if no name was specified.
@@ -144,16 +130,12 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
         }
     }
 
-    /** Begin reading an STL solid definition. The "solid" keyword is read (if not skipped)
+    /** Begin reading an STL solid definition. The "solid" keyword is read
      * along with the name of the solid.
      * @throws IOException if an I/O or data format error occurs
      */
     private void beginSolid() throws IOException {
-        if (!skipSolidKeyword) {
-            skipSolidKeyword = false;
-
-            matchKeyword(StlConstants.SOLID_START_KEYWORD);
-        }
+        matchKeyword(StlConstants.SOLID_START_KEYWORD);
 
         solidName = trimmedOrNull(parser.nextLine()
                 .getCurrentToken());
