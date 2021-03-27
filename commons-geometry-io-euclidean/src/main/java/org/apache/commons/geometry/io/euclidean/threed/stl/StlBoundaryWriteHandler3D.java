@@ -23,10 +23,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.io.core.GeometryFormat;
 import org.apache.commons.geometry.io.core.output.GeometryOutput;
 import org.apache.commons.geometry.io.euclidean.threed.AbstractBoundaryWriteHandler3D;
@@ -71,20 +73,33 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** {@inheritDoc} */
     @Override
+    public void write(final BoundarySource3D src, final GeometryOutput out)
+            throws IOException {
+        // handle cases where we know the number of triangles to be written up front
+        // and do not need to buffer the content
+        if (src instanceof TriangleMesh) {
+            writeTriangleMesh((TriangleMesh) src, out);
+        } else {
+            super.write(src, out);
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void write(final Stream<? extends PlaneConvexSubset> boundaries, GeometryOutput out)
             throws IOException {
 
         // write the triangle data to a buffer and track how many we write
         int triangleCount = 0;
-        final ByteArrayOutputStream data = new ByteArrayOutputStream(initialBufferSize);
+        final ByteArrayOutputStream triangleBuffer = new ByteArrayOutputStream(initialBufferSize);
 
-        try (BinaryStlWriter dataWriter = new BinaryStlWriter(data)) {
+        try (BinaryStlWriter stlWriter = new BinaryStlWriter(triangleBuffer)) {
             final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
 
             while (it.hasNext()) {
                 for (final Triangle3D tri : it.next().toTriangles()) {
 
-                    dataWriter.writeTriangle(
+                    stlWriter.writeTriangle(
                             tri.getPoint1(),
                             tri.getPoint2(),
                             tri.getPoint3(),
@@ -98,20 +113,20 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
         // write the header and copy the data
         try (OutputStream os = out.getOutputStream()) {
             BinaryStlWriter.writeHeader(null, triangleCount, os);
-            data.writeTo(os);
+            triangleBuffer.writeTo(os);
         }
     }
 
     /** {@inheritDoc} */
     @Override
-    public void writeFacets(final Stream<? extends FacetDefinition> facets, GeometryOutput out)
+    public void writeFacets(final Stream<? extends FacetDefinition> facets, final GeometryOutput out)
             throws IOException {
 
         // write the triangle data to a buffer and track how many we write
         int triangleCount = 0;
-        final ByteArrayOutputStream data = new ByteArrayOutputStream(initialBufferSize);
+        final ByteArrayOutputStream triangleBuffer = new ByteArrayOutputStream(initialBufferSize);
 
-        try (BinaryStlWriter dataWriter = new BinaryStlWriter(data)) {
+        try (BinaryStlWriter dataWriter = new BinaryStlWriter(triangleBuffer)) {
             final Iterator<? extends FacetDefinition> it = facets.iterator();
 
             FacetDefinition facet;
@@ -138,7 +153,33 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
         // write the header and copy the data
         try (OutputStream os = out.getOutputStream()) {
             BinaryStlWriter.writeHeader(null, triangleCount, os);
-            data.writeTo(os);
+            triangleBuffer.writeTo(os);
+        }
+    }
+
+    /** Write all triangles in the given mesh to the output using the binary STL
+     * format.
+     * @param mesh mesh to write
+     * @param output output to write to
+     * @throws IOException if an I/O error occurs
+     */
+    private void writeTriangleMesh(final TriangleMesh mesh, final GeometryOutput output)
+            throws IOException {
+        try (BinaryStlWriter stlWriter = new BinaryStlWriter(output.getOutputStream())) {
+            // write the header
+            stlWriter.writeHeader(null, mesh.getFaceCount());
+
+            // write each triangle
+            Triangle3D tri;
+            for (final TriangleMesh.Face face : mesh.faces()) {
+                tri = face.getPolygon();
+
+                stlWriter.writeTriangle(
+                        tri.getPoint1(),
+                        tri.getPoint2(),
+                        tri.getPoint3(),
+                        tri.getPlane().getNormal());
+            }
         }
     }
 

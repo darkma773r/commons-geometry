@@ -55,6 +55,11 @@ public class IO3DTest {
 
     private static final double TEST_EPS = 1e-4;
 
+    /** Less strict epsilon value for testing values related to the region boundary,
+     * since these can vary more than other metrics.
+     */
+    private static final double BOUNDARY_TEST_EPS = 0.03;
+
     private static final double MODEL_EPS = 1e-8;
 
     private static final DoublePrecisionContext MODEL_PRECISION = new EpsilonDoublePrecisionContext(MODEL_EPS);
@@ -211,24 +216,24 @@ public class IO3DTest {
                 location = getModelLocation(baseName, fmt);
                 path = Paths.get(EuclideanIOTestUtils.resource(location).toURI());
 
-                testReadWriteWithPath(fmt, path, readFn, writeFn, expected, TEST_EPS);
+                testReadWriteWithPath(fmt, path, readFn, writeFn, expected);
             }
         }
     }
 
     private void testReadWriteWithPath(final GeometryFormat fmt, final Path path,
             final ReadFn<Path> readFn, final WriteFn<Path> writeFn,
-            final RegionBSPTree3D expected, final double eps) throws IOException {
+            final RegionBSPTree3D expected) throws IOException {
 
         final Path tmp = Files.createTempFile("tmp", "." + fmt.getDefaultFileExtension());
 
         final BoundarySource3D orig = readFn.read(fmt, path);
-        assertRegion(expected, orig, eps);
+        assertRegion(expected, orig);
 
         writeFn.write(orig, fmt, tmp);
 
         final BoundarySource3D result = readFn.read(fmt, tmp);
-        assertRegion(expected, result, eps);
+        assertRegion(expected, result);
     }
 
     private void testReadWriteWithUrl(final ReadFn<URL> readFn, final WriteFn<Path> writeFn) throws Exception {
@@ -244,24 +249,24 @@ public class IO3DTest {
                 location = getModelLocation(baseName, fmt);
                 url = EuclideanIOTestUtils.resource(location);
 
-                testReadWriteWithUrl(fmt, url, readFn, writeFn, expected, TEST_EPS);
+                testReadWriteWithUrl(fmt, url, readFn, writeFn, expected);
             }
         }
     }
 
     private void testReadWriteWithUrl(final GeometryFormat fmt, final URL url,
             final ReadFn<URL> readFn, final WriteFn<Path> writeFn,
-            final RegionBSPTree3D expected, final double eps) throws IOException {
+            final RegionBSPTree3D expected) throws IOException {
 
         final Path tmp = Files.createTempFile("tmp", "." + fmt);
 
         final BoundarySource3D orig = readFn.read(fmt, url);
-        assertRegion(expected, orig, eps);
+        assertRegion(expected, orig);
 
         writeFn.write(orig, fmt, tmp);
 
         final BoundarySource3D result = readFn.read(fmt, tmp.toUri().toURL());
-        assertRegion(expected, result, eps);
+        assertRegion(expected, result);
     }
 
     private void testReadWriteWithInputOutputStreams(final ReadFn<GeometryInput> readFn,
@@ -278,14 +283,14 @@ public class IO3DTest {
                 location = getModelLocation(baseName, fmt);
                 path = Paths.get(EuclideanIOTestUtils.resource(location).toURI());
 
-                testReadWriteWithStreams(fmt, path, readFn, writeFn, expected, TEST_EPS);
+                testReadWriteWithStreams(fmt, path, readFn, writeFn, expected);
             }
         }
     }
 
     private void testReadWriteWithStreams(final GeometryFormat fmt, final Path path,
             final ReadFn<GeometryInput> readFn, final WriteFn<GeometryOutput> writeFn,
-            final RegionBSPTree3D expected, final double eps) throws IOException {
+            final RegionBSPTree3D expected) throws IOException {
 
         final Path tmp = Files.createTempFile("tmp", "." + fmt.getDefaultFileExtension());
 
@@ -295,7 +300,7 @@ public class IO3DTest {
 
             Assertions.assertEquals(1, in.getCloseCount());
         }
-        assertRegion(expected, orig, eps);
+        assertRegion(expected, orig);
 
         try (CloseCountOutputStream out = new CloseCountOutputStream(Files.newOutputStream(tmp))) {
             writeFn.write(orig, fmt, new StreamGeometryOutput(out));
@@ -307,25 +312,25 @@ public class IO3DTest {
         try (CloseCountInputStream in = new CloseCountInputStream(Files.newInputStream(tmp))) {
             result = readFn.read(fmt, new StreamGeometryInput(in));
         }
-        assertRegion(expected, result, eps);
+        assertRegion(expected, result);
     }
 
-    private static void assertRegion(final RegionBSPTree3D expected, final BoundarySource3D actual, final double eps) {
+    private static void assertRegion(final RegionBSPTree3D expected, final BoundarySource3D actual) {
         final RegionBSPTree3D actualRegion = actual.toTree();
 
-        Assertions.assertEquals(expected.getSize(), actualRegion.getSize(), eps);
-        Assertions.assertEquals(expected.getBoundarySize(), actualRegion.getBoundarySize(), eps);
+        Assertions.assertEquals(expected.getSize(), actualRegion.getSize(), TEST_EPS);
+        Assertions.assertEquals(expected.getBoundarySize(), actualRegion.getBoundarySize(), BOUNDARY_TEST_EPS);
 
         if (expected.isEmpty()) {
             Assertions.assertTrue(actualRegion.isEmpty());
         } else {
-            EuclideanTestUtils.assertCoordinatesEqual(expected.getCentroid(), actualRegion.getCentroid(), eps);
+            EuclideanTestUtils.assertCoordinatesEqual(expected.getCentroid(), actualRegion.getCentroid(), TEST_EPS);
         }
 
         final RegionBSPTree3D diff = RegionBSPTree3D.empty();
         diff.difference(expected, actualRegion);
 
-        Assertions.assertEquals(0, diff.getSize(), eps);
+        Assertions.assertEquals(0, diff.getSize(), BOUNDARY_TEST_EPS);
     }
 
     private static String getModelLocation(final String baseName, final GeometryFormat fmt) {
