@@ -67,7 +67,8 @@ public final class StlFacetDefinitionReaders {
 
         if (Arrays.equals(testBytes, actualBytes)) {
             // this is a text file
-            return new TextStlFacetDefinitionReader(new BufferedReader(new InputStreamReader(pushbackInput, inputCharset)));
+            return new TextStlFacetDefinitionReader(
+                    new BufferedReader(new InputStreamReader(pushbackInput, inputCharset)));
         } else {
             // this is a binary file
             return new BinaryStlFacetDefinitionReader(pushbackInput);

@@ -54,7 +54,7 @@ public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B exte
 
     /** Return a {@link Stream} that can be used to access all boundary information from the given input,
      * which is expected to contain data in the format supported by this handler. Unlike the
-     * {@link #read(InputStream, DoublePrecisionContext) read} method, this method does not <em>require</em>
+     * {@link #read(GeometryInput, DoublePrecisionContext) read} method, this method does not <em>require</em>
      * that all input be read immediately and stored in memory (although implementations of this interface are
      * still free to do so). Callers may therefore prefer to use this method in cases where memory usage is a
      * concern or transformations and/or filters must be applied to the boundaries before use.

@@ -34,7 +34,7 @@ import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 /** {@link org.apache.commons.geometry.io.euclidean.threed.BoundaryReadHandler3D BoundaryReadHandler3D}
  * implementation for reading OBJ data. Input is read using the UTF-8 charset by default.
  */
-public class ObjFormatBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
+public class ObjBoundaryReadHandler3D extends AbstractBoundaryReadHandler3D {
 
     /** Charset for reading text input. */
     private Charset defaultCharset = StandardCharsets.UTF_8;
@@ -64,14 +64,14 @@ public class ObjFormatBoundaryReadHandler3D extends AbstractBoundaryReadHandler3
     /** {@inheritDoc} */
     @Override
     public FacetDefinitionReader facetDefinitionReader(final GeometryInput in) throws IOException {
-        return new ObjFormatFacetDefinitionReader(createReader(in));
+        return new ObjFacetDefinitionReader(createReader(in));
     }
 
     /** {@inheritDoc} */
     @Override
     public TriangleMesh readTriangleMesh(final GeometryInput in, final DoublePrecisionContext precision)
             throws IOException {
-        try (ObjFormatTriangleMeshReader meshReader = new ObjFormatTriangleMeshReader(createReader(in), precision)) {
+        try (ObjTriangleMeshReader meshReader = new ObjTriangleMeshReader(createReader(in), precision)) {
             return meshReader.readTriangleMesh();
         }
     }

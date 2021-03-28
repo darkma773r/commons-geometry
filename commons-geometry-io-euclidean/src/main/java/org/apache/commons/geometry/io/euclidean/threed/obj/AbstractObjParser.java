@@ -25,7 +25,7 @@ import org.apache.commons.geometry.io.core.internal.SimpleTextParser;
 
 /** Abstract base class for OBJ parsing functionality.
  */
-public abstract class AbstractObjFormatParser {
+public abstract class AbstractObjParser {
 
     /** Text parser instance. */
     private final SimpleTextParser parser;
@@ -36,7 +36,7 @@ public abstract class AbstractObjFormatParser {
     /** Construct a new instance for parsing OBJ content from the given text parser.
      * @param parser text parser to read content from
      */
-    protected AbstractObjFormatParser(final SimpleTextParser parser) {
+    protected AbstractObjParser(final SimpleTextParser parser) {
         this.parser = parser;
     }
 
@@ -67,7 +67,7 @@ public abstract class AbstractObjFormatParser {
         // search for the next keyword
         while (currentKeyword == null && parser.hasMoreCharacters()) {
             if (!nextDataLineContent() ||
-                    parser.peekChar() == ObjFormatConstants.COMMENT_CHAR) {
+                    parser.peekChar() == ObjConstants.COMMENT_CHAR) {
                 // use a standard line discard here so we don't interpret line continuations
                 // within comments; the interpreted OBJ content should be the same regardless
                 // of the presence of comments
@@ -99,7 +99,7 @@ public abstract class AbstractObjFormatParser {
      */
     public String readDataLine() throws IOException {
         parser.nextWithLineContinuation(
-                ObjFormatConstants.LINE_CONTINUATION_CHAR,
+                ObjConstants.LINE_CONTINUATION_CHAR,
                 SimpleTextParser::isNotNewLinePart)
             .discardNewLineSequence();
 
@@ -112,7 +112,7 @@ public abstract class AbstractObjFormatParser {
      */
     public void discardDataLine() throws IOException {
         parser.discardWithLineContinuation(
-                ObjFormatConstants.LINE_CONTINUATION_CHAR,
+                ObjConstants.LINE_CONTINUATION_CHAR,
                 SimpleTextParser::isNotNewLinePart)
             .discardNewLineSequence();
     }
@@ -176,7 +176,7 @@ public abstract class AbstractObjFormatParser {
      */
     protected SimpleTextParser discardDataLineWhitespace() throws IOException {
         return parser.discardWithLineContinuation(
-                ObjFormatConstants.LINE_CONTINUATION_CHAR,
+                ObjConstants.LINE_CONTINUATION_CHAR,
                 SimpleTextParser::isLineWhitespace);
     }
 
@@ -195,7 +195,7 @@ public abstract class AbstractObjFormatParser {
      * @throws IllegalStateException if a double value is not able to be parsed
      */
     protected double nextDouble() throws IOException {
-        return parser.nextWithLineContinuation(ObjFormatConstants.LINE_CONTINUATION_CHAR,
+        return parser.nextWithLineContinuation(ObjConstants.LINE_CONTINUATION_CHAR,
                 SimpleTextParser::isNotWhitespace)
             .getCurrentTokenAsDouble();
     }
@@ -207,7 +207,7 @@ public abstract class AbstractObjFormatParser {
      */
     private boolean readKeyword() throws IOException {
         return parser
-                .nextWithLineContinuation(ObjFormatConstants.LINE_CONTINUATION_CHAR, SimpleTextParser::isAlphanumeric)
+                .nextWithLineContinuation(ObjConstants.LINE_CONTINUATION_CHAR, SimpleTextParser::isAlphanumeric)
                 .hasNonEmptyToken();
     }
 }

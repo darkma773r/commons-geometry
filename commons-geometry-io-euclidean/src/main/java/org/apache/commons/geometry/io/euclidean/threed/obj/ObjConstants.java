@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 
 /** Class containing constants for use with OBJ files.
  */
-public final class ObjFormatConstants {
+public final class ObjConstants {
 
     /** Default OBJ charset. */
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
@@ -63,5 +63,5 @@ public final class ObjFormatConstants {
     public static final String USE_MATERIAL_KEYWORD = "usemtl";
 
     /** Utility class; no instantiation. */
-    private ObjFormatConstants() {}
+    private ObjConstants() {}
 }

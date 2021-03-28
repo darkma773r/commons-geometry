@@ -122,6 +122,7 @@ public abstract class AbstractTextBoundaryWriteHandler3D extends AbstractBoundar
     /** Get a configured {@link TextFacetDefinitionWriter} for writing output.
      * @param out output stream to write to
      * @return a new, configured text format writer
+     * @throws IOException if an I/O error occurs
      */
     protected TextFacetDefinitionWriter getFacetDefinitionWriter(final GeometryOutput out) throws IOException {
         final Charset charset = out.getCharset() != null ?

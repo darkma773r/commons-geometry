@@ -38,14 +38,14 @@ import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class ObjFormatBoundaryReadHandler3DTest {
+public class ObjBoundaryReadHandler3DTest {
 
     private static final double TEST_EPS = 1e-10;
 
     private static final DoublePrecisionContext TEST_PRECISION =
             new EpsilonDoublePrecisionContext(TEST_EPS);
 
-    private final ObjFormatBoundaryReadHandler3D handler = new ObjFormatBoundaryReadHandler3D();
+    private final ObjBoundaryReadHandler3D handler = new ObjBoundaryReadHandler3D();
 
     @Test
     public void testProperties() {

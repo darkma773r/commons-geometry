@@ -38,7 +38,7 @@ public class ObjFacetDefinitionReaderTest {
     @Test
     public void testDefaults() {
         // arrange
-        final ObjFormatFacetDefinitionReader reader = reader("");
+        final ObjFacetDefinitionReader reader = reader("");
 
         // act/assert
         Assertions.assertFalse(reader.getFailOnNonPolygonKeywords());
@@ -50,7 +50,7 @@ public class ObjFacetDefinitionReaderTest {
         final CloseCountReader closeReader = new CloseCountReader(new StringReader(""));
 
         // act/assert
-        try (ObjFormatFacetDefinitionReader reader = new ObjFormatFacetDefinitionReader(closeReader)) {
+        try (ObjFacetDefinitionReader reader = new ObjFacetDefinitionReader(closeReader)) {
             Assertions.assertEquals(0, closeReader.getCloseCount());
         }
 
@@ -60,7 +60,7 @@ public class ObjFacetDefinitionReaderTest {
     @Test
     public void testReadFacet_withNormal() throws IOException {
         // arrange
-        final ObjFormatFacetDefinitionReader reader = reader(
+        final ObjFacetDefinitionReader reader = reader(
                 "o test\n\n" +
                 "v 0 0 0\r\n" +
                 "v 1 0 0\n" +
@@ -84,7 +84,7 @@ public class ObjFacetDefinitionReaderTest {
     @Test
     public void testReadFacet_withoutNormal() throws IOException {
         // arrange
-        final ObjFormatFacetDefinitionReader reader = reader(
+        final ObjFacetDefinitionReader reader = reader(
                 "o test\n\n" +
                 "v 0 0 0\r\n" +
                 "v 1 0 0\n" +
@@ -105,7 +105,7 @@ public class ObjFacetDefinitionReaderTest {
     @Test
     public void testReadFacet_failOnNonPolygon() throws IOException {
         // arrange
-        final ObjFormatFacetDefinitionReader reader = reader(
+        final ObjFacetDefinitionReader reader = reader(
                 "o test\n\n" +
                 "v 0 0 0\r\n" +
                 "v 1 0 0\n" +
@@ -123,7 +123,7 @@ public class ObjFacetDefinitionReaderTest {
                 IOException.class, Pattern.compile("^Parsing failed.*"));
     }
 
-    private static ObjFormatFacetDefinitionReader reader(final String str) {
-        return new ObjFormatFacetDefinitionReader(new StringReader(str));
+    private static ObjFacetDefinitionReader reader(final String str) {
+        return new ObjFacetDefinitionReader(new StringReader(str));
     }
 }

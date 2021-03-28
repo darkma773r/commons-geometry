@@ -110,7 +110,7 @@ public class BinaryStlWriterTest {
         }
 
         // assert
-        final byte[] bytes= out.toByteArray();
+        final byte[] bytes = out.toByteArray();
 
         Assertions.assertEquals(StlConstants.BINARY_HEADER_BYTES + 4 + (2 * StlConstants.BINARY_TRIANGLE_BYTES),
                 bytes.length);
@@ -163,9 +163,9 @@ public class BinaryStlWriterTest {
         }
 
         // assert
-        final byte[] bytes= out.toByteArray();
+        final byte[] bytes = out.toByteArray();
 
-        Assertions.assertEquals(StlConstants.BINARY_HEADER_BYTES + 4 + (2* StlConstants.BINARY_TRIANGLE_BYTES),
+        Assertions.assertEquals(StlConstants.BINARY_HEADER_BYTES + 4 + (2 * StlConstants.BINARY_TRIANGLE_BYTES),
                 bytes.length);
 
         assertBytes(0, bytes, 0, StlConstants.BINARY_HEADER_BYTES);
@@ -223,7 +223,7 @@ public class BinaryStlWriterTest {
         }
 
         // assert
-        final byte[] bytes= out.toByteArray();
+        final byte[] bytes = out.toByteArray();
 
         Assertions.assertEquals(StlConstants.BINARY_HEADER_BYTES + 4 + (3 * StlConstants.BINARY_TRIANGLE_BYTES),
                 bytes.length);
@@ -276,7 +276,7 @@ public class BinaryStlWriterTest {
         int result = 0;
 
         for (int i = 0; i < count; ++i) {
-            result |= (Byte.toUnsignedInt(bytes[i + offset]) << (i * Byte.SIZE));
+            result |= Byte.toUnsignedInt(bytes[i + offset]) << (i * Byte.SIZE);
         }
 
         return result;

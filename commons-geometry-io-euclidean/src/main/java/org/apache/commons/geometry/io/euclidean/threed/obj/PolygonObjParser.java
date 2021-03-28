@@ -38,22 +38,22 @@ import org.apache.commons.geometry.io.core.internal.SimpleTextParser;
  * for later reference. This allows callers to determine what values are stored and in
  * what format.
  */
-public class PolygonObjFormatParser extends AbstractObjFormatParser {
+public class PolygonObjParser extends AbstractObjParser {
 
     /** Set containing OBJ keywords commonly used with files containing only polygon content. */
     private static final Set<String> STANDARD_POLYGON_KEYWORDS =
             Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-                        ObjFormatConstants.VERTEX_KEYWORD,
-                        ObjFormatConstants.VERTEX_NORMAL_KEYWORD,
-                        ObjFormatConstants.TEXTURE_COORDINATE_KEYWORD,
-                        ObjFormatConstants.FACE_KEYWORD,
+                        ObjConstants.VERTEX_KEYWORD,
+                        ObjConstants.VERTEX_NORMAL_KEYWORD,
+                        ObjConstants.TEXTURE_COORDINATE_KEYWORD,
+                        ObjConstants.FACE_KEYWORD,
 
-                        ObjFormatConstants.OBJECT_KEYWORD,
-                        ObjFormatConstants.GROUP_KEYWORD,
-                        ObjFormatConstants.SMOOTHING_GROUP_KEYWORD,
+                        ObjConstants.OBJECT_KEYWORD,
+                        ObjConstants.GROUP_KEYWORD,
+                        ObjConstants.SMOOTHING_GROUP_KEYWORD,
 
-                        ObjFormatConstants.MATERIAL_LIBRARY_KEYWORD,
-                        ObjFormatConstants.USE_MATERIAL_KEYWORD
+                        ObjConstants.MATERIAL_LIBRARY_KEYWORD,
+                        ObjConstants.USE_MATERIAL_KEYWORD
                     )));
 
     /** Number of vertex keywords encountered in the file so far. */
@@ -71,18 +71,18 @@ public class PolygonObjFormatParser extends AbstractObjFormatParser {
     /** Construct a new instance for parsing OBJ content from the given reader.
      * @param reader reader to parser content from
      */
-    public PolygonObjFormatParser(final Reader reader) {
+    public PolygonObjParser(final Reader reader) {
         this(new SimpleTextParser(reader));
     }
 
     /** Construct a new instance for parsing OBJ content from the given text parser.
      * @param parser text parser to read content from
      */
-    public PolygonObjFormatParser(final SimpleTextParser parser) {
+    public PolygonObjParser(final SimpleTextParser parser) {
         super(parser);
     }
 
-    /** Get the number of {@link OBJConstants#VERTEX_KEYWORD vertex keywords} parsed
+    /** Get the number of {@link ObjConstants#VERTEX_KEYWORD vertex keywords} parsed
      * so far.
      * @return the number of vertex keywords parsed so far
      */
@@ -90,7 +90,7 @@ public class PolygonObjFormatParser extends AbstractObjFormatParser {
         return vertexCount;
     }
 
-    /** Get the number of {@link OBJConstants#VERTEX_NORMAL_KEYWORD vertex normal keywords} parsed
+    /** Get the number of {@link ObjConstants#VERTEX_NORMAL_KEYWORD vertex normal keywords} parsed
      * so far.
      * @return the number of vertex normal keywords parsed so far
      */
@@ -98,7 +98,7 @@ public class PolygonObjFormatParser extends AbstractObjFormatParser {
         return vertexNormalCount;
     }
 
-    /** Get the number of {@link OBJConstants#TEXTURE_COORDINATE_KEYWORD texture coordinate keywords} parsed
+    /** Get the number of {@link ObjConstants#TEXTURE_COORDINATE_KEYWORD texture coordinate keywords} parsed
      * so far.
      * @return the number of texture coordinate keywords parsed so far
      */
@@ -162,13 +162,13 @@ public class PolygonObjFormatParser extends AbstractObjFormatParser {
 
         // update counts in order to validate face vertex attributes
         switch (keywordValue) {
-        case ObjFormatConstants.VERTEX_KEYWORD:
+        case ObjConstants.VERTEX_KEYWORD:
             ++vertexCount;
             break;
-        case ObjFormatConstants.VERTEX_NORMAL_KEYWORD:
+        case ObjConstants.VERTEX_NORMAL_KEYWORD:
             ++vertexNormalCount;
             break;
-        case ObjFormatConstants.TEXTURE_COORDINATE_KEYWORD:
+        case ObjConstants.TEXTURE_COORDINATE_KEYWORD:
             ++textureCoordinateCount;
             break;
         default:
@@ -211,16 +211,16 @@ public class PolygonObjFormatParser extends AbstractObjFormatParser {
         final int vertexIndex = readNormalizedVertexAttributeIndex("vertex", vertexCount);
 
         int textureIndex = -1;
-        if (parser.peekChar() == ObjFormatConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR) {
+        if (parser.peekChar() == ObjConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR) {
             parser.discard(1);
 
-            if (parser.peekChar() != ObjFormatConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR) {
+            if (parser.peekChar() != ObjConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR) {
                 textureIndex = readNormalizedVertexAttributeIndex("texture", textureCoordinateCount);
             }
         }
 
         int normalIndex = -1;
-        if (parser.peekChar() == ObjFormatConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR) {
+        if (parser.peekChar() == ObjConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR) {
             parser.discard(1);
 
             if (SimpleTextParser.isIntegerPart(parser.peekChar())) {
@@ -245,7 +245,7 @@ public class PolygonObjFormatParser extends AbstractObjFormatParser {
         final SimpleTextParser parser = getTextParser();
 
         final int objIndex = parser
-                .nextWithLineContinuation(ObjFormatConstants.LINE_CONTINUATION_CHAR, SimpleTextParser::isIntegerPart)
+                .nextWithLineContinuation(ObjConstants.LINE_CONTINUATION_CHAR, SimpleTextParser::isIntegerPart)
                 .getCurrentTokenAsInt();
 
         final int normalizedIndex = objIndex < 0 ?

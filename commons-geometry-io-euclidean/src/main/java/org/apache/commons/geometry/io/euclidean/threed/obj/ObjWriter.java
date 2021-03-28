@@ -37,7 +37,7 @@ import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 
 /** Class for writing OBJ files containing 3D polygon geometries.
  */
-public final class ObjFormatWriter extends AbstractTextFormatWriter {
+public final class ObjWriter extends AbstractTextFormatWriter {
 
     /** Space character. */
     private static final char SPACE = ' ';
@@ -51,7 +51,7 @@ public final class ObjFormatWriter extends AbstractTextFormatWriter {
     /** Create a new instance that writes output with the given writer.
      * @param writer writer used to write output
      */
-    public ObjFormatWriter(final Writer writer) {
+    public ObjWriter(final Writer writer) {
         super(writer);
     }
 
@@ -75,7 +75,7 @@ public final class ObjFormatWriter extends AbstractTextFormatWriter {
      */
     public void writeComment(final String comment) throws IOException {
         for (final String line : comment.split("\\R")) {
-            write(ObjFormatConstants.COMMENT_CHAR);
+            write(ObjConstants.COMMENT_CHAR);
             write(SPACE);
             write(line);
             writeNewLine();
@@ -89,7 +89,7 @@ public final class ObjFormatWriter extends AbstractTextFormatWriter {
      * @throws IOException if an I/O error occurs
      */
     public void writeObjectName(final String objectName) throws IOException {
-        writeKeywordLine(ObjFormatConstants.OBJECT_KEYWORD, objectName);
+        writeKeywordLine(ObjConstants.OBJECT_KEYWORD, objectName);
     }
 
     /** Write a group name to the output. This is metadata for the file and
@@ -99,7 +99,7 @@ public final class ObjFormatWriter extends AbstractTextFormatWriter {
      * @throws IOException if an I/O error occurs
      */
     public void writeGroupName(final String groupName) throws IOException {
-        writeKeywordLine(ObjFormatConstants.GROUP_KEYWORD, groupName);
+        writeKeywordLine(ObjConstants.GROUP_KEYWORD, groupName);
     }
 
     /** Write a vertex and return the 0-based index of the vertex in the output.
@@ -260,7 +260,7 @@ public final class ObjFormatWriter extends AbstractTextFormatWriter {
                     vertexIndices.length + " but was " + normalIndices.length);
         }
 
-        write(ObjFormatConstants.FACE_KEYWORD);
+        write(ObjConstants.FACE_KEYWORD);
 
         int vertexIdx;
         int normalIdx;
@@ -280,8 +280,8 @@ public final class ObjFormatWriter extends AbstractTextFormatWriter {
                 }
 
                 // two separator chars since there is no texture coordinate
-                write(ObjFormatConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR);
-                write(ObjFormatConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR);
+                write(ObjConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR);
+                write(ObjConstants.FACE_VERTEX_ATTRIBUTE_SEP_CHAR);
 
                 write(normalIdx + 1); // convert to OBJ 1-based convention
             }
@@ -313,7 +313,7 @@ public final class ObjFormatWriter extends AbstractTextFormatWriter {
      * @throws IOException if an I/O error occurs
      */
     private int writeVertexLine(final String content) throws IOException {
-        writeKeywordLine(ObjFormatConstants.VERTEX_KEYWORD, content);
+        writeKeywordLine(ObjConstants.VERTEX_KEYWORD, content);
         return vertexCount++;
     }
 
@@ -323,7 +323,7 @@ public final class ObjFormatWriter extends AbstractTextFormatWriter {
      * @throws IOException if an I/O error occurs
      */
     private int writeVertexNormalLine(final String content) throws IOException {
-        writeKeywordLine(ObjFormatConstants.VERTEX_NORMAL_KEYWORD, content);
+        writeKeywordLine(ObjConstants.VERTEX_NORMAL_KEYWORD, content);
         return normalCount++;
     }
 

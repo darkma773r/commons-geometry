@@ -16,6 +16,8 @@
  */
 package org.apache.commons.geometry.io.euclidean.threed;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -295,21 +297,21 @@ public class IO3DTest {
         final Path tmp = Files.createTempFile("tmp", "." + fmt.getDefaultFileExtension());
 
         final BoundarySource3D orig;
-        try (CloseCountInputStream in = new CloseCountInputStream(Files.newInputStream(path))) {
+        try (CloseCountInputStream in = new CloseCountInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
             orig = readFn.read(fmt, new StreamGeometryInput(in));
 
             Assertions.assertEquals(1, in.getCloseCount());
         }
         assertRegion(expected, orig);
 
-        try (CloseCountOutputStream out = new CloseCountOutputStream(Files.newOutputStream(tmp))) {
+        try (CloseCountOutputStream out = new CloseCountOutputStream(new BufferedOutputStream(Files.newOutputStream(tmp)))) {
             writeFn.write(orig, fmt, new StreamGeometryOutput(out));
 
             Assertions.assertEquals(1, out.getCloseCount());
         }
 
         final BoundarySource3D result;
-        try (CloseCountInputStream in = new CloseCountInputStream(Files.newInputStream(tmp))) {
+        try (CloseCountInputStream in = new CloseCountInputStream(new BufferedInputStream(Files.newInputStream(tmp)))) {
             result = readFn.read(fmt, new StreamGeometryInput(in));
         }
         assertRegion(expected, result);

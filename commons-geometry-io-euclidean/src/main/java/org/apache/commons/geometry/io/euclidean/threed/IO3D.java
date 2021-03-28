@@ -107,12 +107,12 @@ public final class IO3D {
      * <p>The underlying input stream is closed when the returned stream is closed. Callers should
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly released. Ex:
+     * </p>
      * <pre>
      *  try (Stream&lt;FacetDefinition&gt; stream = IO3D.facets(path)) {
      *      // access stream content
      *  }
      * </pre>
-     * </p>
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
@@ -133,12 +133,12 @@ public final class IO3D {
      * <p>The underlying input stream is closed when the returned stream is closed. Callers should
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly released. Ex:
+     * </p>
      * <pre>
      *  try (Stream&lt;FacetDefinition&gt; stream = IO3D.facets(url)) {
      *      // access stream content
      *  }
      * </pre>
-     * </p>
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
@@ -183,12 +183,12 @@ public final class IO3D {
      * <p>The underlying input stream is closed when the returned stream is closed. Callers should
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly released. Ex:
+     * </p>
      * <pre>
      *  try (Stream&lt;PlaneConvexSubset&gt; stream = IO3D.boundaries(path, precision)) {
      *      // access stream content
      *  }
      * </pre>
-     * </p>
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
@@ -211,12 +211,12 @@ public final class IO3D {
      * <p>The underlying input stream is closed when the returned stream is closed. Callers should
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly released. Ex:
+     * </p>
      * <pre>
      *  try (Stream&lt;PlaneConvexSubset&gt; stream = IO3D.boundaries(url, precision)) {
      *      // access stream content
      *  }
      * </pre>
-     * </p>
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
@@ -264,12 +264,12 @@ public final class IO3D {
      * <p>The underlying input stream is closed when the returned stream is closed. Callers should
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly released. Ex:
+     * </p>
      * <pre>
      *  try (Stream&lt;Triangle3D&gt; stream = IO3D.triangles(path, precision)) {
      *      // access stream content
      *  }
      * </pre>
-     * </p>
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
@@ -292,12 +292,12 @@ public final class IO3D {
      * <p>The underlying input stream is closed when the returned stream is closed. Callers should
      * therefore use the returned stream in a try-with-resources statement to ensure that all
      * resources are properly released. Ex:
+     * </p>
      * <pre>
      *  try (Stream&lt;Triangle3D&gt; stream = IO3D.triangles(url, precision)) {
      *      // access stream content
      *  }
      * </pre>
-     * </p>
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>
@@ -473,7 +473,8 @@ public final class IO3D {
      * @throws IllegalArgumentException if no write handler is registered with the
      *      {@link #getDefaultManager() default manager} for the output format
      * @throws IOException if an I/O error occurs
-     * @see BoundaryIOManager3D#write(BoundarySource3D, GeometryOutput, GeometryFormat)
+     * @see org.apache.commons.geometry.io.core.BoundaryIOManager#write(
+     *      org.apache.commons.geometry.core.partitioning.BoundarySource, GeometryOutput, GeometryFormat)
      */
     public static void write(final BoundarySource3D src, final Path path)
             throws IOException {
@@ -488,7 +489,8 @@ public final class IO3D {
      * @throws IllegalArgumentException if no write handler is registered with the
      *      {@link #getDefaultManager() default manager} for the output format
      * @throws IOException if an I/O error occurs
-     * @see BoundaryIOManager3D#write(BoundarySource3D, GeometryOutput, GeometryFormat)
+     * @see org.apache.commons.geometry.io.core.BoundaryIOManager#write(
+     *      org.apache.commons.geometry.core.partitioning.BoundarySource, GeometryOutput, GeometryFormat)
      */
     public static void write(final BoundarySource3D src, final GeometryOutput out, final GeometryFormat fmt)
             throws IOException {

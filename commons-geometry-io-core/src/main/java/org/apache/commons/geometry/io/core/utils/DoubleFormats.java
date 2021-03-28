@@ -40,8 +40,8 @@ public final class DoubleFormats {
      * 10<sup>7</sup> and greater than or equal to 10<sup>-3</sup> (after any necessary rounding), the returned
      * string is in plain, non-scientific format. All other values are in scientific format. Rounding is performed
      * using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
-     * <p><strong>Format Examples</strong></p>
      * <table>
+     *  <caption>Format Examples</caption>
      *  <tr><th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th></tr>
      *  <tr><td>1.0E-4</td><td>1.0E-4</td><td>1.0E-4</td></tr>
      *  <tr><td>-0.0635</td><td>-0.0635</td><td>-0.0635</td></tr>
@@ -64,8 +64,8 @@ public final class DoubleFormats {
      * 10<sup>7</sup> and greater than or equal to 10<sup>-3</sup> (after any necessary rounding), the returned
      * string is in plain, non-scientific format. All other values are in scientific format. Rounding is performed
      * using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
-     * <p><strong>Format Examples</strong></p>
      * <table>
+     *  <caption>Format Examples</caption>
      *  <tr><th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th></tr>
      *  <tr><td>1.0E-4</td><td>0.0</td><td>0.0</td></tr>
      *  <tr><td>-0.0635</td><td>-0.06</td><td>-0.06</td></tr>
@@ -86,8 +86,8 @@ public final class DoubleFormats {
 
     /** Return a {@link DoubleFormat} instance that produces strings in plain, non-scientific format.
      * Rounding is performed using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
-     * <p><strong>Format Examples</strong></p>
      * <table>
+     *  <caption>Format Examples</caption>
      *  <tr><th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th></tr>
      *  <tr><td>1.0E-4</td><td>0.0001</td><td>0.0001</td></tr>
      *  <tr><td>-0.0635</td><td>-0.0635</td><td>-0.0635</td></tr>
@@ -106,8 +106,8 @@ public final class DoubleFormats {
 
     /** Return a {@link DoubleFormat} instance that produces strings in plain, non-scientific format.
      * Rounding is performed using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
-     * <p><strong>Format Examples</strong></p>
      * <table>
+     *  <caption>Format Examples</caption>
      *  <tr><th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th></tr>
      *  <tr><td>1.0E-4</td><td>0.0</td><td>0.0</td></tr>
      *  <tr><td>-0.0635</td><td>-0.06</td><td>-0.06</td></tr>
@@ -128,8 +128,8 @@ public final class DoubleFormats {
     /** Return a {@link DoubleFormat} instance that produces strings in scientific format. Exponents of
      * zero are not included in formatted strings. Rounding is performed using
      * {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
-     * <p><strong>Format Examples</strong></p>
      * <table>
+     *  <caption>Format Examples</caption>
      *  <tr><th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th></tr>
      *  <tr><td>1.0E-4</td><td>1.0E-4</td><td>1.0E-4</td></tr>
      *  <tr><td>-0.0635</td><td>-6.35E-2</td><td>-6.35E-2</td></tr>
@@ -149,8 +149,8 @@ public final class DoubleFormats {
     /** Return a {@link DoubleFormat} instance that produces strings in scientific format. Exponents of
      * zero are not included in formatted strings. Rounding is performed using
      * {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
-     * <p><strong>Format Examples</strong></p>
      * <table>
+     *  <caption>Format Examples</caption>
      *  <tr><th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th></tr>
      *  <tr><td>1.0E-4</td><td>0.0</td><td>0.0</td></tr>
      *  <tr><td>-0.0635</td><td>-6.0E-2</td><td>-6.0E-2</td></tr>
@@ -172,8 +172,8 @@ public final class DoubleFormats {
      * <a href="https://en.wikipedia.org/wiki/Engineering_notation">engineering notation</a> where any exponents
      * are adjusted to be multiples of 3. Exponents of zero are not included in formatted strings. Rounding is
      * performed using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
-     * <p><strong>Format Examples</strong></p>
      * <table>
+     *  <caption>Format Examples</caption>
      *  <tr><th>Value</th><th>(maxPrecision= 0)</th><th>(maxPrecision= 4)</th></tr>
      *  <tr><td>1.0E-4</td><td>100.0E-6</td><td>100.0E-6</td></tr>
      *  <tr><td>-0.0635</td><td>-63.5E-3</td><td>-63.5E-3</td></tr>
@@ -194,8 +194,8 @@ public final class DoubleFormats {
      * <a href="https://en.wikipedia.org/wiki/Engineering_notation">engineering notation</a>, where exponents
      * are adjusted to be multiples of 3. Exponents of zero are not included in formatted strings. Rounding is
      * performed using {@link java.math.RoundingMode#HALF_EVEN half even} rounding.
-     * <p><strong>Format Examples</strong></p>
      * <table>
+     *  <caption>Format Examples</caption>
      *  <tr><th>Value</th><th>(maxPrecision= 0, minExponent= -2)</th><th>(maxPrecision= 4, minExponent= -2)</th></tr>
      *  <tr><td>1.0E-4</td><td>0.0</td><td>0.0</td></tr>
      *  <tr><td>-0.0635</td><td>-60.0E-3</td><td>-60.0E-3</td></tr>

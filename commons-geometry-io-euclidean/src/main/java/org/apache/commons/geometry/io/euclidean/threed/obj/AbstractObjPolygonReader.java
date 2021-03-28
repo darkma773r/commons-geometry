@@ -23,22 +23,22 @@ import java.io.Reader;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 
 /** Abstract base class for types that read OBJ polygon content using
- * {@link PolygonOBJParser}.
+ * {@link PolygonObjParser}.
  */
-public abstract class AbstractObjFormatPolygonReader implements Closeable {
+public abstract class AbstractObjPolygonReader implements Closeable {
 
     /** Underlying reader. */
     private final Reader reader;
 
     /** OBJ polygon parser. */
-    private final PolygonObjFormatParser parser;
+    private final PolygonObjParser parser;
 
     /** Construct a new instance that reads OBJ content from the given reader.
      * @param reader reader to read characters from
      */
-    protected AbstractObjFormatPolygonReader(final Reader reader) {
+    protected AbstractObjPolygonReader(final Reader reader) {
         this.reader = reader;
-        this.parser = new PolygonObjFormatParser(reader);
+        this.parser = new PolygonObjParser(reader);
     }
 
     /** Get the flag indicating whether or not an {@link IOException} will be thrown
@@ -46,7 +46,7 @@ public abstract class AbstractObjFormatPolygonReader implements Closeable {
      * (ex: {@code curv}). If false, non-polygon data is ignored.
      * @return flag indicating whether or not an {@link IOException} will be thrown
      *      if non-polygon content is encountered
-     * @see PolygonOBJParser#getFailOnNonPolygonKeywords()
+     * @see PolygonObjParser#getFailOnNonPolygonKeywords()
      */
     public boolean getFailOnNonPolygonKeywords() {
         return parser.getFailOnNonPolygonKeywords();
@@ -72,16 +72,16 @@ public abstract class AbstractObjFormatPolygonReader implements Closeable {
      * @return the next face from the OBJ content or null if no face is found
      * @throws IOException if an I/O or data format error occurs
      */
-    protected PolygonObjFormatParser.Face readFace() throws IOException {
+    protected PolygonObjParser.Face readFace() throws IOException {
         while (parser.nextKeyword()) {
             switch (parser.getCurrentKeyword()) {
-            case ObjFormatConstants.VERTEX_KEYWORD:
+            case ObjConstants.VERTEX_KEYWORD:
                 handleVertex(parser.readVector());
                 break;
-            case ObjFormatConstants.VERTEX_NORMAL_KEYWORD:
+            case ObjConstants.VERTEX_NORMAL_KEYWORD:
                 handleNormal(parser.readVector());
                 break;
-            case ObjFormatConstants.FACE_KEYWORD:
+            case ObjConstants.FACE_KEYWORD:
                 return parser.readFace();
             default:
                 break;

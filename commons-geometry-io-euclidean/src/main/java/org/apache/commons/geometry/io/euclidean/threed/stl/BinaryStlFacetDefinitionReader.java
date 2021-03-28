@@ -175,7 +175,6 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
     /** Fill the buffer with data from the input stream. The buffer is then flipped and
      * made ready for reading.
      * @param buf buffer to fill
-     * @param in input stream to read from
      * @return number of bytes read
      * @throws IOException if an I/O error occurs
      */

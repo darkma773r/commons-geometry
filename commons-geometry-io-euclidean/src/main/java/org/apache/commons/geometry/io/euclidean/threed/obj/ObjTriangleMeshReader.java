@@ -29,7 +29,7 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 
 /** Class for reading OBJ content as a {@link TriangleMesh triangle mesh}.
  */
-public class ObjFormatTriangleMeshReader extends AbstractObjFormatPolygonReader {
+public class ObjTriangleMeshReader extends AbstractObjPolygonReader {
 
     /** Object used to construct the mesh. */
     private final SimpleTriangleMesh.Builder meshBuilder;
@@ -41,7 +41,7 @@ public class ObjFormatTriangleMeshReader extends AbstractObjFormatPolygonReader 
      * @param reader reader to read from
      * @param precision precision context used to compare floating point numbers
      */
-    public ObjFormatTriangleMeshReader(final Reader reader, final DoublePrecisionContext precision) {
+    public ObjTriangleMeshReader(final Reader reader, final DoublePrecisionContext precision) {
         super(reader);
 
         this.meshBuilder = SimpleTriangleMesh.builder(precision);
@@ -55,9 +55,9 @@ public class ObjFormatTriangleMeshReader extends AbstractObjFormatPolygonReader 
      * @throws IOException if an I/O or data format error occurs
      */
     public TriangleMesh readTriangleMesh() throws IOException {
-        PolygonObjFormatParser.Face face;
+        PolygonObjParser.Face face;
         Vector3D definedNormal;
-        Iterator<PolygonObjFormatParser.VertexAttributes> attrs;
+        Iterator<PolygonObjParser.VertexAttributes> attrs;
         while ((face = readFace()) != null) {
             // get the face attributes in the proper counter-clockwise orientation
             definedNormal = face.getDefinedCompositeNormal(normals::get);

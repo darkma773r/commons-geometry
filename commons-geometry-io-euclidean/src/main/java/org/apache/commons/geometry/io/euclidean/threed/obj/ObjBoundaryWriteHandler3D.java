@@ -37,7 +37,7 @@ import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 /** {@link org.apache.commons.geometry.io.euclidean.threed.BoundaryWriteHandler3D BoundaryWriteHandler3D}
  * implementation for writing OBJ content. Output is written using the UTF-8 charset by default.
  */
-public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
+public class ObjBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** The default line separator value. */
     private static final String DEFAULT_LINE_SEPARATOR = "\n";
@@ -46,7 +46,7 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
     private static final int DEFAULT_MESH_BUFFER_BATCH_SIZE = -1;
 
     /** Charset used for text output. */
-    private Charset defaultCharset = ObjFormatConstants.DEFAULT_CHARSET;
+    private Charset defaultCharset = ObjConstants.DEFAULT_CHARSET;
 
     /** Line separator string. */
     private String lineSeparator = DEFAULT_LINE_SEPARATOR;
@@ -113,7 +113,7 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
      * allow for reuse of vertex definitions but at the cost of more memory usage. The buffer size is
      * unlimited if set to {@code -1}. Default value is {@value #DEFAULT_MESH_BUFFER_BATCH_SIZE}.
      * @return mesh buffer batch size
-     * @see OBJWriter#meshBuffer(int)
+     * @see ObjWriter#meshBuffer(int)
      */
     public int getMeshBufferBatchSize() {
         return meshBufferBatchSize;
@@ -123,7 +123,7 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
      * allow for reuse of vertex definitions but at the cost of more memory usage. Set to {@code -1}
      * to allow unlimited buffer size. Default value is {@value #DEFAULT_MESH_BUFFER_BATCH_SIZE}.
      * @param batchSize mesh buffer batch size; set to {@code -1} to allow unlimited buffer sizes
-     * @see OBJWriter#meshBuffer(int)
+     * @see ObjWriter#meshBuffer(int)
      */
     public void setMeshBufferBatchSize(final int batchSize) {
         this.meshBufferBatchSize = batchSize;
@@ -135,7 +135,7 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
             throws IOException {
         // write meshes directly instead of iterating through boundaries
         if (src instanceof Mesh) {
-            try (ObjFormatWriter writer = createWriter(out)) {
+            try (ObjWriter writer = createWriter(out)) {
                 writer.writeMesh((Mesh<?>) src);
             }
         } else {
@@ -147,8 +147,8 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
     @Override
     public void write(final Stream<? extends PlaneConvexSubset> boundaries, final GeometryOutput out)
             throws IOException {
-        try (ObjFormatWriter writer = createWriter(out)) {
-            final ObjFormatWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
+        try (ObjWriter writer = createWriter(out)) {
+            final ObjWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
 
             final Iterator<? extends PlaneConvexSubset> it = boundaries.iterator();
             while (it.hasNext()) {
@@ -163,8 +163,8 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
     @Override
     public void writeFacets(final Stream<? extends FacetDefinition> facets, final GeometryOutput out)
             throws IOException {
-        try (ObjFormatWriter writer = createWriter(out)) {
-            final ObjFormatWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
+        try (ObjWriter writer = createWriter(out)) {
+            final ObjWriter.MeshBuffer meshBuffer = writer.meshBuffer(meshBufferBatchSize);
 
             final Iterator<? extends FacetDefinition> it = facets.iterator();
             while (it.hasNext()) {
@@ -175,18 +175,18 @@ public class ObjFormatBoundaryWriteHandler3D extends AbstractBoundaryWriteHandle
         }
     }
 
-    /** Construct a new, configured {@link ObjFormatWriter} instance for writing content to the given
+    /** Construct a new, configured {@link ObjWriter} instance for writing content to the given
      * output stream.
      * @param out output stream to write to
      * @return new {@code OBJWriter} for writing content to the given output stream
      */
-    private ObjFormatWriter createWriter(final GeometryOutput out) throws IOException {
+    private ObjWriter createWriter(final GeometryOutput out) throws IOException {
         final Charset charset = out.getCharset() != null ?
                 out.getCharset() :
                 defaultCharset;
 
-        final ObjFormatWriter writer =
-                new ObjFormatWriter(new BufferedWriter(new OutputStreamWriter(out.getOutputStream(), charset)));
+        final ObjWriter writer =
+                new ObjWriter(new BufferedWriter(new OutputStreamWriter(out.getOutputStream(), charset)));
         writer.setLineSeparator(lineSeparator);
         writer.setDoubleFormat(doubleFormat);
 

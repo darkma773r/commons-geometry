@@ -98,12 +98,17 @@
           <excludes combine.children="append">
             <exclude>src/test/resources/models/cube.csv</exclude>
             <exclude>src/test/resources/models/cube.obj</exclude>
+            <exclude>src/test/resources/models/cube.stl</exclude>
             <exclude>src/test/resources/models/cube.txt</exclude>
+            <exclude>src/test/resources/models/cube-ascii.stl</exclude>
+            <exclude>src/test/resources/models/cube-binary.stl</exclude>
             <exclude>src/test/resources/models/cube-minus-sphere.csv</exclude>
             <exclude>src/test/resources/models/cube-minus-sphere.obj</exclude>
+            <exclude>src/test/resources/models/cube-minus-sphere.stl</exclude>
             <exclude>src/test/resources/models/cube-minus-sphere.txt</exclude>
             <exclude>src/test/resources/models/empty.csv</exclude>
             <exclude>src/test/resources/models/empty.obj</exclude>
+            <exclude>src/test/resources/models/empty.stl</exclude>
             <exclude>src/test/resources/models/empty.txt</exclude>
           </excludes>
         </configuration>

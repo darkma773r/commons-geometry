@@ -53,12 +53,12 @@ public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSu
      *
      * <p>The underlying input stream is closed when the returned stream is closed. Callers should therefore
      * use the returned stream in a try-with-resources statement to ensure that all resources are properly released.
+     * </p>
      * <pre>
      *  try (Stream&lt;FacetDefinition&gt; stream = handler.facets(in)) {
      *      // access stream content
      *  }
      * </pre>
-     * </p>
      *
      * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
      * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}.</p>

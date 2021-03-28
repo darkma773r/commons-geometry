@@ -29,8 +29,8 @@ import org.apache.commons.geometry.io.core.BoundaryIOManager;
 import org.apache.commons.geometry.io.core.GeometryFormat;
 import org.apache.commons.geometry.io.core.input.GeometryInput;
 import org.apache.commons.geometry.io.core.output.GeometryOutput;
-import org.apache.commons.geometry.io.euclidean.threed.obj.ObjFormatBoundaryReadHandler3D;
-import org.apache.commons.geometry.io.euclidean.threed.obj.ObjFormatBoundaryWriteHandler3D;
+import org.apache.commons.geometry.io.euclidean.threed.obj.ObjBoundaryReadHandler3D;
+import org.apache.commons.geometry.io.euclidean.threed.obj.ObjBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.stl.StlBoundaryReadHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.stl.StlBoundaryWriteHandler3D;
 import org.apache.commons.geometry.io.euclidean.threed.txt.CsvBoundaryReadHandler3D;
@@ -118,7 +118,7 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      * @param precision precision context used for floating point comparisons
      * @return mesh containing all triangles from the input
      * @throws IllegalArgumentException if no read handler can be found for the input format
-     * @throws IOException
+     * @throws IOException if an I/O error occurs
      */
     public TriangleMesh readTriangleMesh(final GeometryInput in, final GeometryFormat fmt,
             final DoublePrecisionContext precision) throws IOException {
@@ -177,8 +177,8 @@ public class BoundaryIOManager3D extends BoundaryIOManager<
      */
     public void registerDefaultHandlers() {
         // obj
-        registerReadHandler(new ObjFormatBoundaryReadHandler3D());
-        registerWriteHandler(new ObjFormatBoundaryWriteHandler3D());
+        registerReadHandler(new ObjBoundaryReadHandler3D());
+        registerWriteHandler(new ObjBoundaryWriteHandler3D());
 
         // stl
         registerReadHandler(new StlBoundaryReadHandler3D());

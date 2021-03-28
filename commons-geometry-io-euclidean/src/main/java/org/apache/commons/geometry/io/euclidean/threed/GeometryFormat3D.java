@@ -31,7 +31,7 @@ public enum GeometryFormat3D implements GeometryFormat {
     OBJ("obj"),
 
     /** Value representing the STL file format in both the text (i.e. "ASCII") and binary forms.
-     * @see <a href="https://en.wikipedia.org/wiki/STL_(file_format)>STL</a>
+     * @see <a href="https://en.wikipedia.org/wiki/STL_(file_format)">STL</a>
      */
     STL("stl"),
 
@@ -39,9 +39,9 @@ public enum GeometryFormat3D implements GeometryFormat {
      * by listing the coordinates of the facet vertices in order, separated by non-numeric characters (e.g. whitespace,
      * commas, semicolons, etc). Each line follows the pattern
      * <p>
-     * <pre>
+     * <code>
      *      p1<sub>x</sub> p1<sub>y</sub> p1<sub>z</sub> p2<sub>x</sub> p2<sub>y</sub> p2<sub>z</sub> p3<sub>x</sub> p3<sub>y</sub> p3<sub>z</sub> ...
-     * </pre>
+     * </code>
      * </p>
      * <p>where the <em>p1</em> elements contain the coordinates of the first facet vertex,
      * <em>p2</em> those of the second, and so on. Facets may have 3 or more vertices and do not need to all have
@@ -49,8 +49,8 @@ public enum GeometryFormat3D implements GeometryFormat {
      *
      * <p>This format is non-standard and no guarantees are made regarding its compatibility with other systems.
      * It is intended primarily to provide a convenient, human-readable format for data input and analysis.</p>
-     * @see {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionReader TextFacetDefinitionReader}
-     * @see {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter TextFacetDefinitionWriter}
+     * @see org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionReader
+     * @see org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter
      */
     TXT("txt"),
 
@@ -61,7 +61,7 @@ public enum GeometryFormat3D implements GeometryFormat {
      *
      * <p>This format is non-standard and no guarantees are made regarding its compatibility with other systems.
      * It is intended primarily to provide a convenient, human-readable format for data input and analysis.</p>
-     * @see {@link org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter#csvFormat(java.io.Writer) TextFacetDefinitionWriter}
+     * @see org.apache.commons.geometry.io.euclidean.threed.txt.TextFacetDefinitionWriter#csvFormat(java.io.Writer)
      */
     CSV("csv");
 
