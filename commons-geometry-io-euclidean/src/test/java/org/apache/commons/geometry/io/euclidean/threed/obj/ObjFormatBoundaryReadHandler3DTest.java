@@ -34,6 +34,7 @@ import org.apache.commons.geometry.io.core.test.CloseCountInputStream;
 import org.apache.commons.geometry.io.euclidean.EuclideanIOTestUtils;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitionReader;
+import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -47,8 +48,9 @@ public class ObjFormatBoundaryReadHandler3DTest {
     private final ObjFormatBoundaryReadHandler3D handler = new ObjFormatBoundaryReadHandler3D();
 
     @Test
-    public void testDefaults() {
+    public void testProperties() {
         // act/assert
+        Assertions.assertEquals(GeometryFormat3D.OBJ, handler.getFormat());
         Assertions.assertEquals(StandardCharsets.UTF_8, handler.getDefaultCharset());
     }
 
@@ -73,7 +75,28 @@ public class ObjFormatBoundaryReadHandler3DTest {
     }
 
     @Test
-    public void testFacetDefinitionReader_nonDefaultCharset() throws IOException {
+    public void testFacetDefinitionReader_usesInputCharset() throws IOException {
+        // arrange
+        final InputStream in = input(
+                "v 0 0 0\n" +
+                "v 1 1 0\n" +
+                "v 0 1 0\n" +
+                "f 1 2 3\n", StandardCharsets.UTF_16);
+
+        // act
+        final FacetDefinitionReader reader =
+                handler.facetDefinitionReader(new StreamGeometryInput(in, null, StandardCharsets.UTF_16));
+
+        // assert
+        final List<FacetDefinition> facets = EuclideanIOTestUtils.readAll(reader);
+
+        Assertions.assertEquals(1, facets.size());
+        EuclideanIOTestUtils.assertFacetVertices(facets.get(0),
+                Arrays.asList(Vector3D.ZERO, Vector3D.of(1, 1, 0), Vector3D.of(0, 1, 0)), TEST_EPS);
+    }
+
+    @Test
+    public void testFacetDefinitionReader_setDefaultCharset() throws IOException {
         // arrange
         handler.setDefaultCharset(StandardCharsets.UTF_16);
         final InputStream in = input(

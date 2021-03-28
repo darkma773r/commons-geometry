@@ -43,7 +43,7 @@ import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
 
     /** Initial size of the data buffer. */
-    private static final int DEFAULT_BUFFER_SIZE = 1000 * StlConstants.BINARY_TRIANGLE_BYTES;
+    private static final int DEFAULT_BUFFER_SIZE = 1024 * StlConstants.BINARY_TRIANGLE_BYTES;
 
     /** Initial size of data buffers used during write operations. */
     private int initialBufferSize = DEFAULT_BUFFER_SIZE;
@@ -55,6 +55,12 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     }
 
     /** Get the initial size of the data buffers used by this instance.
+     *
+     * <p>The buffer is used in situations where it is not clear how many
+     * triangles will ultimately be written to the output. In these cases, the
+     * triangle data is first written to an internal buffer. Once all triangles are
+     * written, the STL header containing the total triangle count is written
+     * to the output, followed by the buffered triangle data.</p>
      * @return initial buffer size
      */
     public int getinitialBufferSize() {
@@ -62,11 +68,17 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
     }
 
     /** Set the initial size of the data buffers used by this instance.
+     *
+     * <p>The buffer is used in situations where it is not clear how many
+     * triangles will ultimately be written to the output. In these cases, the
+     * triangle data is first written to an internal buffer. Once all triangles are
+     * written, the STL header containing the total triangle count is written
+     * to the output, followed by the buffered triangle data.</p>
      * @param initialBufferSize initial buffer size
      */
     public void setInitialBufferSize(final int initialBufferSize) {
         if (initialBufferSize < 1) {
-            throw new IllegalArgumentException("Buffer size must be greater than 1");
+            throw new IllegalArgumentException("Buffer size must be greater than 0");
         }
         this.initialBufferSize = initialBufferSize;
     }
@@ -80,6 +92,7 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
         if (src instanceof TriangleMesh) {
             writeTriangleMesh((TriangleMesh) src, out);
         } else {
+            // unknown number of triangles; proceed with a buffered write
             super.write(src, out);
         }
     }

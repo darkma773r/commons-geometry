@@ -32,6 +32,7 @@ import org.apache.commons.geometry.io.core.output.StreamGeometryOutput;
 import org.apache.commons.geometry.io.core.utils.DoubleFormats;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinition;
 import org.apache.commons.geometry.io.euclidean.threed.FacetDefinitions;
+import org.apache.commons.geometry.io.euclidean.threed.GeometryFormat3D;
 import org.apache.commons.geometry.io.euclidean.threed.SimpleFacetDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -52,8 +53,9 @@ public class ObjFormatBoundaryWriteHandler3DTest {
     private final ObjFormatBoundaryWriteHandler3D handler = new ObjFormatBoundaryWriteHandler3D();
 
     @Test
-    public void testPropertyDefaults() {
+    public void testProperties() {
         // act/assert
+        Assertions.assertEquals(GeometryFormat3D.OBJ, handler.getFormat());
         Assertions.assertEquals(StandardCharsets.UTF_8, handler.getDefaultCharset());
         Assertions.assertEquals("\n", handler.getLineSeparator());
         Assertions.assertSame(DoubleFormats.DOUBLE_TO_STRING, handler.getDoubleFormat());
@@ -75,6 +77,23 @@ public class ObjFormatBoundaryWriteHandler3DTest {
                 "v 0.0 -1.0 0.0\n" +
                 "f 1 2 3 4\n" +
                 "f 1 5 2\n", new String(out.toByteArray(), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testWriteFacets_usesOutputCharset() throws IOException {
+        // act
+        handler.setDoubleFormat(DoubleFormats.createDefault(0, -6));
+        handler.writeFacets(FACETS, new StreamGeometryOutput(out, null, StandardCharsets.UTF_16));
+
+        // assert
+        Assertions.assertEquals(
+                "v 0.0 0.0 0.0\n" +
+                "v 0.333333 0.0 0.0\n" +
+                "v 1.0 1.0 0.0\n" +
+                "v 0.0 1.0 0.0\n" +
+                "v 0.0 -1.0 0.0\n" +
+                "f 1 2 3 4\n" +
+                "f 1 5 2\n", new String(out.toByteArray(), StandardCharsets.UTF_16));
     }
 
     @Test
