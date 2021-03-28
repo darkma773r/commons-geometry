@@ -40,7 +40,7 @@ public final class StlFacetDefinitionReaders {
      * or text file and an appropriate reader is returned.
      * @param in input to read from
      * @param charset charset to use when checking the input for text content;
-     *      may be null
+     *      if null, the input is assumed to use the UTF-8 charset
      * @return facet definition reader
      * @throws IOException if an I/O error occurs
      */
@@ -56,7 +56,7 @@ public final class StlFacetDefinitionReaders {
         final int read = in.read(actualBytes);
         if (read < actualBytes.length) {
             throw new IOException(MessageFormat.format(
-                    "Cannot determine format type: attempted to read {} bytes but found only {} available",
+                    "Cannot determine STL format: attempted to read {0} bytes but found only {1} available",
                     actualBytes.length, read));
         }
 

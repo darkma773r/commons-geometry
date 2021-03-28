@@ -38,7 +38,7 @@ import java.nio.charset.StandardCharsets;
 
 /** Class containing constants for the STL file format.
  */
-public final class StlConstants {
+final class StlConstants {
 
     /** Default STL charset. */
     static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
