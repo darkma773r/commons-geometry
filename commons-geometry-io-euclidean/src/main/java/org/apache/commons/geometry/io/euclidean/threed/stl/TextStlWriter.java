@@ -107,6 +107,7 @@ public class TextStlWriter extends AbstractTextFormatWriter {
      * @param facet facet definition to write
      * @throws IllegalStateException if no solid has been started yet
      * @throws IOException if an I/O error occurs
+     * @see #writeTriangle(Vector3D, Vector3D, Vector3D, Vector3D)
      */
     public void writeTriangles(final FacetDefinition facet) throws IOException {
         writeTriangles(facet.getVertices(), facet.getNormal());
@@ -116,6 +117,13 @@ public class TextStlWriter extends AbstractTextFormatWriter {
      * If the the given list of vertices contains more than 3 vertices, it is converted to
      * triangles using a triangle fan. Callers are responsible for ensuring that the given
      * vertices represent a valid convex polygon.
+     *
+     * <p>If a non-zero normal is given, the vertices are ordered using the right-hand rule,
+     * meaning that they will be in a counter-clockwise orientation when looking down
+     * the normal. If no normal is given, or the given value cannot be normalized, a normal
+     * is computed from the triangle vertices, also using the right-hand rule. If this also
+     * fails (for example, if the triangle vertices do not define a plane), then the
+     * zero vector is used.</p>
      * @param vertices vertices defining the facet
      * @param normal facet normal; may be null
      * @throws IllegalStateException if no solid has been started yet or fewer than 3 vertices
@@ -133,10 +141,17 @@ public class TextStlWriter extends AbstractTextFormatWriter {
     }
 
     /** Write a triangle to the output.
+     *
+     * <p>If a non-zero normal is given, the vertices are ordered using the right-hand rule,
+     * meaning that they will be in a counter-clockwise orientation when looking down
+     * the normal. If no normal is given, or the given value cannot be normalized, a normal
+     * is computed from the triangle vertices, also using the right-hand rule. If this also
+     * fails (for example, if the triangle vertices do not define a plane), then the
+     * zero vector is used.</p>
      * @param p1 first point
      * @param p2 second point
      * @param p3 third point
-     * @param normal normal; may be null, in which case the zero vector is used
+     * @param normal facet normal; may be null
      * @throws IllegalStateException if no solid has been started yet
      * @throws IOException if an I/O error occurs
      */
@@ -148,7 +163,7 @@ public class TextStlWriter extends AbstractTextFormatWriter {
 
         write(StlConstants.FACET_START_KEYWORD);
         write(SPACE);
-        writeVector(normal != null ? normal : Vector3D.ZERO);
+        writeVector(StlUtils.determineNormal(p1, p2, p3, normal));
         writeNewLine();
 
         write(StlConstants.OUTER_KEYWORD);

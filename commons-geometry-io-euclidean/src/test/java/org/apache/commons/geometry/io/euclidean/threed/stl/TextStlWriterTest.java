@@ -170,15 +170,68 @@ public class TextStlWriterTest {
     }
 
     @Test
-    public void testWriteTriangle_noNormal() throws IOException {
+    public void testWriteTriangle_noNormal_computesNormal() throws IOException {
+        // arrange
+        final Vector3D p1 = Vector3D.of(0, 4, 0);
+        final Vector3D p2 = Vector3D.of(1.0 / 3.0, 0, 0);
+        final Vector3D p3 = Vector3D.of(0, 0.5, 10);
+
         // act
         try (TextStlWriter writer = new TextStlWriter(out)) {
             writer.startSolid();
-            writer.writeTriangle(
-                    Vector3D.of(0, 4, 0),
-                    Vector3D.of(1.0 / 3.0, 0, 0),
-                    Vector3D.of(0, 0.5, 10),
-                    null);
+            writer.writeTriangle(p1, p2, p3, null);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet -0.9961250701090868 -0.08301042250909056 -0.029053647878181696\n" +
+            "outer loop\n" +
+            "vertex 0.0 4.0 0.0\n" +
+            "vertex 0.3333333333333333 0.0 0.0\n" +
+            "vertex 0.0 0.5 10.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWriteTriangle_zeroNormal_computesNormal() throws IOException {
+        // arrange
+        final Vector3D p1 = Vector3D.of(0, 4, 0);
+        final Vector3D p2 = Vector3D.of(1.0 / 3.0, 0, 0);
+        final Vector3D p3 = Vector3D.of(0, 0.5, 10);
+
+        // act
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+            writer.writeTriangle(p1, p2, p3, Vector3D.ZERO);
+        }
+
+        // assert
+        Assertions.assertEquals(
+            "solid \n" +
+            "facet -0.9961250701090868 -0.08301042250909056 -0.029053647878181696\n" +
+            "outer loop\n" +
+            "vertex 0.0 4.0 0.0\n" +
+            "vertex 0.3333333333333333 0.0 0.0\n" +
+            "vertex 0.0 0.5 10.0\n" +
+            "endloop\n" +
+            "endfacet\n" +
+            "endsolid \n", out.toString());
+    }
+
+    @Test
+    public void testWriteTriangle_noNormal_cannotComputeNormal() throws IOException {
+        // arrange
+        final Vector3D p1 = Vector3D.ZERO;
+        final Vector3D p2 = Vector3D.of(1.0 / 3.0, 0, 0);
+        final Vector3D p3 = Vector3D.ZERO;
+
+        // act
+        try (TextStlWriter writer = new TextStlWriter(out)) {
+            writer.startSolid();
+            writer.writeTriangle(p1, p2, p3, null);
         }
 
         // assert
@@ -186,9 +239,9 @@ public class TextStlWriterTest {
             "solid \n" +
             "facet 0.0 0.0 0.0\n" +
             "outer loop\n" +
-            "vertex 0.0 4.0 0.0\n" +
+            "vertex 0.0 0.0 0.0\n" +
             "vertex 0.3333333333333333 0.0 0.0\n" +
-            "vertex 0.0 0.5 10.0\n" +
+            "vertex 0.0 0.0 0.0\n" +
             "endloop\n" +
             "endfacet\n" +
             "endsolid \n", out.toString());
@@ -255,7 +308,7 @@ public class TextStlWriterTest {
         // arrange
         final List<Vector3D> vertices = Arrays.asList(
                 Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(0, 1, 0));
-        final Vector3D n1 = Vector3D.Unit.PLUS_Z;
+        final Vector3D n1 = Vector3D.of(0, 0, 100);
         final Vector3D n2 = Vector3D.Unit.MINUS_Z;
 
         // act
@@ -284,7 +337,7 @@ public class TextStlWriterTest {
             "vertex 1.0 0.0 0.0\n" +
             "endloop\n" +
             "endfacet\n" +
-            "facet 0.0 0.0 0.0\n" +
+            "facet 0.0 0.0 1.0\n" +
             "outer loop\n" +
             "vertex 0.0 0.0 0.0\n" +
             "vertex 1.0 0.0 0.0\n" +
@@ -394,14 +447,14 @@ public class TextStlWriterTest {
         // assert
         Assertions.assertEquals(
             "solid \n" +
-            "facet 0.0 0.0 0.0\n" +
+            "facet 0.0 0.0 1.0\n" +
             "outer loop\n" +
             "vertex 0.0 0.0 0.0\n" +
             "vertex 1.0 0.0 0.0\n" +
             "vertex 1.0 1.0 0.0\n" +
             "endloop\n" +
             "endfacet\n" +
-            "facet 0.0 0.0 0.0\n" +
+            "facet 0.0 0.0 1.0\n" +
             "outer loop\n" +
             "vertex 0.0 0.0 0.0\n" +
             "vertex 1.0 1.0 0.0\n" +

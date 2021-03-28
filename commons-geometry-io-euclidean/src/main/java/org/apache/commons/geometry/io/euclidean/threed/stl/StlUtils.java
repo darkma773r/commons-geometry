@@ -33,9 +33,35 @@ final class StlUtils {
      * @param capacity buffer capacity
      * @return byte buffer
      */
-    public static ByteBuffer byteBuffer(final int capacity) {
+    static ByteBuffer byteBuffer(final int capacity) {
         return ByteBuffer.allocate(capacity)
                 .order(StlConstants.BINARY_BYTE_ORDER);
+    }
+
+    /** Determine the normal that should be used for the given STL triangle vertices. If {@code normal}
+     * is present and can be normalized, it is returned. Otherwise, a normal is attempted to be computed
+     * using the given triangle vertices. If normal computation fails, the zero vector is returned.
+     * @param p1 first point
+     * @param p2 second point
+     * @param p3 third point
+     * @param normal defined triangle normal; may be null
+     * @return STL normal for the triangle
+     */
+    static Vector3D determineNormal(final Vector3D p1, final Vector3D p2, final Vector3D p3,
+            final Vector3D normal) {
+        if (normal != null) {
+            // try to normalize it
+            final Vector3D normalized = Vectors.tryNormalize(normal);
+            if (normalized != null) {
+                return normalized;
+            }
+        }
+
+        // try to compute one from the triangle points
+        final Vector3D computed = computeTriangleNormal(p1, p2, p3);
+        return computed != null ?
+                computed :
+                Vector3D.ZERO;
     }
 
     /** Return true if the given points are arranged counter-clockwise relative to the
@@ -47,15 +73,29 @@ final class StlUtils {
      * @return true if {@code normal} is null or if the given points are arranged counter-clockwise
      *      relative to {@code normal}
      */
-    public static boolean pointsAreCounterClockwise(final Vector3D p1, final Vector3D p2, final Vector3D p3,
+    static boolean pointsAreCounterClockwise(final Vector3D p1, final Vector3D p2, final Vector3D p3,
             final Vector3D normal) {
         if (normal != null) {
-            final Vector3D computedNormal = Vectors.tryNormalize(p1.vectorTo(p2).cross(p1.vectorTo(p3)));
+            final Vector3D computedNormal = computeTriangleNormal(p1, p2, p3);
             if (computedNormal != null && normal.dot(computedNormal) < 0) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /** Get the normal using the right-hand rule for the given triangle vertices. Null is returned
+     * if the normal could not be computed.
+     * @param p1 first point
+     * @param p2 second point
+     * @param p3 third point
+     * @return the normal for the given triangle vertices or null if one could not be computed
+     */
+    private static Vector3D computeTriangleNormal(final Vector3D p1, final Vector3D p2, final Vector3D p3) {
+        final Vector3D normal = Vectors.tryNormalize(p1.vectorTo(p2).cross(p1.vectorTo(p3)));
+        return normal != null ?
+                normal :
+                null;
     }
 }

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-import org.apache.commons.geometry.euclidean.internal.Vectors;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 
 /** Low-level class for writing binary STL content.
@@ -55,10 +54,15 @@ public class BinaryStlWriter implements Closeable {
     /** Write a triangle to the output using a default attribute value of 0.
      * Callers are responsible for ensuring that the number of triangles written
      * matches the number given in the header.
+     *
+     * <p>If a normal is given, the vertices are ordered using the right-hand rule,
+     * meaning that they will be in a counter-clockwise orientation when looking down
+     * the normal. Thus, the given point ordering may not be the ordering used in
+     * the written content.</p>
      * @param p1 first point
      * @param p2 second point
      * @param p3 third point
-     * @param normal normal; may be null, in which case the zero vector is used
+     * @param normal triangle normal; may be null
      * @throws IOException if an I/O error occurs
      */
     public void writeTriangle(final Vector3D p1, final Vector3D p2, final Vector3D p3,
@@ -68,10 +72,17 @@ public class BinaryStlWriter implements Closeable {
 
     /** Write a triangle to the output. Callers are responsible for ensuring
      * that the number of triangles written matches the number given in the header.
+     *
+     * <p>If a non-zero normal is given, the vertices are ordered using the right-hand rule,
+     * meaning that they will be in a counter-clockwise orientation when looking down
+     * the normal. If no normal is given, or the given value cannot be normalized, a normal
+     * is computed from the triangle vertices, also using the right-hand rule. If this also
+     * fails (for example, if the triangle vertices do not define a plane), then the
+     * zero vector is used.</p>
      * @param p1 first point
      * @param p2 second point
      * @param p3 third point
-     * @param normal normal; may be null, in which case the zero vector is used
+     * @param normal triangle normal; may be null
      * @param attributeValue 2-byte STL triangle attribute value
      * @throws IOException if an I/O error occurs
      */
@@ -79,10 +90,10 @@ public class BinaryStlWriter implements Closeable {
             final Vector3D normal, final int attributeValue) throws IOException {
         triangleBuffer.rewind();
 
-        putVector(normal == null ? Vector3D.ZERO : normal);
+        putVector(StlUtils.determineNormal(p1, p2, p3, normal));
         putVector(p1);
 
-        if (pointsAreCounterClockwise(p1, p2, p3, normal)) {
+        if (StlUtils.pointsAreCounterClockwise(p1, p2, p3, normal)) {
             putVector(p2);
             putVector(p3);
         } else {
@@ -108,27 +119,6 @@ public class BinaryStlWriter implements Closeable {
         triangleBuffer.putFloat((float) vec.getX());
         triangleBuffer.putFloat((float) vec.getY());
         triangleBuffer.putFloat((float) vec.getZ());
-    }
-
-    /** Return true if the given points are arranged counter-clockwise relative to the
-     * given normal. Returns true if {@code normal} is null.
-     * @param p1 first point
-     * @param p2 second point
-     * @param p3 third point
-     * @param normal normal; may be null, in which case the zero vector is used
-     * @return true if {@code normal} is null or if the given points are arranged counter-clockwise
-     *      relative to {@code normal}
-     */
-    private boolean pointsAreCounterClockwise(final Vector3D p1, final Vector3D p2, final Vector3D p3,
-            final Vector3D normal) {
-        if (normal != null) {
-            final Vector3D computedNormal = Vectors.tryNormalize(p1.vectorTo(p2).cross(p1.vectorTo(p3)));
-            if (computedNormal != null && normal.dot(computedNormal) < 0) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /** Write binary STL header content to the given output stream. If {@code headerContent}
