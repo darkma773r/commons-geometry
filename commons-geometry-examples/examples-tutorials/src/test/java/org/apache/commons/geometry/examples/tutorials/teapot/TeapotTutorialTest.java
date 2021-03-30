@@ -16,12 +16,14 @@
  */
 package org.apache.commons.geometry.examples.tutorials.teapot;
 
-import org.junit.Test;
+import java.io.IOException;
+
+import org.junit.jupiter.api.Test;
 
 public class TeapotTutorialTest {
 
     @Test
-    public void testTeapotBuilder() {
+    public void testTeapotBuilder() throws IOException {
         // act/assert
         TeapotBuilder.main(new String[] { "target/teapot.obj", "target/teapot-debug" });
     }

@@ -16,7 +16,11 @@
  */
 package org.apache.commons.geometry.examples.tutorials.teapot;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleFunction;
@@ -41,7 +45,7 @@ import org.apache.commons.geometry.euclidean.twod.RegionBSPTree2D;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.geometry.euclidean.twod.path.LinePath;
 import org.apache.commons.geometry.euclidean.twod.shape.Circle;
-import org.apache.commons.geometry.examples.io.threed.ModelIO;
+import org.apache.commons.geometry.io.euclidean.threed.IO3D;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
 
 /** Class used to construct a simple 3D teapot shape using the
@@ -53,7 +57,7 @@ public class TeapotBuilder {
     private final DoublePrecisionContext precision;
 
     /** Directory to place debug output files. If null, no debug files are written. */
-    private File debugDir;
+    private Path debugDir;
 
     /** Construct a new build instance.
      * @param precision precision context to use during region construction
@@ -62,11 +66,11 @@ public class TeapotBuilder {
         this.precision = precision;
     }
 
-    public File getDebugDir() {
+    public Path getDebugDir() {
         return debugDir;
     }
 
-    public void setDebugDir(final File debugDir) {
+    public void setDebugDir(final Path debugDir) {
         this.debugDir = debugDir;
     }
 
@@ -84,8 +88,8 @@ public class TeapotBuilder {
         return teapot;
     }
 
-    public void writeTeapot(final File outputFile) {
-        ModelIO.write(buildTeapot(), outputFile);
+    public void writeTeapot(final Path outputFile) throws IOException {
+        IO3D.write(buildTeapot(), outputFile);
     }
 
     private RegionBSPTree3D buildBody() {
@@ -125,7 +129,7 @@ public class TeapotBuilder {
 
         top.intersection(RegionBSPTree3D.from(extrudedCircle));
 
-        // add a small squashed sphere on top; use the bounds of the top is order to place
+        // add a small squashed sphere on top; use the bounds of the top in order to place
         // the sphere at the correct position
         final Sphere sphere = Sphere.from(Vector3D.of(0, 0, 0), 0.15, precision);
         final RegionBSPTree3D sphereTree = sphere.toTree(2);
@@ -316,15 +320,20 @@ public class TeapotBuilder {
     }
 
     /** Write a debug output file containing the given model if a debug directory has
-     * been specified.
+     * been specified. IO errors are rethrown as {@link java.io.UncheckedIOException}s.
      * @param model model to output
      * @param file name of the output file in the debug directory
+     * @throws UncheckedIOException if an IO error occurs
      */
     private void debugOutput(final BoundarySource3D model, final String file) {
         if (debugDir != null) {
-            debugDir.mkdirs();
+            try {
+                Files.createDirectories(debugDir);
 
-            ModelIO.write(model, new File(debugDir, file));
+                IO3D.write(model, debugDir.resolve(file));
+            } catch (IOException exc) {
+                throw new UncheckedIOException(exc);
+            }
         }
     }
 
@@ -345,14 +354,14 @@ public class TeapotBuilder {
         return result;
     }
 
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws IOException {
         if (args.length < 1) {
             throw new IllegalArgumentException("Output file argument is required");
         }
 
-        final File outputFile = new File(args[0]);
-        final File debugDir = args.length > 1 ?
-                new File(args[1]) :
+        final Path outputFile = Paths.get(args[0]);
+        final Path debugDir = args.length > 1 ?
+                Paths.get(args[1]) :
                 null;
 
         final TeapotBuilder builder = new TeapotBuilder(new EpsilonDoublePrecisionContext(1e-10));
