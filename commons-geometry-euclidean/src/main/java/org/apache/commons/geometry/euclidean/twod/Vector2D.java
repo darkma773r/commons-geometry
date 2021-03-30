@@ -26,6 +26,7 @@ import org.apache.commons.geometry.core.internal.SimpleTupleFormat;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.MultiDimensionalEuclideanVector;
 import org.apache.commons.geometry.euclidean.internal.Vectors;
+import org.apache.commons.geometry.euclidean.threed.Vector3D.Unit;
 import org.apache.commons.numbers.arrays.LinearCombination;
 
 /** This class represents vectors and points in two-dimensional Euclidean space.
@@ -704,8 +705,9 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
          * @throws IllegalArgumentException if the norm of the given value is zero, NaN, or infinite
          */
         public static Unit from(final double x, final double y) {
-            final double invNorm = 1 / Vectors.checkedNorm(Vectors.norm(x, y));
-            return new Unit(x * invNorm, y * invNorm);
+//            final double invNorm = 1 / Vectors.checkedNorm(Vectors.norm(x, y));
+//            return new Unit(x * invNorm, y * invNorm);
+            return tryCreateNormalized(x, y, true);
         }
 
         /**
@@ -719,6 +721,17 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
             return v instanceof Unit ?
                 (Unit) v :
                 from(v.getX(), v.getY());
+        }
+
+        private static Unit tryCreateNormalized(final double x, final double y, final boolean throwOnFailure) {
+            final double norm = Vectors.norm(x, y);
+            if (Vectors.isRealNonZero(norm)) {
+                final double invNorm = 1 / norm;
+                return new Unit(x * invNorm, y * invNorm);
+            } else if (throwOnFailure) {
+                throw Vectors.illegalNorm(norm);
+            }
+            return null;
         }
 
         /** {@inheritDoc} */

@@ -246,6 +246,13 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         return Unit.from(x, y, z);
     }
 
+    public Unit normalizeOrDefault(final Vector3D.Unit defaultValue) {
+        final Unit result = Unit.tryCreateNormalized(x, y, z, false);
+        return result != null ?
+                result :
+                defaultValue;
+    }
+
     /** {@inheritDoc} */
     @Override
     public Vector3D multiply(final double a) {
@@ -781,8 +788,9 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
          *      is zero, NaN, or infinite
          */
         public static Unit from(final double x, final double y, final double z) {
-            final double invNorm = 1 / Vectors.checkedNorm(Vectors.norm(x, y, z));
-            return new Unit(x * invNorm, y * invNorm, z * invNorm);
+//            final double invNorm = 1 / Vectors.norm(Vectors.norm(x, y, z));
+//            return new Unit(x * invNorm, y * invNorm, z * invNorm);
+            return tryCreateNormalized(x, y, z, true);
         }
 
         /**
@@ -797,6 +805,18 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
             return v instanceof Unit ?
                 (Unit) v :
                 from(v.getX(), v.getY(), v.getZ());
+        }
+
+        private static Unit tryCreateNormalized(final double x, final double y, final double z,
+                final boolean throwOnFailure) {
+            final double norm = Vectors.norm(x, y, z);
+            if (Vectors.isRealNonZero(norm)) {
+                final double invNorm = 1 / norm;
+                return new Unit(x * invNorm, y * invNorm, z * invNorm);
+            } else if (throwOnFailure) {
+                throw Vectors.illegalNorm(norm);
+            }
+            return null;
         }
 
         /** {@inheritDoc} */
@@ -814,6 +834,12 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         /** {@inheritDoc} */
         @Override
         public Unit normalize() {
+            return this;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Unit normalizeOrDefault(final Unit defaultValue) {
             return this;
         }
 
