@@ -30,7 +30,6 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
 import org.apache.commons.geometry.core.Transform;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
@@ -377,16 +376,16 @@ public final class SimpleTriangleMesh implements TriangleMesh {
     private final class FaceIterator<T> implements Iterator<T> {
 
         /** The current index of the iterator. */
-        private int index = 0;
+        private int index;
 
         /** Function to apply to each face in the mesh. */
-        private final Function<TriangleMesh.Face, T> fn;
+        private final Function<? super TriangleMesh.Face, T> fn;
 
         /** Construct a new instance for iterating through the mesh faces and extracting
          * a value from each.
          * @param fn function to apply to each face in order to obtain the iterated value
          */
-        FaceIterator(final Function<TriangleMesh.Face, T> fn) {
+        FaceIterator(final Function<? super TriangleMesh.Face, T> fn) {
             this.fn = fn;
         }
 
@@ -429,7 +428,7 @@ public final class SimpleTriangleMesh implements TriangleMesh {
         private final DoublePrecisionContext precision;
 
         /** Flag set to true once a mesh is constructed from this builder. */
-        private boolean built = false;
+        private boolean built;
 
         /** Construct a new builder.
          * @param precision precision context used for floating point comparisons; may
@@ -495,7 +494,7 @@ public final class SimpleTriangleMesh implements TriangleMesh {
          * @return this instance
          * @see #addVertex(Vector3D)
          */
-        public Builder addVertices(final Collection<Vector3D> newVertices) {
+        public Builder addVertices(final Collection<? extends Vector3D> newVertices) {
             final int newSize = vertices.size() + newVertices.size();
             ensureVertexCapacity(newSize);
 
@@ -522,6 +521,15 @@ public final class SimpleTriangleMesh implements TriangleMesh {
          */
         public int getVertexCount() {
             return vertices.size();
+        }
+
+        /** Get the vertex at the given index.
+         * @param index index of the vertex to retrieve
+         * @return vertex at the given index
+         * @throws IndexOutOfBoundsException if the index is out of bounds of the mesh vertex list
+         */
+        public Vector3D getVertex(final int index) {
+            return vertices.get(index);
         }
 
         /** Append a face to this mesh.
@@ -672,13 +680,14 @@ public final class SimpleTriangleMesh implements TriangleMesh {
          * @param map vertex index map
          * @return the index now associated with the given vertex or its equivalent
          */
-        private int addToVertexIndexMap(final Vector3D vertex, final int targetIdx, final Map<Vector3D, Integer> map) {
+        private int addToVertexIndexMap(final Vector3D vertex, final int targetIdx,
+                final Map<? super Vector3D, Integer> map) {
             validateCanModify();
 
             final Integer actualIdx = map.putIfAbsent(vertex, targetIdx);
 
             return actualIdx != null ?
-                    actualIdx.intValue() :
+                    actualIdx :
                     targetIdx;
         }
 

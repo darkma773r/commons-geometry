@@ -28,8 +28,8 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class Bounds3DTest {
 
@@ -110,7 +110,7 @@ public class Bounds3DTest {
     @Test
     public void testFrom_iterable_noPoints() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Bounds3D.from(new ArrayList<>());
         }, IllegalStateException.class, NO_POINTS_MESSAGE);
     }
@@ -125,27 +125,27 @@ public class Bounds3DTest {
         final Vector3D negInf = Vector3D.of(1, 1, Double.NEGATIVE_INFINITY);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Bounds3D.from(Vector3D.NaN);
         }, IllegalStateException.class, INVALID_BOUNDS_PATTERN);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Bounds3D.from(Vector3D.POSITIVE_INFINITY);
         }, IllegalStateException.class, INVALID_BOUNDS_PATTERN);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Bounds3D.from(Vector3D.NEGATIVE_INFINITY);
         }, IllegalStateException.class, INVALID_BOUNDS_PATTERN);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Bounds3D.from(good, nan);
         }, IllegalStateException.class, INVALID_BOUNDS_PATTERN);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Bounds3D.from(posInf, good);
         }, IllegalStateException.class, INVALID_BOUNDS_PATTERN);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Bounds3D.from(good, negInf, good);
         }, IllegalStateException.class, INVALID_BOUNDS_PATTERN);
     }
@@ -165,20 +165,20 @@ public class Bounds3DTest {
         final Vector3D p5 = Vector3D.of(1, 1, 1);
 
         // act/assert
-        Assert.assertFalse(Bounds3D.from(p1).hasSize(high));
-        Assert.assertFalse(Bounds3D.from(p1).hasSize(low));
+        Assertions.assertFalse(Bounds3D.from(p1).hasSize(high));
+        Assertions.assertFalse(Bounds3D.from(p1).hasSize(low));
 
-        Assert.assertTrue(Bounds3D.from(p1, p2).hasSize(high));
-        Assert.assertFalse(Bounds3D.from(p1, p2).hasSize(low));
+        Assertions.assertTrue(Bounds3D.from(p1, p2).hasSize(high));
+        Assertions.assertFalse(Bounds3D.from(p1, p2).hasSize(low));
 
-        Assert.assertTrue(Bounds3D.from(p1, p3).hasSize(high));
-        Assert.assertFalse(Bounds3D.from(p1, p3).hasSize(low));
+        Assertions.assertTrue(Bounds3D.from(p1, p3).hasSize(high));
+        Assertions.assertFalse(Bounds3D.from(p1, p3).hasSize(low));
 
-        Assert.assertTrue(Bounds3D.from(p1, p4).hasSize(high));
-        Assert.assertFalse(Bounds3D.from(p1, p4).hasSize(low));
+        Assertions.assertTrue(Bounds3D.from(p1, p4).hasSize(high));
+        Assertions.assertFalse(Bounds3D.from(p1, p4).hasSize(low));
 
-        Assert.assertTrue(Bounds3D.from(p1, p5).hasSize(high));
-        Assert.assertTrue(Bounds3D.from(p1, p5).hasSize(low));
+        Assertions.assertTrue(Bounds3D.from(p1, p5).hasSize(high));
+        Assertions.assertTrue(Bounds3D.from(p1, p5).hasSize(low));
     }
 
     @Test
@@ -240,8 +240,8 @@ public class Bounds3DTest {
         checkIntersects(b, Vector3D::getZ, (v, z) -> Vector3D.of(v.getX(), v.getY(), z));
     }
 
-    private void checkIntersects(final Bounds3D b, final ToDoubleFunction<Vector3D> getter,
-                                 final BiFunction<Vector3D, Double, Vector3D> setter) {
+    private void checkIntersects(final Bounds3D b, final ToDoubleFunction<? super Vector3D> getter,
+                                 final BiFunction<? super Vector3D, Double, ? extends Vector3D> setter) {
 
         final Vector3D min = b.getMin();
         final Vector3D max = b.getMax();
@@ -253,44 +253,44 @@ public class Bounds3DTest {
         // check all possible interval relationships
 
         // start below minValue
-        Assert.assertFalse(b.intersects(Bounds3D.from(
+        Assertions.assertFalse(b.intersects(Bounds3D.from(
                 setter.apply(min, minValue - 2), setter.apply(max, minValue - 1))));
 
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, minValue - 2), setter.apply(max, minValue))));
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, minValue - 2), setter.apply(max, midValue))));
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, minValue - 2), setter.apply(max, maxValue))));
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, minValue - 2), setter.apply(max, maxValue + 1))));
 
         // start on minValue
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, minValue), setter.apply(max, minValue))));
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, minValue), setter.apply(max, midValue))));
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, minValue), setter.apply(max, maxValue))));
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, minValue), setter.apply(max, maxValue + 1))));
 
         // start on midValue
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, midValue), setter.apply(max, midValue))));
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, midValue), setter.apply(max, maxValue))));
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, midValue), setter.apply(max, maxValue + 1))));
 
         // start on maxValue
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, maxValue), setter.apply(max, maxValue))));
-        Assert.assertTrue(b.intersects(Bounds3D.from(
+        Assertions.assertTrue(b.intersects(Bounds3D.from(
                 setter.apply(min, maxValue), setter.apply(max, maxValue + 1))));
 
         // start above maxValue
-        Assert.assertFalse(b.intersects(Bounds3D.from(
+        Assertions.assertFalse(b.intersects(Bounds3D.from(
                 setter.apply(min, maxValue + 1), setter.apply(max, maxValue + 2))));
     }
 
@@ -302,7 +302,7 @@ public class Bounds3DTest {
         // -- act/assert
 
         // move along x-axis
-        Assert.assertNull(b.intersection(Bounds3D.from(Vector3D.of(-2, 0, 0), Vector3D.of(-1, 1, 1))));
+        Assertions.assertNull(b.intersection(Bounds3D.from(Vector3D.of(-2, 0, 0), Vector3D.of(-1, 1, 1))));
         checkIntersection(b, Vector3D.of(-1, 0, 0), Vector3D.of(0, 1, 1),
                 Vector3D.of(0, 0, 0), Vector3D.of(0, 1, 1));
         checkIntersection(b, Vector3D.of(-1, 0, 0), Vector3D.of(0.5, 1, 1),
@@ -317,10 +317,10 @@ public class Bounds3DTest {
                 Vector3D.of(0.5, 0, 0), Vector3D.of(1, 1, 1));
         checkIntersection(b, Vector3D.of(1, 0, 0), Vector3D.of(2, 1, 1),
                 Vector3D.of(1, 0, 0), Vector3D.of(1, 1, 1));
-        Assert.assertNull(b.intersection(Bounds3D.from(Vector3D.of(2, 0, 0), Vector3D.of(3, 1, 1))));
+        Assertions.assertNull(b.intersection(Bounds3D.from(Vector3D.of(2, 0, 0), Vector3D.of(3, 1, 1))));
 
         // move along y-axis
-        Assert.assertNull(b.intersection(Bounds3D.from(Vector3D.of(0, -2, 0), Vector3D.of(1, -1, 1))));
+        Assertions.assertNull(b.intersection(Bounds3D.from(Vector3D.of(0, -2, 0), Vector3D.of(1, -1, 1))));
         checkIntersection(b, Vector3D.of(0, -1, 0), Vector3D.of(1, 0, 1),
                 Vector3D.of(0, 0, 0), Vector3D.of(1, 0, 1));
         checkIntersection(b, Vector3D.of(0, -1, 0), Vector3D.of(1, 0.5, 1),
@@ -335,10 +335,10 @@ public class Bounds3DTest {
                 Vector3D.of(0, 0.5, 0), Vector3D.of(1, 1, 1));
         checkIntersection(b, Vector3D.of(0, 1, 0), Vector3D.of(1, 2, 1),
                 Vector3D.of(0, 1, 0), Vector3D.of(1, 1, 1));
-        Assert.assertNull(b.intersection(Bounds3D.from(Vector3D.of(0, 2, 0), Vector3D.of(1, 3, 1))));
+        Assertions.assertNull(b.intersection(Bounds3D.from(Vector3D.of(0, 2, 0), Vector3D.of(1, 3, 1))));
 
         // move along z-axis
-        Assert.assertNull(b.intersection(Bounds3D.from(Vector3D.of(0, 0, -2), Vector3D.of(1, 1, -1))));
+        Assertions.assertNull(b.intersection(Bounds3D.from(Vector3D.of(0, 0, -2), Vector3D.of(1, 1, -1))));
         checkIntersection(b, Vector3D.of(0, 0, -1), Vector3D.of(1, 1, 0),
                 Vector3D.of(0, 0, 0), Vector3D.of(1, 1, 0));
         checkIntersection(b, Vector3D.of(0, 0, -1), Vector3D.of(1, 1, 0.5),
@@ -353,7 +353,7 @@ public class Bounds3DTest {
                 Vector3D.of(0, 0, 0.5), Vector3D.of(1, 1, 1));
         checkIntersection(b, Vector3D.of(0, 0, 1), Vector3D.of(1, 1, 2),
                 Vector3D.of(0, 0, 1), Vector3D.of(1, 1, 1));
-        Assert.assertNull(b.intersection(Bounds3D.from(Vector3D.of(0, 0, 2), Vector3D.of(1, 1, 3))));
+        Assertions.assertNull(b.intersection(Bounds3D.from(Vector3D.of(0, 0, 2), Vector3D.of(1, 1, 3))));
     }
 
     private void checkIntersection(final Bounds3D b, final Vector3D a1, final Vector3D a2, final Vector3D r1, final Vector3D r2) {
@@ -374,17 +374,15 @@ public class Bounds3DTest {
         final Parallelepiped p = b.toRegion(TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(8, p.getSize(), TEST_EPS);
+        Assertions.assertEquals(8, p.getSize(), TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1, 5, 9), p.getCentroid(), TEST_EPS);
     }
 
     @Test
     public void toRegion_boundingBoxTooSmall() {
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            Bounds3D.from(Vector3D.ZERO, Vector3D.of(1e-12, 1e-12, 1e-12))
-                .toRegion(TEST_PRECISION);
-        }, IllegalArgumentException.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Bounds3D.from(Vector3D.ZERO, Vector3D.of(1e-12, 1e-12, 1e-12))
+                .toRegion(TEST_PRECISION));
     }
 
     @Test
@@ -401,16 +399,16 @@ public class Bounds3DTest {
         final Bounds3D b4 = Bounds3D.from(Vector3D.of(1.001, 1.001, 1.001), Vector3D.of(2.001, 2.001, 2.001));
 
         // act/assert
-        Assert.assertTrue(b1.eq(b1, low));
+        Assertions.assertTrue(b1.eq(b1, low));
 
-        Assert.assertFalse(b1.eq(b2, low));
-        Assert.assertFalse(b1.eq(b3, low));
+        Assertions.assertFalse(b1.eq(b2, low));
+        Assertions.assertFalse(b1.eq(b3, low));
 
-        Assert.assertTrue(b1.eq(b4, low));
-        Assert.assertTrue(b4.eq(b1, low));
+        Assertions.assertTrue(b1.eq(b4, low));
+        Assertions.assertTrue(b4.eq(b1, low));
 
-        Assert.assertFalse(b1.eq(b4, high));
-        Assert.assertFalse(b4.eq(b1, high));
+        Assertions.assertFalse(b1.eq(b4, high));
+        Assertions.assertFalse(b4.eq(b1, high));
     }
 
     @Test
@@ -429,14 +427,14 @@ public class Bounds3DTest {
         final int hash = b1.hashCode();
 
         // assert
-        Assert.assertEquals(hash, b1.hashCode());
+        Assertions.assertEquals(hash, b1.hashCode());
 
-        Assert.assertNotEquals(hash, b2.hashCode());
-        Assert.assertNotEquals(hash, b3.hashCode());
-        Assert.assertNotEquals(hash, b4.hashCode());
-        Assert.assertNotEquals(hash, b5.hashCode());
+        Assertions.assertNotEquals(hash, b2.hashCode());
+        Assertions.assertNotEquals(hash, b3.hashCode());
+        Assertions.assertNotEquals(hash, b4.hashCode());
+        Assertions.assertNotEquals(hash, b5.hashCode());
 
-        Assert.assertEquals(hash, b6.hashCode());
+        Assertions.assertEquals(hash, b6.hashCode());
     }
 
     @Test
@@ -454,12 +452,12 @@ public class Bounds3DTest {
         // act/assert
         GeometryTestUtils.assertSimpleEqualsCases(b1);
 
-        Assert.assertNotEquals(b1, b2);
-        Assert.assertNotEquals(b1, b3);
-        Assert.assertNotEquals(b1, b4);
-        Assert.assertNotEquals(b1, b5);
+        Assertions.assertNotEquals(b1, b2);
+        Assertions.assertNotEquals(b1, b3);
+        Assertions.assertNotEquals(b1, b4);
+        Assertions.assertNotEquals(b1, b5);
 
-        Assert.assertEquals(b1, b6);
+        Assertions.assertEquals(b1, b6);
     }
 
     @Test
@@ -500,21 +498,21 @@ public class Bounds3DTest {
     @Test
     public void testBuilder_hasBounds() {
         // act/assert
-        Assert.assertFalse(Bounds3D.builder().hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().hasBounds());
 
-        Assert.assertFalse(Bounds3D.builder().add(Vector3D.of(Double.NaN, 1, 1)).hasBounds());
-        Assert.assertFalse(Bounds3D.builder().add(Vector3D.of(1, Double.NaN, 1)).hasBounds());
-        Assert.assertFalse(Bounds3D.builder().add(Vector3D.of(1, 1, Double.NaN)).hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().add(Vector3D.of(Double.NaN, 1, 1)).hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().add(Vector3D.of(1, Double.NaN, 1)).hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().add(Vector3D.of(1, 1, Double.NaN)).hasBounds());
 
-        Assert.assertFalse(Bounds3D.builder().add(Vector3D.of(Double.POSITIVE_INFINITY, 1, 1)).hasBounds());
-        Assert.assertFalse(Bounds3D.builder().add(Vector3D.of(1, Double.POSITIVE_INFINITY, 1)).hasBounds());
-        Assert.assertFalse(Bounds3D.builder().add(Vector3D.of(1, 1, Double.POSITIVE_INFINITY)).hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().add(Vector3D.of(Double.POSITIVE_INFINITY, 1, 1)).hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().add(Vector3D.of(1, Double.POSITIVE_INFINITY, 1)).hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().add(Vector3D.of(1, 1, Double.POSITIVE_INFINITY)).hasBounds());
 
-        Assert.assertFalse(Bounds3D.builder().add(Vector3D.of(Double.NEGATIVE_INFINITY, 1, 1)).hasBounds());
-        Assert.assertFalse(Bounds3D.builder().add(Vector3D.of(1, Double.NEGATIVE_INFINITY, 1)).hasBounds());
-        Assert.assertFalse(Bounds3D.builder().add(Vector3D.of(1, 1, Double.NEGATIVE_INFINITY)).hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().add(Vector3D.of(Double.NEGATIVE_INFINITY, 1, 1)).hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().add(Vector3D.of(1, Double.NEGATIVE_INFINITY, 1)).hasBounds());
+        Assertions.assertFalse(Bounds3D.builder().add(Vector3D.of(1, 1, Double.NEGATIVE_INFINITY)).hasBounds());
 
-        Assert.assertTrue(Bounds3D.builder().add(Vector3D.ZERO).hasBounds());
+        Assertions.assertTrue(Bounds3D.builder().add(Vector3D.ZERO).hasBounds());
     }
 
     private static void checkBounds(final Bounds3D b, final Vector3D min, final Vector3D max) {
@@ -524,13 +522,13 @@ public class Bounds3DTest {
 
     private static void assertContainsStrict(final Bounds3D bounds, final boolean contains, final Vector3D... pts) {
         for (final Vector3D pt : pts) {
-            Assert.assertEquals("Unexpected location for point " + pt, contains, bounds.contains(pt));
+            Assertions.assertEquals(contains, bounds.contains(pt), "Unexpected location for point " + pt);
         }
     }
 
     private static void assertContainsWithPrecision(final Bounds3D bounds, final boolean contains, final Vector3D... pts) {
         for (final Vector3D pt : pts) {
-            Assert.assertEquals("Unexpected location for point " + pt, contains, bounds.contains(pt, TEST_PRECISION));
+            Assertions.assertEquals(contains, bounds.contains(pt, TEST_PRECISION), "Unexpected location for point " + pt);
         }
     }
 }

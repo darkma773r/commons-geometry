@@ -22,7 +22,7 @@ import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.line.Lines3D;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class BoundarySourceLinecaster3DTest {
 
@@ -101,7 +101,7 @@ public class BoundarySourceLinecaster3DTest {
     @Test
     public void testLinecast_line_removesDuplicatePoints() {
         // arrange
-        final BoundarySource3D src = BoundarySource3D.from(
+        final BoundarySource3D src = BoundarySource3D.of(
                     Planes.convexPolygonFromVertices(Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Y), TEST_PRECISION),
                     Planes.convexPolygonFromVertices(Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_Y, Vector3D.Unit.MINUS_X), TEST_PRECISION)
                 );
@@ -234,7 +234,7 @@ public class BoundarySourceLinecaster3DTest {
     @Test
     public void testLinecast_segment_removesDuplicatePoints() {
         // arrange
-        final BoundarySource3D src = BoundarySource3D.from(
+        final BoundarySource3D src = BoundarySource3D.of(
                     Planes.convexPolygonFromVertices(Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Y), TEST_PRECISION),
                     Planes.convexPolygonFromVertices(Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_Y, Vector3D.Unit.MINUS_X), TEST_PRECISION)
                 );

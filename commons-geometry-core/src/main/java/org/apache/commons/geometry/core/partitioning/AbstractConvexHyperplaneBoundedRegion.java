@@ -144,7 +144,8 @@ public abstract class AbstractConvexHyperplaneBoundedRegion<P extends Point<P>, 
         final StringBuilder sb = new StringBuilder();
         sb.append(this.getClass().getSimpleName())
             .append("[boundaries= ")
-            .append(boundaries);
+            .append(boundaries)
+            .append(']');
 
         return sb.toString();
     }
@@ -160,7 +161,7 @@ public abstract class AbstractConvexHyperplaneBoundedRegion<P extends Point<P>, 
      */
     protected <R extends AbstractConvexHyperplaneBoundedRegion<P, S>> R transformInternal(
             final Transform<P> transform, final R thisInstance, final Class<S> boundaryType,
-            final Function<List<S>, R> factory) {
+            final Function<? super List<S>, R> factory) {
 
         if (isFull()) {
             return thisInstance;
@@ -237,7 +238,7 @@ public abstract class AbstractConvexHyperplaneBoundedRegion<P extends Point<P>, 
      * @return the result of the split operation
      */
     private <R extends AbstractConvexHyperplaneBoundedRegion<P, S>> Split<R> splitInternalFull(
-            final Hyperplane<P> splitter, final Class<S> boundaryType, final Function<List<S>, R> factory) {
+            final Hyperplane<P> splitter, final Class<S> boundaryType, final Function<? super List<S>, R> factory) {
 
         final R minus = factory.apply(Collections.singletonList(boundaryType.cast(splitter.span())));
         final R plus = factory.apply(Collections.singletonList(boundaryType.cast(splitter.reverse().span())));
@@ -256,7 +257,7 @@ public abstract class AbstractConvexHyperplaneBoundedRegion<P extends Point<P>, 
      */
     private <R extends AbstractConvexHyperplaneBoundedRegion<P, S>> Split<R> splitInternalNonFull(
             final Hyperplane<P> splitter, final R thisInstance, final Class<S> boundaryType,
-            final Function<List<S>, R> factory) {
+            final Function<? super List<S>, R> factory) {
 
         final HyperplaneConvexSubset<P> trimmedSplitter = trim(splitter.span());
 

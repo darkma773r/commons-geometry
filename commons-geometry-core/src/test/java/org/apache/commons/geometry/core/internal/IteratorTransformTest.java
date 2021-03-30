@@ -23,8 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class IteratorTransformTest {
 
@@ -37,18 +37,18 @@ public class IteratorTransformTest {
         final List<String> result = toList(new EvenCharIterator(input.iterator()));
 
         // assert
-        Assert.assertEquals(Arrays.asList("2", "4", "1", "2"), result);
+        Assertions.assertEquals(Arrays.asList("2", "4", "1", "2"), result);
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testThrowsNoSuchElement() {
         // arrange
         final List<Integer> input = Collections.emptyList();
         final EvenCharIterator it = new EvenCharIterator(input.iterator());
 
         // act/assert
-        Assert.assertFalse(it.hasNext());
-        it.next();
+        Assertions.assertFalse(it.hasNext());
+        Assertions.assertThrows(NoSuchElementException.class, it::next);
     }
 
     private static <T> List<T> toList(final Iterator<T> it) {
@@ -70,19 +70,19 @@ public class IteratorTransformTest {
         @Override
         protected void acceptInput(final Integer input) {
             // filter out odd integers
-            final int value = input.intValue();
+            final int value = input;
             if (value % 2 == 0) {
-                final char[] chars = (value + "").toCharArray();
+                final char[] chars = (Integer.toString(value)).toCharArray();
 
                 if (chars.length > 1) {
                     final List<String> strs = new ArrayList<>();
                     for (final char ch : chars) {
-                        strs.add(ch + "");
+                        strs.add(String.valueOf(ch));
                     }
 
                     addAllOutput(strs);
                 } else if (chars.length == 1) {
-                    addOutput(chars[0] + "");
+                    addOutput(String.valueOf(chars[0]));
                 }
             }
         }

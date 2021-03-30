@@ -19,6 +19,7 @@ package org.apache.commons.geometry.euclidean.threed;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.partitioning.BoundarySource;
@@ -32,6 +33,16 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 /** Extension of the {@link BoundarySource} interface for Euclidean 3D space.
  */
 public interface BoundarySource3D extends BoundarySource<PlaneConvexSubset>, Linecastable3D {
+
+    /** Return a {@link BoundaryList3D} containing the boundaries in this instance.
+     * @return a {@link BoundaryList3D} containing the boundaries in this instance
+     */
+    default BoundaryList3D toList() {
+        final List<PlaneConvexSubset> boundaries = boundaryStream()
+                .collect(Collectors.toList());
+
+        return new BoundaryList3D(boundaries);
+    }
 
     /** Return a BSP tree constructed from the boundaries contained in this instance. This is
      * a convenience method for quickly constructing BSP trees and may produce unbalanced trees
@@ -93,8 +104,8 @@ public interface BoundarySource3D extends BoundarySource<PlaneConvexSubset>, Lin
      * @param boundaries boundaries to include in the boundary source
      * @return a boundary source containing the given boundaries
      */
-    static BoundarySource3D from(final PlaneConvexSubset... boundaries) {
-        return from(Arrays.asList(boundaries));
+    static BoundarySource3D of(final PlaneConvexSubset... boundaries) {
+        return of(Arrays.asList(boundaries));
     }
 
     /** Return a {@link BoundarySource3D} instance containing the given boundaries. The given
@@ -102,7 +113,7 @@ public interface BoundarySource3D extends BoundarySource<PlaneConvexSubset>, Lin
      * @param boundaries boundaries to include in the boundary source
      * @return a boundary source containing the given boundaries
      */
-    static BoundarySource3D from(final Collection<PlaneConvexSubset> boundaries) {
+    static BoundarySource3D of(final Collection<PlaneConvexSubset> boundaries) {
         return boundaries::stream;
     }
 }

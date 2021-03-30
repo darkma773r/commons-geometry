@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class BoundarySource2DTest {
 
@@ -33,9 +33,36 @@ public class BoundarySource2DTest {
             new EpsilonDoublePrecisionContext(TEST_EPS);
 
     @Test
+    public void testToList() {
+        // act
+        final BoundarySource2D src = BoundarySource2D.of(
+            Lines.segmentFromPoints(Vector2D.ZERO, Vector2D.of(1, 0), TEST_PRECISION),
+            Lines.segmentFromPoints(Vector2D.of(1, 0), Vector2D.of(1, 1), TEST_PRECISION)
+        );
+
+        // act
+        final BoundaryList2D list = src.toList();
+
+        // assert
+        Assertions.assertEquals(2, list.count());
+    }
+
+    @Test
+    public void testToList_noBoundaries() {
+        // act
+        final BoundarySource2D src = BoundarySource2D.of();
+
+        // act
+        final BoundaryList2D list = src.toList();
+
+        // assert
+        Assertions.assertEquals(0, list.count());
+    }
+
+    @Test
     public void testToTree() {
         // act
-        final BoundarySource2D src = BoundarySource2D.from(
+        final BoundarySource2D src = BoundarySource2D.of(
             Lines.segmentFromPoints(Vector2D.ZERO, Vector2D.of(1, 0), TEST_PRECISION),
             Lines.segmentFromPoints(Vector2D.of(1, 0), Vector2D.of(1, 1), TEST_PRECISION)
         );
@@ -44,66 +71,66 @@ public class BoundarySource2DTest {
         final RegionBSPTree2D tree = src.toTree();
 
         // assert
-        Assert.assertEquals(5, tree.count());
-        Assert.assertFalse(tree.isFull());
-        Assert.assertFalse(tree.isEmpty());
+        Assertions.assertEquals(5, tree.count());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertFalse(tree.isEmpty());
     }
 
     @Test
     public void testToTree_noBoundaries() {
         // act
-        final BoundarySource2D src = BoundarySource2D.from();
+        final BoundarySource2D src = BoundarySource2D.of();
 
         // act
         final RegionBSPTree2D tree = src.toTree();
 
         // assert
-        Assert.assertEquals(1, tree.count());
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isEmpty());
+        Assertions.assertEquals(1, tree.count());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isEmpty());
     }
 
     @Test
-    public void testFrom_varargs_empty() {
+    public void testOf_varargs_empty() {
         // act
-        final BoundarySource2D src = BoundarySource2D.from();
+        final BoundarySource2D src = BoundarySource2D.of();
 
         // assert
         final List<LineConvexSubset> segments = src.boundaryStream().collect(Collectors.toList());
-        Assert.assertEquals(0, segments.size());
+        Assertions.assertEquals(0, segments.size());
     }
 
     @Test
-    public void testFrom_varargs() {
+    public void testOf_varargs() {
         // act
         final Segment a = Lines.segmentFromPoints(Vector2D.ZERO, Vector2D.Unit.PLUS_X, TEST_PRECISION);
         final Segment b = Lines.segmentFromPoints(Vector2D.Unit.PLUS_X, Vector2D.of(1, 1), TEST_PRECISION);
 
-        final BoundarySource2D src = BoundarySource2D.from(a, b);
+        final BoundarySource2D src = BoundarySource2D.of(a, b);
 
         // assert
         final List<LineConvexSubset> segments = src.boundaryStream().collect(Collectors.toList());
-        Assert.assertEquals(2, segments.size());
+        Assertions.assertEquals(2, segments.size());
 
-        Assert.assertSame(a, segments.get(0));
-        Assert.assertSame(b, segments.get(1));
+        Assertions.assertSame(a, segments.get(0));
+        Assertions.assertSame(b, segments.get(1));
     }
 
     @Test
-    public void testFrom_list_empty() {
+    public void testOf_list_empty() {
         // arrange
         final List<LineConvexSubset> input = new ArrayList<>();
 
         // act
-        final BoundarySource2D src = BoundarySource2D.from(input);
+        final BoundarySource2D src = BoundarySource2D.of(input);
 
         // assert
         final List<LineConvexSubset> segments = src.boundaryStream().collect(Collectors.toList());
-        Assert.assertEquals(0, segments.size());
+        Assertions.assertEquals(0, segments.size());
     }
 
     @Test
-    public void testFrom_list() {
+    public void testOf_list() {
         // act
         final Segment a = Lines.segmentFromPoints(Vector2D.ZERO, Vector2D.Unit.PLUS_X, TEST_PRECISION);
         final Segment b = Lines.segmentFromPoints(Vector2D.Unit.PLUS_X, Vector2D.of(1, 1), TEST_PRECISION);
@@ -112,13 +139,13 @@ public class BoundarySource2DTest {
         input.add(a);
         input.add(b);
 
-        final BoundarySource2D src = BoundarySource2D.from(input);
+        final BoundarySource2D src = BoundarySource2D.of(input);
 
         // assert
         final List<LineConvexSubset> segments = src.boundaryStream().collect(Collectors.toList());
-        Assert.assertEquals(2, segments.size());
+        Assertions.assertEquals(2, segments.size());
 
-        Assert.assertSame(a, segments.get(0));
-        Assert.assertSame(b, segments.get(1));
+        Assertions.assertSame(a, segments.get(0));
+        Assertions.assertSame(b, segments.get(1));
     }
 }

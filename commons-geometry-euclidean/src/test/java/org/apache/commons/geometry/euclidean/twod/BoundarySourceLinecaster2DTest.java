@@ -19,7 +19,7 @@ package org.apache.commons.geometry.euclidean.twod;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.twod.shape.Parallelogram;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class BoundarySourceLinecaster2DTest {
 
@@ -92,7 +92,7 @@ public class BoundarySourceLinecaster2DTest {
     @Test
     public void testLinecast_line_removesDuplicatePoints() {
         // arrange
-        final BoundarySource2D src = BoundarySource2D.from(
+        final BoundarySource2D src = BoundarySource2D.of(
                     Lines.segmentFromPoints(Vector2D.of(-1, -1), Vector2D.ZERO, TEST_PRECISION),
                     Lines.segmentFromPoints(Vector2D.ZERO, Vector2D.of(1, 1), TEST_PRECISION)
                 );
@@ -220,7 +220,7 @@ public class BoundarySourceLinecaster2DTest {
     @Test
     public void testLinecast_segment_removesDuplicatePoints() {
         // arrange
-        final BoundarySource2D src = BoundarySource2D.from(
+        final BoundarySource2D src = BoundarySource2D.of(
                     Lines.segmentFromPoints(Vector2D.of(-1, -1), Vector2D.ZERO, TEST_PRECISION),
                     Lines.segmentFromPoints(Vector2D.ZERO, Vector2D.of(1, 1), TEST_PRECISION)
                 );

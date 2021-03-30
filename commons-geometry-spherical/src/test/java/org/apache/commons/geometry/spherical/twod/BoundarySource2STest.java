@@ -16,45 +16,73 @@
  */
 package org.apache.commons.geometry.spherical.twod;
 
-import java.util.stream.Stream;
+import java.util.Collections;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class BoundarySource2STest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION = new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final DoublePrecisionContext TEST_PRECISION =
+            new EpsilonDoublePrecisionContext(TEST_EPS);
+
+    @Test
+    public void testToList() {
+        // act
+        final BoundarySource2S src = BoundarySource2S.of(
+            GreatCircles.arcFromPoints(Point2S.PLUS_I, Point2S.PLUS_J, TEST_PRECISION),
+            GreatCircles.arcFromPoints(Point2S.PLUS_J, Point2S.PLUS_K, TEST_PRECISION)
+        );
+
+        // act
+        final BoundaryList2S list = src.toList();
+
+        // assert
+        Assertions.assertEquals(2, list.count());
+    }
+
+    @Test
+    public void testToList_noBoundaries() {
+        // act
+        final BoundarySource2S src = BoundarySource2S.of();
+
+        // act
+        final BoundaryList2S list = src.toList();
+
+        // assert
+        Assertions.assertEquals(0, list.count());
+    }
 
     @Test
     public void testToTree() {
         // act
-        final BoundarySource2S src = () -> Stream.of(
+        final BoundarySource2S src = BoundarySource2S.of(
                 GreatCircles.arcFromPoints(Point2S.PLUS_I, Point2S.PLUS_J, TEST_PRECISION));
 
         // act
         final RegionBSPTree2S tree = src.toTree();
 
         // assert
-        Assert.assertEquals(3, tree.count());
-        Assert.assertFalse(tree.isFull());
-        Assert.assertFalse(tree.isEmpty());
+        Assertions.assertEquals(3, tree.count());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertFalse(tree.isEmpty());
     }
 
     @Test
     public void testToTree_noBoundaries() {
         // act
-        final BoundarySource2S src = Stream::empty;
+        final BoundarySource2S src = BoundarySource2S.of(Collections.emptyList());
 
         // act
         final RegionBSPTree2S tree = src.toTree();
 
         // assert
-        Assert.assertEquals(1, tree.count());
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isEmpty());
+        Assertions.assertEquals(1, tree.count());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isEmpty());
     }
 }

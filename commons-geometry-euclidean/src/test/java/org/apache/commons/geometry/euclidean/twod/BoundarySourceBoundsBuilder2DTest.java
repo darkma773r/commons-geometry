@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class BoundarySourceBoundsBuilder2DTest {
 
@@ -34,14 +34,14 @@ public class BoundarySourceBoundsBuilder2DTest {
     @Test
     public void testGetBounds_noBoundaries() {
         // arrange
-        final BoundarySource2D src = BoundarySource2D.from(new ArrayList<>());
+        final BoundarySource2D src = BoundarySource2D.of(new ArrayList<>());
         final BoundarySourceBoundsBuilder2D builder = new BoundarySourceBoundsBuilder2D();
 
         // act
         final Bounds2D b = builder.getBounds(src);
 
         // assert
-        Assert.assertNull(b);
+        Assertions.assertNull(b);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class BoundarySourceBoundsBuilder2DTest {
         // arrange
         final Segment seg = Lines.segmentFromPoints(Vector2D.of(1, -2), Vector2D.of(-3, 4), TEST_PRECISION);
 
-        final BoundarySource2D src = BoundarySource2D.from(seg);
+        final BoundarySource2D src = BoundarySource2D.of(seg);
         final BoundarySourceBoundsBuilder2D builder = new BoundarySourceBoundsBuilder2D();
 
         // act
@@ -57,8 +57,8 @@ public class BoundarySourceBoundsBuilder2DTest {
 
         // assert
         checkBounds(b, Vector2D.of(-3, -2), Vector2D.of(1, 4));
-        Assert.assertTrue(b.contains(seg.getStartPoint()));
-        Assert.assertTrue(b.contains(seg.getEndPoint()));
+        Assertions.assertTrue(b.contains(seg.getStartPoint()));
+        Assertions.assertTrue(b.contains(seg.getEndPoint()));
     }
 
     @Test
@@ -68,7 +68,7 @@ public class BoundarySourceBoundsBuilder2DTest {
         final Segment seg2 = Lines.segmentFromPoints(Vector2D.of(0, 1), Vector2D.of(7, 0), TEST_PRECISION);
         final Segment seg3 = Lines.segmentFromPoints(Vector2D.of(4, 6), Vector2D.of(-3, 9), TEST_PRECISION);
 
-        final BoundarySource2D src = BoundarySource2D.from(seg1, seg2, seg3);
+        final BoundarySource2D src = BoundarySource2D.of(seg1, seg2, seg3);
         final BoundarySourceBoundsBuilder2D builder = new BoundarySourceBoundsBuilder2D();
 
         // act
@@ -78,8 +78,8 @@ public class BoundarySourceBoundsBuilder2DTest {
         checkBounds(b, Vector2D.of(-3, -2), Vector2D.of(7, 9));
 
         src.boundaryStream().forEach(boundary -> {
-            Assert.assertTrue(b.contains(boundary.getStartPoint()));
-            Assert.assertTrue(b.contains(boundary.getEndPoint()));
+            Assertions.assertTrue(b.contains(boundary.getStartPoint()));
+            Assertions.assertTrue(b.contains(boundary.getEndPoint()));
         });
     }
 
@@ -88,14 +88,14 @@ public class BoundarySourceBoundsBuilder2DTest {
         // arrange
         final LineConvexSubset boundary = Lines.fromPointAndDirection(Vector2D.ZERO, Vector2D.Unit.PLUS_X, TEST_PRECISION)
                 .span();
-        final BoundarySource2D src = BoundarySource2D.from(boundary);
+        final BoundarySource2D src = BoundarySource2D.of(boundary);
         final BoundarySourceBoundsBuilder2D builder = new BoundarySourceBoundsBuilder2D();
 
         // act
         final Bounds2D b = builder.getBounds(src);
 
         // assert
-        Assert.assertNull(b);
+        Assertions.assertNull(b);
     }
 
     @Test
@@ -110,14 +110,14 @@ public class BoundarySourceBoundsBuilder2DTest {
         final Segment seg2 = Lines.segmentFromPoints(Vector2D.of(0, 1), Vector2D.of(7, 0), TEST_PRECISION);
         final Segment seg3 = Lines.segmentFromPoints(Vector2D.of(4, 6), Vector2D.of(-3, 9), TEST_PRECISION);
 
-        final BoundarySource2D src = BoundarySource2D.from(seg1, seg2, inf, seg3);
+        final BoundarySource2D src = BoundarySource2D.of(seg1, seg2, inf, seg3);
         final BoundarySourceBoundsBuilder2D builder = new BoundarySourceBoundsBuilder2D();
 
         // act
         final Bounds2D b = builder.getBounds(src);
 
         // assert
-        Assert.assertNull(b);
+        Assertions.assertNull(b);
     }
 
     private static void checkBounds(final Bounds2D b, final Vector2D min, final Vector2D max) {

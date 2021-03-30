@@ -37,8 +37,8 @@ import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.geometry.euclidean.twod.path.LinePath;
 import org.apache.commons.geometry.euclidean.twod.shape.Parallelogram;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class PlanesTest {
 
@@ -63,14 +63,14 @@ public class PlanesTest {
         final PlaneConvexSubset sp = Planes.subsetFromConvexArea(plane, area);
 
         // assert
-        Assert.assertFalse(sp.isFull());
-        Assert.assertFalse(sp.isEmpty());
-        Assert.assertTrue(sp.isFinite());
+        Assertions.assertFalse(sp.isFull());
+        Assertions.assertFalse(sp.isEmpty());
+        Assertions.assertTrue(sp.isFinite());
 
-        Assert.assertEquals(2, sp.getSize(), TEST_EPS);
+        Assertions.assertEquals(2, sp.getSize(), TEST_EPS);
 
-        Assert.assertSame(plane, sp.getPlane());
-        Assert.assertSame(plane, sp.getHyperplane());
+        Assertions.assertSame(plane, sp.getPlane());
+        Assertions.assertSame(plane, sp.getHyperplane());
         assertConvexAreasEqual(area, sp.getEmbedded().getSubspaceRegion());
     }
 
@@ -85,16 +85,16 @@ public class PlanesTest {
         final PlaneConvexSubset sp = Planes.convexPolygonFromVertices(Arrays.asList(p0, p1, p2), TEST_PRECISION);
 
         // assert
-        Assert.assertTrue(sp instanceof Triangle3D);
+        Assertions.assertTrue(sp instanceof Triangle3D);
 
-        Assert.assertFalse(sp.isFull());
-        Assert.assertFalse(sp.isEmpty());
-        Assert.assertTrue(sp.isFinite());
+        Assertions.assertFalse(sp.isFull());
+        Assertions.assertFalse(sp.isEmpty());
+        Assertions.assertTrue(sp.isFinite());
 
-        Assert.assertEquals(3, sp.getVertices().size());
+        Assertions.assertEquals(3, sp.getVertices().size());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p0, p1, p2), sp.getVertices(), TEST_PRECISION);
 
-        Assert.assertEquals(1, sp.getSize(), TEST_EPS);
+        Assertions.assertEquals(1, sp.getSize(), TEST_EPS);
 
         checkPlane(sp.getPlane(), Vector3D.of(1, 0, 0), Vector3D.Unit.PLUS_Y, Vector3D.Unit.PLUS_Z);
 
@@ -140,16 +140,16 @@ public class PlanesTest {
                 ), TEST_PRECISION);
 
         // assert
-        Assert.assertTrue(sp instanceof VertexListConvexPolygon3D);
+        Assertions.assertTrue(sp instanceof VertexListConvexPolygon3D);
 
-        Assert.assertFalse(sp.isFull());
-        Assert.assertFalse(sp.isEmpty());
-        Assert.assertTrue(sp.isFinite());
+        Assertions.assertFalse(sp.isFull());
+        Assertions.assertFalse(sp.isEmpty());
+        Assertions.assertTrue(sp.isFinite());
 
-        Assert.assertEquals(4, sp.getVertices().size());
+        Assertions.assertEquals(4, sp.getVertices().size());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p0, p1, p2, p3), sp.getVertices(), TEST_PRECISION);
 
-        Assert.assertEquals(2, sp.getSize(), TEST_EPS);
+        Assertions.assertEquals(2, sp.getSize(), TEST_EPS);
 
         checkPlane(sp.getPlane(), Vector3D.of(1, 0, 0), Vector3D.Unit.PLUS_Y, Vector3D.Unit.PLUS_Z);
 
@@ -181,24 +181,24 @@ public class PlanesTest {
         final Pattern nonPlanarPattern = Pattern.compile("Points do not define a plane.*");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.convexPolygonFromVertices(Collections.emptyList(), TEST_PRECISION);
         }, IllegalArgumentException.class, nonPlanarPattern);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.convexPolygonFromVertices(Collections.singletonList(Vector3D.ZERO), TEST_PRECISION);
         }, IllegalArgumentException.class, nonPlanarPattern);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.convexPolygonFromVertices(Arrays.asList(Vector3D.ZERO, Vector3D.of(1, 0, 0)), TEST_PRECISION);
         }, IllegalArgumentException.class, nonPlanarPattern);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.convexPolygonFromVertices(
                     Arrays.asList(Vector3D.ZERO, Vector3D.of(1, 0, 0), Vector3D.of(1, 1e-15, 0)), TEST_PRECISION);
         }, IllegalArgumentException.class, nonPlanarPattern);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.convexPolygonFromVertices(Arrays.asList(
                         Vector3D.ZERO,
                         Vector3D.of(1, 0, 1),
@@ -214,7 +214,7 @@ public class PlanesTest {
         final Pattern nonConvexPattern = Pattern.compile("Points do not define a convex region.*");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.convexPolygonFromVertices(Arrays.asList(
                         Vector3D.ZERO,
                         Vector3D.of(2, 0, 0),
@@ -234,7 +234,7 @@ public class PlanesTest {
                 Vector3D.of(2, 1, 2), TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(0.5, tri.getSize(), TEST_EPS);
+        Assertions.assertEquals(0.5, tri.getSize(), TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(5.0 / 3.0, 1, 4.0 / 3.0),
                 tri.getCentroid(), TEST_EPS);
     }
@@ -245,7 +245,7 @@ public class PlanesTest {
         final Pattern msg = Pattern.compile("^Points do not define a plane.*");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.triangleFromVertices(
                         Vector3D.ZERO,
                         Vector3D.of(1e-11, 0, 0),
@@ -253,7 +253,7 @@ public class PlanesTest {
                         TEST_PRECISION);
         }, IllegalArgumentException.class, msg);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.triangleFromVertices(
                         Vector3D.ZERO,
                         Vector3D.of(1, 0, 0),
@@ -268,7 +268,7 @@ public class PlanesTest {
         final List<Triangle3D> tris = Planes.indexedTriangles(new Vector3D[0], new int[0][], TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(0, tris.size());
+        Assertions.assertEquals(0, tris.size());
     }
 
     @Test
@@ -288,7 +288,7 @@ public class PlanesTest {
         final List<Triangle3D> tris = Planes.indexedTriangles(Arrays.asList(vertices), faceIndices, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(1, tris.size());
+        Assertions.assertEquals(1, tris.size());
 
         final Triangle3D a = tris.get(0);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.Unit.MINUS_Z, a.getPlane().getNormal(), TEST_EPS);
@@ -322,10 +322,10 @@ public class PlanesTest {
         final List<Triangle3D> tris = Planes.indexedTriangles(vertices, faceIndices, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(6, tris.size());
+        Assertions.assertEquals(6, tris.size());
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(tris);
-        Assert.assertEquals(4 / 3.0, tree.getSize(), TEST_EPS);
+        Assertions.assertEquals(4 / 3.0, tree.getSize(), TEST_EPS);
 
         final Bounds3D bounds = tree.getBounds();
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, bounds.getMin(), TEST_EPS);
@@ -343,37 +343,32 @@ public class PlanesTest {
         };
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.indexedTriangles(vertices, new int[][] {
                 {0}
             }, TEST_PRECISION);
         }, IllegalArgumentException.class,
                 "Invalid number of vertex indices for face at index 0: expected 3 but found 1");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.indexedTriangles(vertices, new int[][] {
                 {0, 1, 2, 0}
             }, TEST_PRECISION);
         }, IllegalArgumentException.class,
                 "Invalid number of vertex indices for face at index 0: expected 3 but found 4");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.indexedTriangles(new ArrayList<>(Arrays.asList(vertices)), new int[][] {
                 {0, 1, 3}
             }, TEST_PRECISION);
         }, IllegalArgumentException.class, Pattern.compile("^Points do not define a plane: .*"));
 
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.indexedTriangles(vertices, new int[][] {
+        Assertions.assertThrows(IndexOutOfBoundsException.class, () -> Planes.indexedTriangles(vertices, new int[][] {
                 {0, 1, 10}
-            }, TEST_PRECISION);
-        }, IndexOutOfBoundsException.class);
-
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.indexedTriangles(new ArrayList<>(Arrays.asList(vertices)), new int[][] {
+        }, TEST_PRECISION));
+        Assertions.assertThrows(IndexOutOfBoundsException.class, () -> Planes.indexedTriangles(new ArrayList<>(Arrays.asList(vertices)), new int[][] {
                 {0, 1, 10}
-            }, TEST_PRECISION);
-        }, IndexOutOfBoundsException.class);
+        }, TEST_PRECISION));
     }
 
     @Test
@@ -382,7 +377,7 @@ public class PlanesTest {
         final List<ConvexPolygon3D> polys = Planes.indexedConvexPolygons(new Vector3D[0], new int[0][], TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(0, polys.size());
+        Assertions.assertEquals(0, polys.size());
     }
 
     @Test
@@ -404,7 +399,7 @@ public class PlanesTest {
                 TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(1, polys.size());
+        Assertions.assertEquals(1, polys.size());
 
         final ConvexPolygon3D a = polys.get(0);
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(
@@ -439,10 +434,10 @@ public class PlanesTest {
         final List<ConvexPolygon3D> polys = Planes.indexedConvexPolygons(vertices, faceIndices, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(5, polys.size());
+        Assertions.assertEquals(5, polys.size());
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(polys);
-        Assert.assertEquals(4 / 3.0, tree.getSize(), TEST_EPS);
+        Assertions.assertEquals(4 / 3.0, tree.getSize(), TEST_EPS);
 
         final Bounds3D bounds = tree.getBounds();
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.ZERO, bounds.getMin(), TEST_EPS);
@@ -478,10 +473,10 @@ public class PlanesTest {
                 TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(6, polys.size());
+        Assertions.assertEquals(6, polys.size());
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(polys);
-        Assert.assertEquals(1.0, tree.getSize(), TEST_EPS);
+        Assertions.assertEquals(1.0, tree.getSize(), TEST_EPS);
 
         final Bounds3D bounds = tree.getBounds();
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(-0.5, -0.5, -0.5), bounds.getMin(), TEST_EPS);
@@ -499,30 +494,25 @@ public class PlanesTest {
         };
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.indexedConvexPolygons(vertices, new int[][] {
                 {0}
             }, TEST_PRECISION);
         }, IllegalArgumentException.class,
                 "Invalid number of vertex indices for face at index 0: required at least 3 but found 1");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.indexedConvexPolygons(new ArrayList<>(Arrays.asList(vertices)), new int[][] {
                 {0, 1, 3}
             }, TEST_PRECISION);
         }, IllegalArgumentException.class, Pattern.compile("^Points do not define a plane: .*"));
 
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.indexedConvexPolygons(vertices, new int[][] {
+        Assertions.assertThrows(IndexOutOfBoundsException.class, () -> Planes.indexedConvexPolygons(vertices, new int[][] {
                 {0, 1, 10}
-            }, TEST_PRECISION);
-        }, IndexOutOfBoundsException.class);
-
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.indexedConvexPolygons(new ArrayList<>(Arrays.asList(vertices)), new int[][] {
+        }, TEST_PRECISION));
+        Assertions.assertThrows(IndexOutOfBoundsException.class, () -> Planes.indexedConvexPolygons(new ArrayList<>(Arrays.asList(vertices)), new int[][] {
                 {0, 1, 10}
-            }, TEST_PRECISION);
-        }, IndexOutOfBoundsException.class);
+        }, TEST_PRECISION));
     }
 
     @Test
@@ -537,10 +527,10 @@ public class PlanesTest {
         final List<Triangle3D> tris = Planes.convexPolygonToTriangleFan(plane, Arrays.asList(p1, p2, p3));
 
         // assert
-        Assert.assertEquals(1, tris.size());
+        Assertions.assertEquals(1, tris.size());
 
         final Triangle3D a = tris.get(0);
-        Assert.assertSame(plane, a.getPlane());
+        Assertions.assertSame(plane, a.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p1, p2, p3), a.getVertices(), TEST_PRECISION);
     }
 
@@ -557,14 +547,14 @@ public class PlanesTest {
         final List<Triangle3D> tris = Planes.convexPolygonToTriangleFan(plane, Arrays.asList(p1, p2, p3, p4));
 
         // assert
-        Assert.assertEquals(2, tris.size());
+        Assertions.assertEquals(2, tris.size());
 
         final Triangle3D a = tris.get(0);
-        Assert.assertSame(plane, a.getPlane());
+        Assertions.assertSame(plane, a.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p1, p2, p3), a.getVertices(), TEST_PRECISION);
 
         final Triangle3D b = tris.get(1);
-        Assert.assertSame(plane, b.getPlane());
+        Assertions.assertSame(plane, b.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p1, p3, p4), b.getVertices(), TEST_PRECISION);
     }
 
@@ -581,14 +571,14 @@ public class PlanesTest {
         final List<Triangle3D> tris = Planes.convexPolygonToTriangleFan(plane, Arrays.asList(p1, p2, p3, p4));
 
         // assert
-        Assert.assertEquals(2, tris.size());
+        Assertions.assertEquals(2, tris.size());
 
         final Triangle3D a = tris.get(0);
-        Assert.assertSame(plane, a.getPlane());
+        Assertions.assertSame(plane, a.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p4, p1, p2), a.getVertices(), TEST_PRECISION);
 
         final Triangle3D b = tris.get(1);
-        Assert.assertSame(plane, b.getPlane());
+        Assertions.assertSame(plane, b.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p4, p2, p3), b.getVertices(), TEST_PRECISION);
     }
 
@@ -609,14 +599,14 @@ public class PlanesTest {
         final List<Triangle3D> tris = Planes.convexPolygonToTriangleFan(plane, Arrays.asList(p1, p2, p3, p4));
 
         // assert
-        Assert.assertEquals(2, tris.size());
+        Assertions.assertEquals(2, tris.size());
 
         final Triangle3D a = tris.get(0);
-        Assert.assertSame(plane, a.getPlane());
+        Assertions.assertSame(plane, a.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p1, p2, p3), a.getVertices(), TEST_PRECISION);
 
         final Triangle3D b = tris.get(1);
-        Assert.assertSame(plane, b.getPlane());
+        Assertions.assertSame(plane, b.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p1, p3, p4), b.getVertices(), TEST_PRECISION);
     }
 
@@ -636,22 +626,22 @@ public class PlanesTest {
         final List<Triangle3D> tris = Planes.convexPolygonToTriangleFan(plane, Arrays.asList(p1, p2, p3, p4, p5, p6));
 
         // assert
-        Assert.assertEquals(4, tris.size());
+        Assertions.assertEquals(4, tris.size());
 
         final Triangle3D a = tris.get(0);
-        Assert.assertSame(plane, a.getPlane());
+        Assertions.assertSame(plane, a.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p3, p4, p5), a.getVertices(), TEST_PRECISION);
 
         final Triangle3D b = tris.get(1);
-        Assert.assertSame(plane, b.getPlane());
+        Assertions.assertSame(plane, b.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p3, p5, p6), b.getVertices(), TEST_PRECISION);
 
         final Triangle3D c = tris.get(2);
-        Assert.assertSame(plane, c.getPlane());
+        Assertions.assertSame(plane, c.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p3, p6, p1), c.getVertices(), TEST_PRECISION);
 
         final Triangle3D d = tris.get(3);
-        Assert.assertSame(plane, d.getPlane());
+        Assertions.assertSame(plane, d.getPlane());
         EuclideanTestUtils.assertVertexLoopSequence(Arrays.asList(p3, p1, p2), d.getVertices(), TEST_PRECISION);
     }
 
@@ -662,15 +652,15 @@ public class PlanesTest {
         final Plane plane = Planes.fromNormal(Vector3D.Unit.PLUS_Z, TEST_PRECISION);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.convexPolygonToTriangleFan(plane, Collections.emptyList());
         }, IllegalArgumentException.class, baseMsg + "0");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.convexPolygonToTriangleFan(plane, Collections.singletonList(Vector3D.ZERO));
         }, IllegalArgumentException.class, baseMsg + "1");
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.convexPolygonToTriangleFan(plane, Arrays.asList(Vector3D.ZERO, Vector3D.of(1, 0, 0)));
         }, IllegalArgumentException.class, baseMsg + "2");
     }
@@ -692,11 +682,11 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrudeVertexLoop(vertices, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(5, boundaries.size());
+        Assertions.assertEquals(5, boundaries.size());
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(boundaries);
 
-        Assert.assertEquals(1, tree.getSize(), TEST_EPS);
+        Assertions.assertEquals(1, tree.getSize(), TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(
                 Vector3D.of(-5.0 / 3.0, 7.0 / 3.0, 1).add(extrusionVector.multiply(0.5)), tree.getCentroid(), TEST_EPS);
 
@@ -733,11 +723,11 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrudeVertexLoop(vertices, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(14, boundaries.size());
+        Assertions.assertEquals(14, boundaries.size());
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(boundaries);
 
-        Assert.assertEquals(16, tree.getSize(), TEST_EPS);
+        Assertions.assertEquals(16, tree.getSize(), TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(2.25, 0, 0), tree.getCentroid(), TEST_EPS);
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
@@ -766,7 +756,7 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrudeVertexLoop(vertices, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(0, boundaries.size());
+        Assertions.assertEquals(0, boundaries.size());
     }
 
     @Test
@@ -782,27 +772,27 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrudeVertexLoop(vertices, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(3, boundaries.size());
+        Assertions.assertEquals(3, boundaries.size());
 
         final PlaneConvexSubset bottom = boundaries.get(0);
-        Assert.assertTrue(bottom.isInfinite());
-        Assert.assertTrue(bottom.getPlane().contains(Vector3D.of(0, 0, -1)));
+        Assertions.assertTrue(bottom.isInfinite());
+        Assertions.assertTrue(bottom.getPlane().contains(Vector3D.of(0, 0, -1)));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 0, -1), bottom.getPlane().getNormal(), TEST_EPS);
 
         final PlaneConvexSubset top = boundaries.get(1);
-        Assert.assertTrue(top.isInfinite());
-        Assert.assertTrue(top.getPlane().contains(Vector3D.of(0, 0, 1)));
+        Assertions.assertTrue(top.isInfinite());
+        Assertions.assertTrue(top.getPlane().contains(Vector3D.of(0, 0, 1)));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 0, 1), top.getPlane().getNormal(), TEST_EPS);
 
         final PlaneConvexSubset side = boundaries.get(2);
-        Assert.assertTrue(side.isInfinite());
-        Assert.assertTrue(side.getPlane().contains(Vector3D.ZERO));
+        Assertions.assertTrue(side.isInfinite());
+        Assertions.assertTrue(side.getPlane().contains(Vector3D.ZERO));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1, -1, 0).normalize(),
                 side.getPlane().getNormal(), TEST_EPS);
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(boundaries);
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isInfinite());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isInfinite());
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
                 Vector3D.of(0, 1, 0), Vector3D.of(-1, 0, 0), Vector3D.of(-2, -1, 0));
@@ -822,14 +812,9 @@ public class PlanesTest {
         final Vector3D extrusionVector = Vector3D.of(0, 0, 2);
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.extrudeVertexLoop(Collections.singletonList(Vector2D.ZERO), plane, extrusionVector, TEST_PRECISION);
-        }, IllegalStateException.class);
-
-        GeometryTestUtils.assertThrows(() -> {
-            Planes.extrudeVertexLoop(Arrays.asList(Vector2D.ZERO, Vector2D.of(0, 1e-16)), plane,
-                    extrusionVector, TEST_PRECISION);
-        }, IllegalStateException.class);
+        Assertions.assertThrows(IllegalStateException.class, () -> Planes.extrudeVertexLoop(Collections.singletonList(Vector2D.ZERO), plane, extrusionVector, TEST_PRECISION));
+        Assertions.assertThrows(IllegalStateException.class, () -> Planes.extrudeVertexLoop(Arrays.asList(Vector2D.ZERO, Vector2D.of(0, 1e-16)), plane,
+                extrusionVector, TEST_PRECISION));
     }
 
     @Test
@@ -873,11 +858,11 @@ public class PlanesTest {
                     Planes.extrudeVertexLoop(vertices, plane, minusExtrusionVector, TEST_PRECISION));
 
             // assert
-            Assert.assertEquals(expectedSize, extrudePlus.getSize(), TEST_EPS);
+            Assertions.assertEquals(expectedSize, extrudePlus.getSize(), TEST_EPS);
             EuclideanTestUtils.assertCoordinatesEqual(baseCentroid.add(plusExtrusionVector.multiply(0.5)),
                     extrudePlus.getCentroid(), TEST_EPS);
 
-            Assert.assertEquals(expectedSize, extrudeMinus.getSize(), TEST_EPS);
+            Assertions.assertEquals(expectedSize, extrudeMinus.getSize(), TEST_EPS);
             EuclideanTestUtils.assertCoordinatesEqual(baseCentroid.add(minusExtrusionVector.multiply(0.5)),
                     extrudeMinus.getCentroid(), TEST_EPS);
         });
@@ -902,7 +887,7 @@ public class PlanesTest {
         // assert
         final RegionBSPTree3D resultTree = RegionBSPTree3D.from(boundaries);
 
-        Assert.assertTrue(resultTree.isInfinite());
+        Assertions.assertTrue(resultTree.isInfinite());
         EuclideanTestUtils.assertRegionLocation(resultTree, RegionLocation.INSIDE,
                 Vector3D.of(1, 1, 0), Vector3D.of(-1, 1, 0), Vector3D.of(-1, -1, 0), Vector3D.of(1, -1, 0));
         EuclideanTestUtils.assertRegionLocation(resultTree, RegionLocation.OUTSIDE, Vector3D.ZERO);
@@ -921,7 +906,7 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(path, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(0, boundaries.size());
+        Assertions.assertEquals(0, boundaries.size());
     }
 
     @Test
@@ -940,27 +925,27 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(path, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(3, boundaries.size());
+        Assertions.assertEquals(3, boundaries.size());
 
         final PlaneConvexSubset top = boundaries.get(0);
-        Assert.assertTrue(top.isInfinite());
-        Assert.assertTrue(top.getPlane().contains(Vector3D.of(0, 0, 1)));
+        Assertions.assertTrue(top.isInfinite());
+        Assertions.assertTrue(top.getPlane().contains(Vector3D.of(0, 0, 1)));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 0, 1), top.getPlane().getNormal(), TEST_EPS);
 
         final PlaneConvexSubset bottom = boundaries.get(1);
-        Assert.assertTrue(bottom.isInfinite());
-        Assert.assertTrue(bottom.getPlane().contains(Vector3D.of(0, 0, -1)));
+        Assertions.assertTrue(bottom.isInfinite());
+        Assertions.assertTrue(bottom.getPlane().contains(Vector3D.of(0, 0, -1)));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 0, -1), bottom.getPlane().getNormal(), TEST_EPS);
 
         final PlaneConvexSubset side = boundaries.get(2);
-        Assert.assertTrue(side.isInfinite());
-        Assert.assertTrue(side.getPlane().contains(Vector3D.ZERO));
+        Assertions.assertTrue(side.isInfinite());
+        Assertions.assertTrue(side.getPlane().contains(Vector3D.ZERO));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1, -1, 0).normalize(),
                 side.getPlane().getNormal(), TEST_EPS);
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(boundaries);
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isInfinite());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isInfinite());
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
                 Vector3D.of(0, 1, 0), Vector3D.of(-1, 0, 0), Vector3D.of(-2, -1, 0));
@@ -988,27 +973,27 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(path, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(3, boundaries.size());
+        Assertions.assertEquals(3, boundaries.size());
 
         final PlaneConvexSubset bottom = boundaries.get(0);
-        Assert.assertTrue(bottom.isInfinite());
-        Assert.assertTrue(bottom.getPlane().contains(Vector3D.of(0, 0, -1)));
+        Assertions.assertTrue(bottom.isInfinite());
+        Assertions.assertTrue(bottom.getPlane().contains(Vector3D.of(0, 0, -1)));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 0, -1), bottom.getPlane().getNormal(), TEST_EPS);
 
         final PlaneConvexSubset top = boundaries.get(1);
-        Assert.assertTrue(top.isInfinite());
-        Assert.assertTrue(top.getPlane().contains(Vector3D.of(0, 0, 1)));
+        Assertions.assertTrue(top.isInfinite());
+        Assertions.assertTrue(top.getPlane().contains(Vector3D.of(0, 0, 1)));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 0, 1), top.getPlane().getNormal(), TEST_EPS);
 
         final PlaneConvexSubset side = boundaries.get(2);
-        Assert.assertTrue(side.isInfinite());
-        Assert.assertTrue(side.getPlane().contains(Vector3D.ZERO));
+        Assertions.assertTrue(side.isInfinite());
+        Assertions.assertTrue(side.getPlane().contains(Vector3D.ZERO));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1, -1, 0).normalize(),
                 side.getPlane().getNormal(), TEST_EPS);
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(boundaries);
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isInfinite());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isInfinite());
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
                 Vector3D.of(0, 1, 0), Vector3D.of(-1, 0, 0), Vector3D.of(-2, -1, 0));
@@ -1033,27 +1018,27 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(path, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(3, boundaries.size());
+        Assertions.assertEquals(3, boundaries.size());
 
         final PlaneConvexSubset bottom = boundaries.get(0);
-        Assert.assertTrue(bottom.isInfinite());
-        Assert.assertTrue(bottom.getPlane().contains(Vector3D.of(0, 0, -1)));
+        Assertions.assertTrue(bottom.isInfinite());
+        Assertions.assertTrue(bottom.getPlane().contains(Vector3D.of(0, 0, -1)));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 0, -1), bottom.getPlane().getNormal(), TEST_EPS);
 
         final PlaneConvexSubset top = boundaries.get(1);
-        Assert.assertTrue(top.isInfinite());
-        Assert.assertTrue(top.getPlane().contains(Vector3D.of(0, 0, 1)));
+        Assertions.assertTrue(top.isInfinite());
+        Assertions.assertTrue(top.getPlane().contains(Vector3D.of(0, 0, 1)));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(0, 0, 1), top.getPlane().getNormal(), TEST_EPS);
 
         final PlaneConvexSubset side = boundaries.get(2);
-        Assert.assertTrue(side.isInfinite());
-        Assert.assertTrue(side.getPlane().contains(Vector3D.ZERO));
+        Assertions.assertTrue(side.isInfinite());
+        Assertions.assertTrue(side.getPlane().contains(Vector3D.ZERO));
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1, -1, 0).normalize(),
                 side.getPlane().getNormal(), TEST_EPS);
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(boundaries);
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isInfinite());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isInfinite());
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
                 Vector3D.of(0, 1, 0), Vector3D.of(-1, 0, 0), Vector3D.of(-2, -1, 0));
@@ -1083,11 +1068,11 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(path, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(4, boundaries.size());
+        Assertions.assertEquals(4, boundaries.size());
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(boundaries);
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isInfinite());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isInfinite());
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
                 Vector3D.of(0, 1, 0), Vector3D.of(-1, 1, 0), Vector3D.of(0, 2, 0), Vector3D.of(-1, 2, 0));
@@ -1120,11 +1105,11 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(path, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(4, boundaries.size());
+        Assertions.assertEquals(4, boundaries.size());
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(boundaries);
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isInfinite());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isInfinite());
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
                 Vector3D.of(0, 1, 0), Vector3D.of(-1, 1, 0), Vector3D.of(0, 2, 0), Vector3D.of(-1, 2, 0));
@@ -1158,11 +1143,11 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(path, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(8, boundaries.size());
+        Assertions.assertEquals(8, boundaries.size());
 
         final RegionBSPTree3D tree = RegionBSPTree3D.from(boundaries);
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isInfinite());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isInfinite());
 
         EuclideanTestUtils.assertRegionLocation(tree, RegionLocation.INSIDE,
                 Vector3D.of(0, -1, 0), Vector3D.of(0, -100, 0));
@@ -1197,7 +1182,7 @@ public class PlanesTest {
         // assert
         final RegionBSPTree3D resultTree = RegionBSPTree3D.from(boundaries);
 
-        Assert.assertTrue(resultTree.isInfinite());
+        Assertions.assertTrue(resultTree.isInfinite());
         EuclideanTestUtils.assertRegionLocation(resultTree, RegionLocation.INSIDE,
                 Vector3D.of(1, 1, 0), Vector3D.of(-1, 1, 0), Vector3D.of(-1, -1, 0), Vector3D.of(1, -1, 0));
         EuclideanTestUtils.assertRegionLocation(resultTree, RegionLocation.OUTSIDE, Vector3D.ZERO);
@@ -1216,7 +1201,7 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(tree, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(0, boundaries.size());
+        Assertions.assertEquals(0, boundaries.size());
     }
 
     @Test
@@ -1232,10 +1217,10 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(tree, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(2, boundaries.size());
+        Assertions.assertEquals(2, boundaries.size());
 
-        Assert.assertTrue(boundaries.get(0).isFull());
-        Assert.assertTrue(boundaries.get(1).isFull());
+        Assertions.assertTrue(boundaries.get(0).isFull());
+        Assertions.assertTrue(boundaries.get(1).isFull());
 
         final RegionBSPTree3D resultTree = RegionBSPTree3D.from(boundaries);
 
@@ -1266,12 +1251,12 @@ public class PlanesTest {
         final List<PlaneConvexSubset> boundaries = Planes.extrude(tree, plane, extrusionVector, TEST_PRECISION);
 
         // assert
-        Assert.assertEquals(12, boundaries.size());
+        Assertions.assertEquals(12, boundaries.size());
 
         final RegionBSPTree3D resultTree = RegionBSPTree3D.from(boundaries);
 
-        Assert.assertEquals(4, resultTree.getSize(), TEST_EPS);
-        Assert.assertEquals(20, resultTree.getBoundarySize(), TEST_EPS);
+        Assertions.assertEquals(4, resultTree.getSize(), TEST_EPS);
+        Assertions.assertEquals(20, resultTree.getBoundarySize(), TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(Vector3D.of(1.5, 1.5, 0), resultTree.getCentroid(), TEST_EPS);
 
         EuclideanTestUtils.assertRegionLocation(resultTree, RegionLocation.INSIDE,
@@ -1322,7 +1307,7 @@ public class PlanesTest {
         // assert
         final RegionBSPTree3D resultTree = RegionBSPTree3D.from(boundaries);
 
-        Assert.assertTrue(resultTree.isFinite());
+        Assertions.assertTrue(resultTree.isFinite());
         EuclideanTestUtils.assertRegionLocation(resultTree, RegionLocation.OUTSIDE, resultTree.getCentroid());
     }
 
@@ -1339,33 +1324,33 @@ public class PlanesTest {
         final Pattern errorPattern = Pattern.compile("^Extrusion vector produces regions of zero size.*");
 
         // act/assert
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.extrudeVertexLoop(vertices, plane, Vector3D.of(1e-16, 0, 0), TEST_PRECISION);
         }, IllegalArgumentException.class, errorPattern);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.extrudeVertexLoop(vertices, plane, Vector3D.of(4, 1e-16, 0), TEST_PRECISION);
         }, IllegalArgumentException.class, errorPattern);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.extrudeVertexLoop(vertices, plane, Vector3D.of(1e-16, 5, 0), TEST_PRECISION);
         }, IllegalArgumentException.class, errorPattern);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.extrude(path, plane, Vector3D.of(1e-16, 0, 0), TEST_PRECISION);
         }, IllegalArgumentException.class, errorPattern);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.extrude(path, plane, Vector3D.of(4, 1e-16, 0), TEST_PRECISION);
         }, IllegalArgumentException.class, errorPattern);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.extrude(path, plane, Vector3D.of(1e-16, 5, 0), TEST_PRECISION);
         }, IllegalArgumentException.class, errorPattern);
 
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.extrude(tree, plane, Vector3D.of(1e-16, 0, 0), TEST_PRECISION);
         }, IllegalArgumentException.class, errorPattern);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.extrude(tree, plane, Vector3D.of(4, 1e-16, 0), TEST_PRECISION);
         }, IllegalArgumentException.class, errorPattern);
-        GeometryTestUtils.assertThrows(() -> {
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
             Planes.extrude(tree, plane, Vector3D.of(1e-16, 5, 0), TEST_PRECISION);
         }, IllegalArgumentException.class, errorPattern);
     }
@@ -1376,19 +1361,19 @@ public class PlanesTest {
         final Vector3D w = u.cross(v);
 
         EuclideanTestUtils.assertCoordinatesEqual(origin, plane.getOrigin(), TEST_EPS);
-        Assert.assertTrue(plane.contains(origin));
+        Assertions.assertTrue(plane.contains(origin));
 
         EuclideanTestUtils.assertCoordinatesEqual(w, plane.getNormal(), TEST_EPS);
-        Assert.assertEquals(1.0, plane.getNormal().norm(), TEST_EPS);
+        Assertions.assertEquals(1.0, plane.getNormal().norm(), TEST_EPS);
 
         final double offset = plane.getOriginOffset();
-        Assert.assertEquals(Vector3D.ZERO.distance(plane.getOrigin()), Math.abs(offset), TEST_EPS);
+        Assertions.assertEquals(Vector3D.ZERO.distance(plane.getOrigin()), Math.abs(offset), TEST_EPS);
         EuclideanTestUtils.assertCoordinatesEqual(origin, plane.getNormal().multiply(-offset), TEST_EPS);
     }
 
     private static void checkPoints(final PlaneConvexSubset sp, final RegionLocation loc, final Vector3D... pts) {
         for (final Vector3D pt : pts) {
-            Assert.assertEquals("Unexpected location for point " + pt, loc, sp.classify(pt));
+            Assertions.assertEquals(loc, sp.classify(pt), "Unexpected location for point " + pt);
         }
     }
 
@@ -1396,16 +1381,16 @@ public class PlanesTest {
         final List<LineConvexSubset> aBoundaries = new ArrayList<>(a.getBoundaries());
         final List<LineConvexSubset> bBoundaries = new ArrayList<>(b.getBoundaries());
 
-        Assert.assertEquals(aBoundaries.size(), bBoundaries.size());
+        Assertions.assertEquals(aBoundaries.size(), bBoundaries.size());
 
         for (final LineConvexSubset aBoundary : aBoundaries) {
             if (!hasEquivalentSubLine(aBoundary, bBoundaries)) {
-                Assert.fail("Failed to find equivalent subline for " + aBoundary);
+                Assertions.fail("Failed to find equivalent subline for " + aBoundary);
             }
         }
     }
 
-    private static boolean hasEquivalentSubLine(final LineConvexSubset target, final Collection<LineConvexSubset> subsets) {
+    private static boolean hasEquivalentSubLine(final LineConvexSubset target, final Collection<? extends LineConvexSubset> subsets) {
         final Line line = target.getLine();
         final double start = target.getSubspaceStart();
         final double end = target.getSubspaceEnd();

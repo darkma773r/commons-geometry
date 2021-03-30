@@ -111,7 +111,7 @@ abstract class AbstractConvexPolygon3D extends AbstractPlaneSubset implements Co
         Vector3D curPt;
 
         Vector3D prevVec = startPt.vectorTo(prevPt);
-        Vector3D curVec = null;
+        Vector3D curVec;
 
         double triArea;
         Vector3D triCentroid;
@@ -231,7 +231,7 @@ abstract class AbstractConvexPolygon3D extends AbstractPlaneSubset implements Co
 
         Vector3D boundaryVec;
         double boundaryPointT;
-        Vector3D boundaryPoint = null;
+        Vector3D boundaryPoint;
         double boundaryPointDistSq;
 
         double closestBoundaryPointDistSq = Double.POSITIVE_INFINITY;
@@ -402,7 +402,7 @@ abstract class AbstractConvexPolygon3D extends AbstractPlaneSubset implements Co
      * @return the list of vertices for the split result
      */
     private List<Vector3D> buildPolygonSplitVertexList(final int enterIdx, final Vector3D newEnterPt,
-            final int exitIdx, final Vector3D newExitPt, final List<Vector3D> vertices) {
+            final int exitIdx, final Vector3D newExitPt, final List<? extends Vector3D> vertices) {
 
         final int size = vertices.size();
 

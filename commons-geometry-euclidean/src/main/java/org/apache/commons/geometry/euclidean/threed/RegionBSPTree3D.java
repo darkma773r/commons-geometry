@@ -106,7 +106,7 @@ public final class RegionBSPTree3D extends AbstractRegionBSPTree<Vector3D, Regio
      * @param result list containing the results of the computation
      */
     private void toConvexRecursive(final RegionNode3D node, final ConvexVolume nodeVolume,
-            final List<ConvexVolume> result) {
+            final List<? super ConvexVolume> result) {
 
         if (node.isLeaf()) {
             // base case; only add to the result list if the node is inside
@@ -238,7 +238,7 @@ public final class RegionBSPTree3D extends AbstractRegionBSPTree<Vector3D, Regio
         /** Simple constructor.
          * @param tree the owning tree instance
          */
-        protected RegionNode3D(final AbstractBSPTree<Vector3D, RegionNode3D> tree) {
+        RegionNode3D(final AbstractBSPTree<Vector3D, RegionNode3D> tree) {
             super(tree);
         }
 

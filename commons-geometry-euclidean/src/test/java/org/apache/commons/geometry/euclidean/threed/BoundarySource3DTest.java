@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class BoundarySource3DTest {
 
@@ -34,6 +34,33 @@ public class BoundarySource3DTest {
             new EpsilonDoublePrecisionContext(TEST_EPS);
 
     @Test
+    public void testToList() {
+        // act
+        final BoundarySource3D src = BoundarySource3D.of(
+            Planes.convexPolygonFromVertices(
+                    Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Y), TEST_PRECISION)
+        );
+
+        // act
+        final BoundaryList3D list = src.toList();
+
+        // assert
+        Assertions.assertEquals(1, list.count());
+    }
+
+    @Test
+    public void testToList_noBoundaries() {
+        // act
+        final BoundarySource3D src = BoundarySource3D.of();
+
+        // act
+        final BoundaryList3D list = src.toList();
+
+        // assert
+        Assertions.assertEquals(0, list.count());
+    }
+
+    @Test
     public void testToTree() {
         // act
         final PlaneConvexSubset a = Planes.convexPolygonFromVertices(
@@ -41,74 +68,74 @@ public class BoundarySource3DTest {
         final PlaneConvexSubset b = Planes.convexPolygonFromVertices(
                 Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_Y, Vector3D.Unit.MINUS_Z), TEST_PRECISION);
 
-        final BoundarySource3D src = BoundarySource3D.from(a, b);
+        final BoundarySource3D src = BoundarySource3D.of(a, b);
 
         // act
         final RegionBSPTree3D tree = src.toTree();
 
         // assert
-        Assert.assertEquals(5, tree.count());
-        Assert.assertFalse(tree.isFull());
-        Assert.assertFalse(tree.isEmpty());
+        Assertions.assertEquals(5, tree.count());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertFalse(tree.isEmpty());
     }
 
     @Test
     public void testToTree_noBoundaries() {
         // act
-        final BoundarySource3D src = BoundarySource3D.from();
+        final BoundarySource3D src = BoundarySource3D.of();
 
         // act
         final RegionBSPTree3D tree = src.toTree();
 
         // assert
-        Assert.assertEquals(1, tree.count());
-        Assert.assertFalse(tree.isFull());
-        Assert.assertTrue(tree.isEmpty());
+        Assertions.assertEquals(1, tree.count());
+        Assertions.assertFalse(tree.isFull());
+        Assertions.assertTrue(tree.isEmpty());
     }
 
     @Test
-    public void testFrom_varargs_empty() {
+    public void testOf_varargs_empty() {
         // act
-        final BoundarySource3D src = BoundarySource3D.from();
+        final BoundarySource3D src = BoundarySource3D.of();
 
         // assert
         final List<PlaneConvexSubset> segments = src.boundaryStream().collect(Collectors.toList());
-        Assert.assertEquals(0, segments.size());
+        Assertions.assertEquals(0, segments.size());
     }
 
     @Test
-    public void testFrom_varargs() {
+    public void testOf_varargs() {
         // act
         final PlaneConvexSubset a = Planes.convexPolygonFromVertices(
                 Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Y), TEST_PRECISION);
         final PlaneConvexSubset b = Planes.convexPolygonFromVertices(
                 Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_Y, Vector3D.Unit.MINUS_Z), TEST_PRECISION);
 
-        final BoundarySource3D src = BoundarySource3D.from(a, b);
+        final BoundarySource3D src = BoundarySource3D.of(a, b);
 
         // assert
         final List<PlaneConvexSubset> boundaries = src.boundaryStream().collect(Collectors.toList());
-        Assert.assertEquals(2, boundaries.size());
+        Assertions.assertEquals(2, boundaries.size());
 
-        Assert.assertSame(a, boundaries.get(0));
-        Assert.assertSame(b, boundaries.get(1));
+        Assertions.assertSame(a, boundaries.get(0));
+        Assertions.assertSame(b, boundaries.get(1));
     }
 
     @Test
-    public void testFrom_list_empty() {
+    public void testOf_list_empty() {
         // arrange
         final List<PlaneConvexSubset> input = new ArrayList<>();
 
         // act
-        final BoundarySource3D src = BoundarySource3D.from(input);
+        final BoundarySource3D src = BoundarySource3D.of(input);
 
         // assert
         final List<PlaneConvexSubset> segments = src.boundaryStream().collect(Collectors.toList());
-        Assert.assertEquals(0, segments.size());
+        Assertions.assertEquals(0, segments.size());
     }
 
     @Test
-    public void testFrom_list() {
+    public void testOf_list() {
         // act
         final PlaneConvexSubset a = Planes.convexPolygonFromVertices(
                 Arrays.asList(Vector3D.ZERO, Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Y), TEST_PRECISION);
@@ -119,13 +146,13 @@ public class BoundarySource3DTest {
         input.add(a);
         input.add(b);
 
-        final BoundarySource3D src = BoundarySource3D.from(input);
+        final BoundarySource3D src = BoundarySource3D.of(input);
 
         // assert
         final List<PlaneConvexSubset> segments = src.boundaryStream().collect(Collectors.toList());
-        Assert.assertEquals(2, segments.size());
+        Assertions.assertEquals(2, segments.size());
 
-        Assert.assertSame(a, segments.get(0));
-        Assert.assertSame(b, segments.get(1));
+        Assertions.assertSame(a, segments.get(0));
+        Assertions.assertSame(b, segments.get(1));
     }
 }

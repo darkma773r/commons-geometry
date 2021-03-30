@@ -20,9 +20,11 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.apache.commons.geometry.core.partitioning.HyperplaneBoundedRegion;
 import org.apache.commons.geometry.core.partitioning.Split;
@@ -234,7 +236,7 @@ public final class Planes {
      * @throws IndexOutOfBoundsException if any index into {@code vertices} is out of bounds
      * @see #indexedTriangles(Vector3D[], int[][], DoublePrecisionContext)
      */
-    public static List<Triangle3D> indexedTriangles(final List<Vector3D> vertices, final int[][] faceIndices,
+    public static List<Triangle3D> indexedTriangles(final List<? extends Vector3D> vertices, final int[][] faceIndices,
             final DoublePrecisionContext precision) {
 
         final int numFaces = faceIndices.length;
@@ -313,8 +315,8 @@ public final class Planes {
      * @throws IndexOutOfBoundsException if any index into {@code vertices} is out of bounds
      * @see #indexedConvexPolygons(Vector3D[], int[][], DoublePrecisionContext)
      */
-    public static List<ConvexPolygon3D> indexedConvexPolygons(final List<Vector3D> vertices, final int[][] faceIndices,
-            final DoublePrecisionContext precision) {
+    public static List<ConvexPolygon3D> indexedConvexPolygons(final List<? extends Vector3D> vertices,
+            final int[][] faceIndices, final DoublePrecisionContext precision) {
         final int numFaces = faceIndices.length;
         final List<ConvexPolygon3D> polygons = new ArrayList<>(numFaces);
         final List<Vector3D> faceVertices = new ArrayList<>();
@@ -398,6 +400,98 @@ public final class Planes {
         return new PlaneRegionExtruder(plane, extrusionVector, precision).extrude(region);
     }
 
+    /** Convert a convex polygon defined by a list of vertices into a triangle fan. The vertex forming the largest
+     * interior angle in the polygon is selected as the base of the triangle fan. Callers are responsible for
+     * ensuring that the given list of vertices define a geometrically valid convex polygon; no validation (except
+     * for a check on the minimum number of vertices) is performed.
+     * @param <T> triangle result type
+     * @param vertices vertices defining a convex polygon
+     * @param fn function accepting the vertices of each triangle as a list and returning the object used
+     *      to represent that triangle in the result; each argument to this function is guaranteed to
+     *      contain 3 vertices
+     * @return a list containing the return results of the function when passed the vertices for each
+     *      triangle in order
+     * @throws IllegalArgumentException if fewer than 3 vertices are given
+     */
+    public static <T> List<T> convexPolygonToTriangleFan(final List<Vector3D> vertices,
+            final Function<List<Vector3D>, T> fn) {
+        final int size = vertices.size();
+        if (size < 3) {
+            throw new IllegalArgumentException("Cannot create triangle fan: 3 or more vertices are required " +
+                    "but found only " + vertices.size());
+        } else if (size == 3) {
+            return Collections.singletonList(fn.apply(vertices));
+        }
+
+        final List<T> triangles = new ArrayList<>(size - 2);
+
+        final int fanIdx = findBestTriangleFanIndex(vertices);
+        int vertexIdx = (fanIdx + 1) % size;
+
+        final Vector3D fanBase = vertices.get(fanIdx);
+        Vector3D vertexA = vertices.get(vertexIdx);
+        Vector3D vertexB;
+
+        vertexIdx = (vertexIdx + 1) % size;
+        while (vertexIdx != fanIdx) {
+            vertexB = vertices.get(vertexIdx);
+
+            triangles.add(fn.apply(Arrays.asList(fanBase, vertexA, vertexB)));
+
+            vertexA = vertexB;
+            vertexIdx = (vertexIdx + 1) % size;
+        }
+
+        return triangles;
+    }
+
+    /** Find the index of the best vertex to use as the base for a triangle fan split of the convex polygon
+     * defined by the given vertices. The best vertex is the one that forms the largest interior angle in the
+     * polygon since a split at that point will help prevent the creation of very thin triangles.
+     * @param vertices vertices defining the convex polygon; must not be empty; no validation is performed
+     *      to ensure that the vertices actually define a convex polygon
+     * @return the index of the best vertex to use as the base for a triangle fan split of the convex polygon
+     */
+    private static int findBestTriangleFanIndex(final List<Vector3D> vertices) {
+        final Iterator<Vector3D> it = vertices.iterator();
+
+        Vector3D curPt = it.next();
+        Vector3D nextPt;
+
+        final Vector3D lastVec = vertices.get(vertices.size() - 1).directionTo(curPt);
+        Vector3D incomingVec = lastVec;
+        Vector3D outgoingVec;
+
+        int bestIdx = 0;
+        double bestDot = -1.0;
+
+        int idx = 0;
+        double dot;
+        while (it.hasNext()) {
+            nextPt = it.next();
+            outgoingVec = curPt.directionTo(nextPt);
+
+            dot = incomingVec.dot(outgoingVec);
+            if (dot > bestDot) {
+                bestIdx = idx;
+                bestDot = dot;
+            }
+
+            curPt = nextPt;
+            incomingVec = outgoingVec;
+
+            ++idx;
+        }
+
+        // handle the last vertex on its own
+        dot = incomingVec.dot(lastVec);
+        if (dot > bestDot) {
+            bestIdx = idx;
+        }
+
+        return bestIdx;
+    }
+
     /** Get the unique intersection of the plane subset with the given line. Null is
      * returned if no unique intersection point exists (ie, the line and plane are
      * parallel or coincident) or the line does not intersect the plane subset.
@@ -446,7 +540,7 @@ public final class Planes {
      * @return the result of the split operation
      */
     static <T extends PlaneSubset> Split<T> subspaceSplit(final Plane splitter, final T subset,
-            final BiFunction<EmbeddingPlane, HyperplaneBoundedRegion<Vector2D>, T> factory) {
+            final BiFunction<? super EmbeddingPlane, ? super HyperplaneBoundedRegion<Vector2D>, T> factory) {
 
         final EmbeddingPlane thisPlane = subset.getPlane().getEmbedding();
 
@@ -528,79 +622,8 @@ public final class Planes {
      * @throws IllegalArgumentException if fewer than 3 vertices are given
      */
     static List<Triangle3D> convexPolygonToTriangleFan(final Plane plane, final List<Vector3D> vertices) {
-        final int size = vertices.size();
-        if (size < 3) {
-            throw new IllegalArgumentException("Cannot create triangle fan: 3 or more vertices are required " +
-                    "but found only " + vertices.size());
-        }
-
-        final List<Triangle3D> triangles = new ArrayList<>(size - 2);
-
-        final int fanIdx = findBestTriangleFanIndex(vertices);
-        int vertexIdx = (fanIdx + 1) % size;
-
-        final Vector3D fanBase = vertices.get(fanIdx);
-        Vector3D vertexA = vertices.get(vertexIdx);
-        Vector3D vertexB;
-
-        vertexIdx = (vertexIdx + 1) % size;
-        while (vertexIdx != fanIdx) {
-            vertexB = vertices.get(vertexIdx);
-
-            // add directly as a triangle instance to avoid computation of the plane again
-            triangles.add(new SimpleTriangle3D(plane, fanBase, vertexA, vertexB));
-
-            vertexA = vertexB;
-            vertexIdx = (vertexIdx + 1) % size;
-        }
-
-        return triangles;
-    }
-
-    /** Find the index of the best vertex to use as the base for a triangle fan split of the convex polygon
-     * defined by the given vertices. The best vertex is the one that forms the largest interior angle in the
-     * polygon since a split at that point will help prevent the creation of very thin triangles.
-     * @param vertices vertices defining the convex polygon; must not be empty
-     * @return the index of the best vertex to use as the base for a triangle fan split of the convex polygon
-     */
-    private static int findBestTriangleFanIndex(final List<Vector3D> vertices) {
-        final Iterator<Vector3D> it = vertices.iterator();
-
-        Vector3D curPt = it.next();
-        Vector3D nextPt;
-
-        final Vector3D lastVec = vertices.get(vertices.size() - 1).directionTo(curPt);
-        Vector3D incomingVec = lastVec;
-        Vector3D outgoingVec;
-
-        int bestIdx = 0;
-        double bestDot = -1.0;
-
-        int idx = 0;
-        double dot;
-        while (it.hasNext()) {
-            nextPt = it.next();
-            outgoingVec = curPt.directionTo(nextPt);
-
-            dot = incomingVec.dot(outgoingVec);
-            if (dot > bestDot) {
-                bestIdx = idx;
-                bestDot = dot;
-            }
-
-            curPt = nextPt;
-            incomingVec = outgoingVec;
-
-            ++idx;
-        }
-
-        // handle the last vertex on its own
-        dot = incomingVec.dot(lastVec);
-        if (dot > bestDot) {
-            bestIdx = idx;
-        }
-
-        return bestIdx;
+        return convexPolygonToTriangleFan(vertices,
+                tri -> new SimpleTriangle3D(plane, tri.get(0), tri.get(1), tri.get(2)));
     }
 
     /** Internal helper class used to construct planes from sequences of points. Instances can be also be
@@ -610,7 +633,7 @@ public final class Planes {
     private static final class PlaneBuilder {
 
         /** The point sequence to build a plane for. */
-        private final Collection<Vector3D> pts;
+        private final Collection<? extends Vector3D> pts;
 
         /** Precision context used for floating point comparisons. */
         private final DoublePrecisionContext precision;
@@ -637,16 +660,16 @@ public final class Planes {
         private double crossSumZ;
 
         /** If true, an exception will be thrown if the point sequence is discovered to be non-convex. */
-        private boolean requireConvex = false;
+        private boolean requireConvex;
 
         /** List that unique vertices discovered in the input sequence will be added to. */
-        private List<Vector3D> uniqueVertexOutput;
+        private List<? super Vector3D> uniqueVertexOutput;
 
         /** Construct a new build instance for the given point sequence and precision context.
          * @param pts point sequence
          * @param precision precision context used to perform floating point comparisons
          */
-        PlaneBuilder(final Collection<Vector3D> pts, final DoublePrecisionContext precision) {
+        PlaneBuilder(final Collection<? extends Vector3D> pts, final DoublePrecisionContext precision) {
             this.pts = pts;
             this.precision = precision;
         }
@@ -672,7 +695,7 @@ public final class Planes {
          * @throws IllegalArgumentException if the points do not define a plane or the {@code requireConvex}
          *      flag is true and the points do not define a convex area
          */
-        Plane buildForConvexPolygon(final List<Vector3D> vertexOutput) {
+        Plane buildForConvexPolygon(final List<? super Vector3D> vertexOutput) {
             this.requireConvex = true;
             this.uniqueVertexOutput = vertexOutput;
 
@@ -808,7 +831,7 @@ public final class Planes {
             this.basePlane = basePlane;
 
             // Extruded plane; this forms the end of the 3D region opposite the base plane.
-            EmbeddingPlane extrudedPlane = basePlane.translate(extrusionVector);
+            final EmbeddingPlane extrudedPlane = basePlane.translate(extrusionVector);
 
             if (basePlane.contains(extrudedPlane)) {
                 throw new IllegalArgumentException(
@@ -840,7 +863,7 @@ public final class Planes {
          * @param subspaceRegion subspace region being extruded.
          * @param result list to add the boundary results to
          */
-        private void addEnds(final RegionBSPTree2D subspaceRegion, final List<PlaneConvexSubset> result) {
+        private void addEnds(final RegionBSPTree2D subspaceRegion, final List<? super PlaneConvexSubset> result) {
             // add the base boundaries
             final List<ConvexArea> baseAreas = subspaceRegion.toConvex();
 
@@ -868,7 +891,7 @@ public final class Planes {
          * @param subspaceRegion subspace region being extruded.
          * @param result list to add the boundary results to
          */
-        private void addSides(final RegionBSPTree2D subspaceRegion, final List<PlaneConvexSubset> result) {
+        private void addSides(final RegionBSPTree2D subspaceRegion, final List<? super PlaneConvexSubset> result) {
             Vector2D subStartPt;
             Vector2D subEndPt;
 

@@ -16,17 +16,13 @@
  */
 package org.apache.commons.geometry.core;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.regex.Pattern;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.function.Executable;
 
 /** Class containing various geometry-related test utilities.
  */
-
 public final class GeometryTestUtils {
 
     /** Utility class; no instantiation. */
@@ -37,8 +33,8 @@ public final class GeometryTestUtils {
      */
     public static void assertPositiveInfinity(final double value) {
         final String msg = "Expected value to be positive infinity but was " + value;
-        Assert.assertTrue(msg, Double.isInfinite(value));
-        Assert.assertTrue(msg, value > 0);
+        Assertions.assertTrue(Double.isInfinite(value), msg);
+        Assertions.assertTrue(value > 0, msg);
     }
 
     /** Asserts that the given value is negative infinity..
@@ -46,65 +42,31 @@ public final class GeometryTestUtils {
      */
     public static void assertNegativeInfinity(final double value) {
         final String msg = "Expected value to be negative infinity but was " + value;
-        Assert.assertTrue(msg, Double.isInfinite(value));
-        Assert.assertTrue(msg, value < 0);
+        Assertions.assertTrue(Double.isInfinite(value), msg);
+        Assertions.assertTrue(value < 0, msg);
     }
 
-    /** Asserts that the given Runnable throws an exception of the given type.
-     * @param r the Runnable instance
+    /** Asserts that the Executable throws an exception matching the given type and message.
+     * @param executable the Executable instance
      * @param exceptionType the expected exception type
+     * @param message the expected exception message; may be null
      */
-    public static void assertThrows(final Runnable r, final Class<?> exceptionType) {
-        assertThrows(r, exceptionType, (String) null);
+    public static <T extends Throwable> void assertThrowsWithMessage(final Executable executable,
+            final Class<T> exceptionType, final String message) {
+        Assertions.assertEquals(message, Assertions.assertThrows(exceptionType, executable).getMessage());
     }
 
-    /** Asserts that the given Runnable throws an exception of the given type. If
-     * {@code message} is not null, the exception message is asserted to equal the
-     * given value.
-     * @param r the Runnable instance
+    /** Asserts that the Executable throws an exception of the given type with a non-null message matching
+     * the specified regex pattern.
+     * @param executable the Executable instance
      * @param exceptionType the expected exception type
-     * @param message the expected exception message; ignored if null
+     * @param pattern regex pattern to match
      */
-    public static void assertThrows(final Runnable r, final Class<?> exceptionType, final String message) {
-        try {
-            r.run();
-            Assert.fail("Operation should have thrown an exception");
-        } catch (final Exception exc) {
-            final Class<?> actualType = exc.getClass();
-
-            Assert.assertTrue("Expected exception of type " + exceptionType.getName() + " but was " + actualType.getName(),
-                    exceptionType.isAssignableFrom(actualType));
-
-            if (message != null) {
-                Assert.assertEquals(message, exc.getMessage());
-            }
-        }
-    }
-
-    /** Asserts that the given Runnable throws an exception of the given type. If
-     * {@code pattern} is not null, the exception message is asserted to match the
-     * given regex.
-     * @param r the Runnable instance
-     * @param exceptionType the expected exception type
-     * @param pattern regex pattern to match; ignored if null
-     */
-    public static void assertThrows(final Runnable r, final Class<?> exceptionType, final Pattern pattern) {
-        try {
-            r.run();
-            Assert.fail("Operation should have thrown an exception");
-        } catch (final Exception exc) {
-            final Class<?> actualType = exc.getClass();
-
-            Assert.assertTrue("Expected exception of type " + exceptionType.getName() + " but was " + actualType.getName(),
-                    exceptionType.isAssignableFrom(actualType));
-
-            if (pattern != null) {
-                final String message = exc.getMessage();
-
-                final String err = "Expected exception message to match /" + pattern + "/ but was [" + message + "]";
-                Assert.assertTrue(err, pattern.matcher(message).matches());
-            }
-        }
+    public static <T extends Throwable> void assertThrowsWithMessage(final Executable executable,
+            final Class<T> exceptionType, final Pattern pattern) {
+        final String message = Assertions.assertThrows(exceptionType, executable).getMessage();
+        Assertions.assertTrue(pattern.matcher(message).matches(),
+                "Expected exception message to match /" + pattern + "/ but was [" + message + "]");
     }
 
     /** Assert that a string contains a given substring value.
@@ -113,7 +75,7 @@ public final class GeometryTestUtils {
      */
     public static void assertContains(final String substr, final String actual) {
         final String msg = "Expected string to contain [" + substr + "] but was [" + actual + "]";
-        Assert.assertTrue(msg, actual.contains(substr));
+        Assertions.assertTrue(actual.contains(substr), msg);
     }
 
     /** Assert that the {@code equals} method of the argument meets the following requirements:
@@ -128,34 +90,12 @@ public final class GeometryTestUtils {
         // Use the JUnit boolean assertions here to ensure that the equals methods are actually
         // invoked and no assertion shortcuts are taken
 
-        Assert.assertFalse("Object should not equal null", obj.equals(null));
+        Assertions.assertFalse(obj.equals(null), "Object should not equal null");
 
         if (obj.getClass().getSuperclass() != null) {
-            Assert.assertFalse("Object should not equal an instance of different type", obj.equals(new Object()));
+            Assertions.assertFalse(obj.equals(new Object()), "Object should not equal an instance of different type");
         }
 
-        Assert.assertTrue("Object should equal itself", obj.equals(obj));
-    }
-
-    /**
-     * Serializes and then recovers an object from a byte array. Returns the deserialized object.
-     *
-     * @param obj  object to serialize and recover
-     * @return  the recovered, deserialized object
-     */
-    public static Object serializeAndRecover(final Object obj) {
-        try {
-            // serialize the Object
-            final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            final ObjectOutputStream so = new ObjectOutputStream(bos);
-            so.writeObject(obj);
-
-            // deserialize the Object
-            final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-            final ObjectInputStream si = new ObjectInputStream(bis);
-            return si.readObject();
-        } catch (final Exception e) {
-            throw new RuntimeException(e);
-        }
+        Assertions.assertTrue(obj.equals(obj), "Object should equal itself");
     }
 }

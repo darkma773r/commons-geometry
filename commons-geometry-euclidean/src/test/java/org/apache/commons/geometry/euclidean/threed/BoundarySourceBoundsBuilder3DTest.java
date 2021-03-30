@@ -22,8 +22,8 @@ import java.util.Arrays;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class BoundarySourceBoundsBuilder3DTest {
 
@@ -35,14 +35,14 @@ public class BoundarySourceBoundsBuilder3DTest {
     @Test
     public void testGetBounds_noBoundaries() {
         // arrange
-        final BoundarySource3D src = BoundarySource3D.from(new ArrayList<>());
+        final BoundarySource3D src = BoundarySource3D.of(new ArrayList<>());
         final BoundarySourceBoundsBuilder3D builder = new BoundarySourceBoundsBuilder3D();
 
         // act
         final Bounds3D b = builder.getBounds(src);
 
         // assert
-        Assert.assertNull(b);
+        Assertions.assertNull(b);
     }
 
     @Test
@@ -53,7 +53,7 @@ public class BoundarySourceBoundsBuilder3DTest {
                 Vector3D.of(1, 0, 2),
                 Vector3D.of(3, 4, 5)), TEST_PRECISION);
 
-        final BoundarySource3D src = BoundarySource3D.from(poly);
+        final BoundarySource3D src = BoundarySource3D.of(poly);
         final BoundarySourceBoundsBuilder3D builder = new BoundarySourceBoundsBuilder3D();
 
         // act
@@ -62,7 +62,7 @@ public class BoundarySourceBoundsBuilder3DTest {
         // assert
         checkBounds(b, Vector3D.of(1, 0, 1), Vector3D.of(3, 4, 5));
         for (final Vector3D pt : poly.getVertices()) {
-            Assert.assertTrue(b.contains(pt));
+            Assertions.assertTrue(b.contains(pt));
         }
     }
 
@@ -84,7 +84,7 @@ public class BoundarySourceBoundsBuilder3DTest {
                 Vector3D.of(1, 7, 2),
                 Vector3D.of(5, 4, 10)), TEST_PRECISION);
 
-        final BoundarySource3D src = BoundarySource3D.from(poly1, poly2, poly3);
+        final BoundarySource3D src = BoundarySource3D.of(poly1, poly2, poly3);
         final BoundarySourceBoundsBuilder3D builder = new BoundarySourceBoundsBuilder3D();
 
         // act
@@ -95,7 +95,7 @@ public class BoundarySourceBoundsBuilder3DTest {
 
         src.boundaryStream().forEach(boundary -> {
             for (final Vector3D pt : boundary.getVertices()) {
-                Assert.assertTrue(b.contains(pt));
+                Assertions.assertTrue(b.contains(pt));
             }
         });
     }
@@ -105,14 +105,14 @@ public class BoundarySourceBoundsBuilder3DTest {
         // arrange
         final PlaneConvexSubset boundary = Planes.fromPointAndNormal(Vector3D.ZERO, Vector3D.Unit.PLUS_Z, TEST_PRECISION)
                 .span();
-        final BoundarySource3D src = BoundarySource3D.from(boundary);
+        final BoundarySource3D src = BoundarySource3D.of(boundary);
         final BoundarySourceBoundsBuilder3D builder = new BoundarySourceBoundsBuilder3D();
 
         // act
         final Bounds3D b = builder.getBounds(src);
 
         // assert
-        Assert.assertNull(b);
+        Assertions.assertNull(b);
     }
 
     @Test
@@ -138,14 +138,14 @@ public class BoundarySourceBoundsBuilder3DTest {
                 Vector3D.of(1, 7, 2),
                 Vector3D.of(5, 4, 10)), TEST_PRECISION);
 
-        final BoundarySource3D src = BoundarySource3D.from(poly1, poly2, inf, poly3);
+        final BoundarySource3D src = BoundarySource3D.of(poly1, poly2, inf, poly3);
         final BoundarySourceBoundsBuilder3D builder = new BoundarySourceBoundsBuilder3D();
 
         // act
         final Bounds3D b = builder.getBounds(src);
 
         // assert
-        Assert.assertNull(b);
+        Assertions.assertNull(b);
     }
 
     private static void checkBounds(final Bounds3D b, final Vector3D min, final Vector3D max) {
