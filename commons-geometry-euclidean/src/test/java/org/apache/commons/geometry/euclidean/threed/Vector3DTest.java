@@ -34,7 +34,6 @@ import org.apache.commons.rng.simple.RandomSource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-
 public class Vector3DTest {
 
     private static final double EPS = 1e-15;
@@ -402,10 +401,19 @@ public class Vector3DTest {
     @Test
     public void testNormalize_illegalNorm() {
         // act/assert
-        Assertions.assertThrows(IllegalArgumentException.class, Vector3D.ZERO::normalize);
-        Assertions.assertThrows(IllegalArgumentException.class, Vector3D.NaN::normalize);
-        Assertions.assertThrows(IllegalArgumentException.class, Vector3D.POSITIVE_INFINITY::normalize);
-        Assertions.assertThrows(IllegalArgumentException.class, Vector3D.NEGATIVE_INFINITY::normalize);
+        GeometryTestUtils.assertThrowsWithMessage(Vector3D.ZERO::normalize,
+                IllegalArgumentException.class, "Illegal norm: 0.0");
+        GeometryTestUtils.assertThrowsWithMessage(Vector3D.NaN::normalize,
+                IllegalArgumentException.class, "Illegal norm: NaN");
+        GeometryTestUtils.assertThrowsWithMessage(Vector3D.POSITIVE_INFINITY::normalize,
+                IllegalArgumentException.class, "Illegal norm: NaN");
+        GeometryTestUtils.assertThrowsWithMessage(Vector3D.NEGATIVE_INFINITY::normalize,
+                IllegalArgumentException.class, "Illegal norm: NaN");
+
+        GeometryTestUtils.assertThrowsWithMessage(Vector3D.of(Double.MIN_VALUE, 0, 0)::normalize,
+                IllegalArgumentException.class, "Illegal norm inverse: Infinity");
+        GeometryTestUtils.assertThrowsWithMessage(Vector3D.of(Double.MAX_VALUE, Double.MAX_VALUE, 0)::normalize,
+                IllegalArgumentException.class, "Illegal norm: Infinity");
     }
 
     @Test
@@ -417,6 +425,44 @@ public class Vector3DTest {
         // act/assert
         Assertions.assertSame(v, v.normalize());
         checkVector(v.normalize(), invSqrt3, invSqrt3, invSqrt3);
+    }
+
+    @Test
+    public void testNormalizeOrDefault() {
+        // arrange
+        final double invSqrt3 = 1 / Math.sqrt(3);
+
+        // act/assert
+        checkVector(Vector3D.of(100, 0, 0).normalizeOrDefault(null), 1, 0, 0);
+        checkVector(Vector3D.of(-100, 0, 0).normalizeOrDefault(Vector3D.Unit.PLUS_Z), -1, 0, 0);
+
+        checkVector(Vector3D.of(2, 2, 2).normalizeOrDefault(null), invSqrt3, invSqrt3, invSqrt3);
+        checkVector(Vector3D.of(-2, -2, -2).normalizeOrDefault(Vector3D.Unit.PLUS_Z), -invSqrt3, -invSqrt3, -invSqrt3);
+
+        Assertions.assertNull(Vector3D.ZERO.normalizeOrDefault(null));
+        Assertions.assertNull(Vector3D.NaN.normalizeOrDefault(null));
+        Assertions.assertNull(Vector3D.POSITIVE_INFINITY.normalizeOrDefault(null));
+        Assertions.assertNull(Vector3D.NEGATIVE_INFINITY.normalizeOrDefault(null));
+        Assertions.assertNull(Vector3D.of(Double.MIN_VALUE, 0, 0).normalizeOrDefault(null));
+        Assertions.assertNull(Vector3D.of(Double.MAX_VALUE, Double.MAX_VALUE, 0).normalizeOrDefault(null));
+
+        checkVector(Vector3D.ZERO.normalizeOrDefault(Vector3D.Unit.PLUS_X), 1, 0, 0);
+        checkVector(Vector3D.NaN.normalizeOrDefault(Vector3D.Unit.PLUS_Y), 0, 1, 0);
+        checkVector(Vector3D.POSITIVE_INFINITY.normalizeOrDefault(Vector3D.Unit.PLUS_Z), 0, 0, 1);
+        checkVector(Vector3D.NEGATIVE_INFINITY.normalizeOrDefault(Vector3D.Unit.PLUS_X), 1, 0, 0);
+        checkVector(Vector3D.of(Double.MIN_VALUE, 0, 0).normalizeOrDefault(Vector3D.Unit.PLUS_Y), 0, 1, 0);
+        checkVector(Vector3D.of(Double.MAX_VALUE, Double.MAX_VALUE, 0).normalizeOrDefault(Vector3D.Unit.PLUS_Y), 0, 1, 0);
+    }
+
+    @Test
+    public void testNormalizeOrDefault_isIdempotent() {
+        // arrange
+        final double invSqrt3 = 1 / Math.sqrt(3);
+        final Vector3D v = Vector3D.of(2, 2, 2).normalizeOrDefault(null);
+
+        // act/assert
+        Assertions.assertSame(v, v.normalizeOrDefault(null));
+        checkVector(v.normalizeOrDefault(null), invSqrt3, invSqrt3, invSqrt3);
     }
 
     @Test

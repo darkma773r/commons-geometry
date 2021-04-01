@@ -246,7 +246,14 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         return Unit.from(x, y, z);
     }
 
-    public Unit normalizeOrDefault(final Vector3D.Unit defaultValue) {
+    /** Return a normalized vector pointing in the direction of the current
+     * instance or {@code defaultValue} if the vector cannot be normalized.
+     * @param defaultValue value to return if the current vector cannot be
+     *      normalized; may be null
+     * @return a normalized vector or {@code defaultValue} if the vector
+     *      cannot be normalized.
+     */
+    public Unit normalizeOrDefault(final Unit defaultValue) {
         final Unit result = Unit.tryCreateNormalized(x, y, z, false);
         return result != null ?
                 result :
@@ -777,48 +784,6 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
             super(x, y, z);
         }
 
-        /**
-         * Creates a normalized vector.
-         *
-         * @param x Vector coordinate.
-         * @param y Vector coordinate.
-         * @param z Vector coordinate.
-         * @return a vector whose norm is 1.
-         * @throws IllegalArgumentException if the norm of the given value
-         *      is zero, NaN, or infinite
-         */
-        public static Unit from(final double x, final double y, final double z) {
-//            final double invNorm = 1 / Vectors.norm(Vectors.norm(x, y, z));
-//            return new Unit(x * invNorm, y * invNorm, z * invNorm);
-            return tryCreateNormalized(x, y, z, true);
-        }
-
-        /**
-         * Creates a normalized vector.
-         *
-         * @param v Vector.
-         * @return a vector whose norm is 1.
-         * @throws IllegalArgumentException if the norm of the given
-         *      value is zero, NaN, or infinite
-         */
-        public static Unit from(final Vector3D v) {
-            return v instanceof Unit ?
-                (Unit) v :
-                from(v.getX(), v.getY(), v.getZ());
-        }
-
-        private static Unit tryCreateNormalized(final double x, final double y, final double z,
-                final boolean throwOnFailure) {
-            final double norm = Vectors.norm(x, y, z);
-            if (Vectors.isRealNonZero(norm)) {
-                final double invNorm = 1 / norm;
-                return new Unit(x * invNorm, y * invNorm, z * invNorm);
-            } else if (throwOnFailure) {
-                throw Vectors.illegalNorm(norm);
-            }
-            return null;
-        }
-
         /** {@inheritDoc} */
         @Override
         public double norm() {
@@ -853,6 +818,60 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         @Override
         public Unit negate() {
             return new Unit(-getX(), -getY(), -getZ());
+        }
+
+        /** Create a normalized vector.
+         *
+         * @param x Vector coordinate.
+         * @param y Vector coordinate.
+         * @param z Vector coordinate.
+         * @return a vector whose norm is 1.
+         * @throws IllegalArgumentException if the norm of the given value
+         *      is zero, NaN, or infinite
+         */
+        public static Unit from(final double x, final double y, final double z) {
+            return tryCreateNormalized(x, y, z, true);
+        }
+
+        /** Create a normalized vector.
+         * @param v Vector.
+         * @return a vector whose norm is 1.
+         * @throws IllegalArgumentException if the norm of the given
+         *      value is zero, NaN, or infinite
+         */
+        public static Unit from(final Vector3D v) {
+            return v instanceof Unit ?
+                (Unit) v :
+                from(v.getX(), v.getY(), v.getZ());
+        }
+
+        /** Attempt to create a normalized vector from the given coordinate values. If {@code throwOnFailure}
+         * is true, an exception is thrown if a normalized vector cannot be created. Otherwise, null
+         * is returned.
+         * @param x x coordinate
+         * @param y y coordinate
+         * @param z z coordinate
+         * @param throwOnFailure if true, an exception will be thrown if a normalized vector cannot be created
+         * @return normalized vector or null if one cannot be created a {@code throwOnFailure}
+         *      is false
+         * @throws IllegalArgumentException if the computed vector or its inverse is zero, NaN, or
+         *      infinite
+         */
+        private static Unit tryCreateNormalized(final double x, final double y, final double z,
+                final boolean throwOnFailure) {
+            final double norm = Vectors.norm(x, y, z);
+            final double normInv = 1 / norm;
+
+            if (Vectors.isRealNonZero(normInv)) {
+                return new Unit(x * normInv, y * normInv, z * normInv);
+            } else if (throwOnFailure) {
+                // throw the most specific exception we can
+                if (Vectors.isRealNonZero(norm)) {
+                    throw Vectors.illegalNormInverse(normInv);
+                }
+                throw Vectors.illegalNorm(norm);
+            }
+            return null;
         }
     }
 }

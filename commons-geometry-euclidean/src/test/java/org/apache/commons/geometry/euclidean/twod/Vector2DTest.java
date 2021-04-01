@@ -26,6 +26,7 @@ import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
+import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
@@ -328,10 +329,19 @@ public class Vector2DTest {
     @Test
     public void testNormalize_illegalNorm() {
         // act/assert
-        Assertions.assertThrows(IllegalArgumentException.class, Vector2D.ZERO::normalize);
-        Assertions.assertThrows(IllegalArgumentException.class, Vector2D.NaN::normalize);
-        Assertions.assertThrows(IllegalArgumentException.class, Vector2D.POSITIVE_INFINITY::normalize);
-        Assertions.assertThrows(IllegalArgumentException.class, Vector2D.NEGATIVE_INFINITY::normalize);
+        GeometryTestUtils.assertThrowsWithMessage(Vector2D.ZERO::normalize,
+                IllegalArgumentException.class, "Illegal norm: 0.0");
+        GeometryTestUtils.assertThrowsWithMessage(Vector2D.NaN::normalize,
+                IllegalArgumentException.class, "Illegal norm: NaN");
+        GeometryTestUtils.assertThrowsWithMessage(Vector2D.POSITIVE_INFINITY::normalize,
+                IllegalArgumentException.class, "Illegal norm: Infinity");
+        GeometryTestUtils.assertThrowsWithMessage(Vector2D.NEGATIVE_INFINITY::normalize,
+                IllegalArgumentException.class, "Illegal norm: Infinity");
+
+        GeometryTestUtils.assertThrowsWithMessage(Vector2D.of(Double.MIN_VALUE, 0)::normalize,
+                IllegalArgumentException.class, "Illegal norm inverse: Infinity");
+        GeometryTestUtils.assertThrowsWithMessage(Vector2D.of(Double.MAX_VALUE, Double.MAX_VALUE)::normalize,
+                IllegalArgumentException.class, "Illegal norm: Infinity");
     }
 
     @Test
@@ -343,6 +353,44 @@ public class Vector2DTest {
         // act/assert
         Assertions.assertSame(v, v.normalize());
         checkVector(v.normalize(), invSqrt2, invSqrt2);
+    }
+
+    @Test
+    public void testNormalizeOrDefault() {
+        // arrange
+        final double invSqrt2 = 1 / Math.sqrt(2);
+
+        // act/assert
+        checkVector(Vector2D.of(100, 0).normalizeOrDefault(null), 1, 0);
+        checkVector(Vector2D.of(-100, 0).normalizeOrDefault(Vector2D.Unit.PLUS_Y), -1, 0);
+
+        checkVector(Vector2D.of(2, 2).normalizeOrDefault(null), invSqrt2, invSqrt2);
+        checkVector(Vector2D.of(-2, -2).normalizeOrDefault(Vector2D.Unit.PLUS_Y), -invSqrt2, -invSqrt2);
+
+        Assertions.assertNull(Vector2D.ZERO.normalizeOrDefault(null));
+        Assertions.assertNull(Vector2D.NaN.normalizeOrDefault(null));
+        Assertions.assertNull(Vector2D.POSITIVE_INFINITY.normalizeOrDefault(null));
+        Assertions.assertNull(Vector2D.NEGATIVE_INFINITY.normalizeOrDefault(null));
+        Assertions.assertNull(Vector2D.of(Double.MIN_VALUE, 0).normalizeOrDefault(null));
+        Assertions.assertNull(Vector2D.of(Double.MAX_VALUE, Double.MAX_VALUE).normalizeOrDefault(null));
+
+        checkVector(Vector2D.ZERO.normalizeOrDefault(Vector2D.Unit.PLUS_X), 1, 0);
+        checkVector(Vector2D.NaN.normalizeOrDefault(Vector2D.Unit.PLUS_Y), 0, 1);
+        checkVector(Vector2D.POSITIVE_INFINITY.normalizeOrDefault(Vector2D.Unit.PLUS_X), 1, 0);
+        checkVector(Vector2D.NEGATIVE_INFINITY.normalizeOrDefault(Vector2D.Unit.PLUS_Y), 0, 1);
+        checkVector(Vector2D.of(Double.MIN_VALUE, 0).normalizeOrDefault(Vector2D.Unit.PLUS_X), 1, 0);
+        checkVector(Vector2D.of(Double.MAX_VALUE, Double.MAX_VALUE).normalizeOrDefault(Vector2D.Unit.PLUS_Y), 0, 1);
+    }
+
+    @Test
+    public void testNormalizeOrDefault_isIdempotent() {
+        // arrange
+        final double invSqrt2 = 1 / Math.sqrt(2);
+        final Vector2D v = Vector2D.of(2, 2).normalizeOrDefault(null);
+
+        // act/assert
+        Assertions.assertSame(v, v.normalizeOrDefault(null));
+        checkVector(v.normalizeOrDefault(null), invSqrt2, invSqrt2);
     }
 
     @Test
