@@ -26,7 +26,6 @@ import org.apache.commons.geometry.core.internal.SimpleTupleFormat;
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.MultiDimensionalEuclideanVector;
 import org.apache.commons.geometry.euclidean.internal.Vectors;
-import org.apache.commons.geometry.euclidean.threed.Vector3D.Unit;
 import org.apache.commons.numbers.arrays.LinearCombination;
 
 /** This class represents vectors and points in two-dimensional Euclidean space.
@@ -214,18 +213,10 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
         return Unit.from(x, y);
     }
 
-    /** Return a normalized vector pointing in the direction of the current
-     * instance or {@code defaultValue} if the vector cannot be normalized.
-     * @param defaultValue value to return if the current vector cannot be
-     *      normalized; may be null
-     * @return a normalized vector or {@code defaultValue} if the vector
-     *      cannot be normalized.
-     */
-    public Unit normalizeOrDefault(final Unit defaultValue) {
-        final Unit result = Unit.tryCreateNormalized(x, y, false);
-        return result != null ?
-                result :
-                defaultValue;
+    /** {@inheritDoc} */
+    @Override
+    public Unit normalizeOrNull() {
+        return Unit.tryCreateNormalized(x, y, false);
     }
 
     /** {@inheritDoc} */
@@ -730,7 +721,7 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
 
         /** {@inheritDoc} */
         @Override
-        public Unit normalizeOrDefault(final Unit defaultValue) {
+        public Unit normalizeOrNull() {
             return this;
         }
 
@@ -781,7 +772,7 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
          * @param throwOnFailure if true, an exception will be thrown if a normalized vector cannot be created
          * @return normalized vector or null if one cannot be created a {@code throwOnFailure}
          *      is false
-         * @throws IllegalArgumentException if the computed vector or its inverse is zero, NaN, or
+         * @throws IllegalArgumentException if the computed normal or its inverse is zero, NaN, or
          *      infinite
          */
         private static Unit tryCreateNormalized(final double x, final double y, final boolean throwOnFailure) {

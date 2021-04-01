@@ -72,7 +72,7 @@ public final class Vectors {
     }
 
     /** Return an exception indicating an illegal norm inverse value.
-     * @param norm illegal norm inverse value
+     * @param normInv illegal norm inverse value
      * @return exception indicating an illegal norm inverse value
      */
     public static IllegalArgumentException illegalNormInverse(final double normInv) {

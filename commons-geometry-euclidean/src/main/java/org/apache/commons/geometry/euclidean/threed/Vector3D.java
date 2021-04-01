@@ -247,17 +247,14 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
     }
 
     /** Return a normalized vector pointing in the direction of the current
-     * instance or {@code defaultValue} if the vector cannot be normalized.
-     * @param defaultValue value to return if the current vector cannot be
-     *      normalized; may be null
-     * @return a normalized vector or {@code defaultValue} if the vector
+     * instance or null if the vector cannot be normalized (for example, if
+     * the norm or norm inverse are zero, NaN, or infinite).
+     * @return a normalized vector or null if the vector
      *      cannot be normalized.
      */
-    public Unit normalizeOrDefault(final Unit defaultValue) {
-        final Unit result = Unit.tryCreateNormalized(x, y, z, false);
-        return result != null ?
-                result :
-                defaultValue;
+    @Override
+    public Unit normalizeOrNull() {
+        return Unit.tryCreateNormalized(x, y, z, false);
     }
 
     /** {@inheritDoc} */
@@ -804,7 +801,7 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
 
         /** {@inheritDoc} */
         @Override
-        public Unit normalizeOrDefault(final Unit defaultValue) {
+        public Unit normalizeOrNull() {
             return this;
         }
 
@@ -854,7 +851,7 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
          * @param throwOnFailure if true, an exception will be thrown if a normalized vector cannot be created
          * @return normalized vector or null if one cannot be created a {@code throwOnFailure}
          *      is false
-         * @throws IllegalArgumentException if the computed vector or its inverse is zero, NaN, or
+         * @throws IllegalArgumentException if the computed normal or its inverse is zero, NaN, or
          *      infinite
          */
         private static Unit tryCreateNormalized(final double x, final double y, final double z,
