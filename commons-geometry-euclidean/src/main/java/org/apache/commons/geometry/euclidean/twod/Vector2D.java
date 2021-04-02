@@ -287,7 +287,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
      * called on a vector pointing along the positive x-axis, then a unit vector representing
      * the positive y-axis is returned.
      * @return a unit vector orthogonal to the current instance
-     * @throws IllegalArgumentException if the norm of the current instance is zero, NaN, or infinite
+     * @throws IllegalArgumentException if the norm of the current instance (or its inverse)
+     *      is zero, NaN, or infinite
      */
     @Override
     public Vector2D.Unit orthogonal() {
@@ -747,7 +748,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
          * @param x Vector coordinate.
          * @param y Vector coordinate.
          * @return a vector whose norm is 1.
-         * @throws IllegalArgumentException if the norm of the given value is zero, NaN, or infinite
+         * @throws IllegalArgumentException if the norm of the given value (or its inverse) is
+         *      zero, NaN, or infinite
          */
         public static Unit from(final double x, final double y) {
             return tryCreateNormalized(x, y, true);
@@ -756,7 +758,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
         /** Create a normalized vector.
          * @param v Vector.
          * @return a vector whose norm is 1.
-         * @throws IllegalArgumentException if the norm of the given value is zero, NaN, or infinite
+         * @throws IllegalArgumentException if the norm of the given value (or its inverse) is
+         *      zero, NaN, or infinite
          */
         public static Unit from(final Vector2D v) {
             return v instanceof Unit ?
@@ -770,7 +773,7 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
          * @param x x coordinate
          * @param y y coordinate
          * @param throwOnFailure if true, an exception will be thrown if a normalized vector cannot be created
-         * @return normalized vector or null if one cannot be created a {@code throwOnFailure}
+         * @return normalized vector or null if one cannot be created and {@code throwOnFailure}
          *      is false
          * @throws IllegalArgumentException if the computed normal or its inverse is zero, NaN, or
          *      infinite

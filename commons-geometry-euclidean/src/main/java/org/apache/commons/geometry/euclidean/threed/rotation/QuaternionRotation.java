@@ -87,8 +87,8 @@ public final class QuaternionRotation implements Rotation3D {
                 .normalizeOrNull();
 
         return axis != null ?
-                axis :
-                Vector3D.Unit.PLUS_X;
+            axis :
+            Vector3D.Unit.PLUS_X;
     }
 
     /**

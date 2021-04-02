@@ -480,7 +480,7 @@ public class Vector1D extends EuclideanVector<Vector1D> {
          * is returned.
          * @param x x coordinate
          * @param throwOnFailure if true, an exception will be thrown if a normalized vector cannot be created
-         * @return normalized vector or null if one cannot be created a {@code throwOnFailure}
+         * @return normalized vector or null if one cannot be created and {@code throwOnFailure}
          *      is false
          * @throws IllegalArgumentException if the computed normal or its inverse is zero, NaN, or
          *      infinite
