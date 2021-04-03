@@ -19,6 +19,7 @@ package org.apache.commons.geometry.euclidean.twod;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import org.apache.commons.geometry.core.internal.DoubleFunction2N;
@@ -215,8 +216,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
 
     /** {@inheritDoc} */
     @Override
-    public Unit normalizeOrNull() {
-        return Unit.tryCreateNormalized(x, y, false);
+    public Optional<Unit> tryNormalize() {
+        return Optional.ofNullable(Unit.tryCreateNormalized(x, y, false));
     }
 
     /** {@inheritDoc} */
@@ -730,8 +731,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
 
         /** {@inheritDoc} */
         @Override
-        public Unit normalizeOrNull() {
-            return this;
+        public Optional<Unit> tryNormalize() {
+            return Optional.of(this);
         }
 
         /** {@inheritDoc} */

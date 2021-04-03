@@ -19,6 +19,7 @@ package org.apache.commons.geometry.euclidean.threed;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import org.apache.commons.geometry.core.internal.DoubleFunction3N;
@@ -248,8 +249,8 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
 
     /** {@inheritDoc} */
     @Override
-    public Unit normalizeOrNull() {
-        return Unit.tryCreateNormalized(x, y, z, false);
+    public Optional<Unit> tryNormalize() {
+        return Optional.ofNullable(Unit.tryCreateNormalized(x, y, z, false));
     }
 
     /** {@inheritDoc} */
@@ -804,8 +805,8 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
 
         /** {@inheritDoc} */
         @Override
-        public Unit normalizeOrNull() {
-            return this;
+        public Optional<Unit> tryNormalize() {
+            return Optional.of(this);
         }
 
         /** {@inheritDoc} */

@@ -359,36 +359,36 @@ public class Vector2DTest {
     }
 
     @Test
-    public void testNormalizeOrNull() {
+    public void testTryNormalize() {
         // arrange
         final double invSqrt2 = 1 / Math.sqrt(2);
 
         // act/assert
-        checkVector(Vector2D.of(100, 0).normalizeOrNull(), 1, 0);
-        checkVector(Vector2D.of(-100, 0).normalizeOrNull(), -1, 0);
+        checkVector(Vector2D.of(100, 0).tryNormalize().get(), 1, 0);
+        checkVector(Vector2D.of(-100, 0).tryNormalize().get(), -1, 0);
 
-        checkVector(Vector2D.of(2, 2).normalizeOrNull(), invSqrt2, invSqrt2);
-        checkVector(Vector2D.of(-2, -2).normalizeOrNull(), -invSqrt2, -invSqrt2);
+        checkVector(Vector2D.of(2, 2).tryNormalize().get(), invSqrt2, invSqrt2);
+        checkVector(Vector2D.of(-2, -2).tryNormalize().get(), -invSqrt2, -invSqrt2);
 
-        checkVector(Vector2D.of(Double.MIN_VALUE, 0).normalizeOrNull(), 1, 0);
-        checkVector(Vector2D.of(0, Double.MIN_VALUE).normalizeOrNull(), 0, 1);
+        checkVector(Vector2D.of(Double.MIN_VALUE, 0).tryNormalize().get(), 1, 0);
+        checkVector(Vector2D.of(0, Double.MIN_VALUE).tryNormalize().get(), 0, 1);
 
-        Assertions.assertNull(Vector2D.ZERO.normalizeOrNull());
-        Assertions.assertNull(Vector2D.NaN.normalizeOrNull());
-        Assertions.assertNull(Vector2D.POSITIVE_INFINITY.normalizeOrNull());
-        Assertions.assertNull(Vector2D.NEGATIVE_INFINITY.normalizeOrNull());
-        Assertions.assertNull(Vector2D.of(Double.MAX_VALUE, Double.MAX_VALUE).normalizeOrNull());
+        Assertions.assertFalse(Vector2D.ZERO.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector2D.NaN.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector2D.POSITIVE_INFINITY.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector2D.NEGATIVE_INFINITY.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector2D.of(Double.MAX_VALUE, Double.MAX_VALUE).tryNormalize().isPresent());
     }
 
     @Test
-    public void testNormalizeOrDefault_isIdempotent() {
+    public void testTryNormalize_isIdempotent() {
         // arrange
         final double invSqrt2 = 1 / Math.sqrt(2);
-        final Vector2D v = Vector2D.of(2, 2).normalizeOrNull();
+        final Vector2D v = Vector2D.of(2, 2).tryNormalize().get();
 
         // act/assert
-        Assertions.assertSame(v, v.normalizeOrNull());
-        checkVector(v.normalizeOrNull(), invSqrt2, invSqrt2);
+        Assertions.assertSame(v, v.tryNormalize().get());
+        checkVector(v.tryNormalize().get(), invSqrt2, invSqrt2);
     }
 
     @Test

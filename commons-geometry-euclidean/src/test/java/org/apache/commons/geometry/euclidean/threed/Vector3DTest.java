@@ -433,37 +433,37 @@ public class Vector3DTest {
     }
 
     @Test
-    public void testNormalizeOrNull() {
+    public void testTryNormalize() {
         // arrange
         final double invSqrt3 = 1 / Math.sqrt(3);
 
         // act/assert
-        checkVector(Vector3D.of(100, 0, 0).normalizeOrNull(), 1, 0, 0);
-        checkVector(Vector3D.of(-100, 0, 0).normalizeOrNull(), -1, 0, 0);
+        checkVector(Vector3D.of(100, 0, 0).tryNormalize().get(), 1, 0, 0);
+        checkVector(Vector3D.of(-100, 0, 0).tryNormalize().get(), -1, 0, 0);
 
-        checkVector(Vector3D.of(2, 2, 2).normalizeOrNull(), invSqrt3, invSqrt3, invSqrt3);
-        checkVector(Vector3D.of(-2, -2, -2).normalizeOrNull(), -invSqrt3, -invSqrt3, -invSqrt3);
+        checkVector(Vector3D.of(2, 2, 2).tryNormalize().get(), invSqrt3, invSqrt3, invSqrt3);
+        checkVector(Vector3D.of(-2, -2, -2).tryNormalize().get(), -invSqrt3, -invSqrt3, -invSqrt3);
 
-        checkVector(Vector3D.of(Double.MIN_VALUE, 0, 0).normalizeOrNull(), 1, 0, 0);
-        checkVector(Vector3D.of(0, Double.MIN_VALUE, 0).normalizeOrNull(), 0, 1, 0);
-        checkVector(Vector3D.of(0, 0, Double.MIN_VALUE).normalizeOrNull(), 0, 0, 1);
+        checkVector(Vector3D.of(Double.MIN_VALUE, 0, 0).tryNormalize().get(), 1, 0, 0);
+        checkVector(Vector3D.of(0, Double.MIN_VALUE, 0).tryNormalize().get(), 0, 1, 0);
+        checkVector(Vector3D.of(0, 0, Double.MIN_VALUE).tryNormalize().get(), 0, 0, 1);
 
-        Assertions.assertNull(Vector3D.ZERO.normalizeOrNull());
-        Assertions.assertNull(Vector3D.NaN.normalizeOrNull());
-        Assertions.assertNull(Vector3D.POSITIVE_INFINITY.normalizeOrNull());
-        Assertions.assertNull(Vector3D.NEGATIVE_INFINITY.normalizeOrNull());
-        Assertions.assertNull(Vector3D.of(Double.MAX_VALUE, Double.MAX_VALUE, 0).normalizeOrNull());
+        Assertions.assertFalse(Vector3D.ZERO.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector3D.NaN.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector3D.POSITIVE_INFINITY.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector3D.NEGATIVE_INFINITY.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector3D.of(Double.MAX_VALUE, Double.MAX_VALUE, 0).tryNormalize().isPresent());
     }
 
     @Test
-    public void testNormalizeOrNull_isIdempotent() {
+    public void testTryNormalize_isIdempotent() {
         // arrange
         final double invSqrt3 = 1 / Math.sqrt(3);
-        final Vector3D v = Vector3D.of(2, 2, 2).normalizeOrNull();
+        final Vector3D v = Vector3D.of(2, 2, 2).tryNormalize().get();
 
         // act/assert
-        Assertions.assertSame(v, v.normalizeOrNull());
-        checkVector(v.normalizeOrNull(), invSqrt3, invSqrt3, invSqrt3);
+        Assertions.assertSame(v, v.tryNormalize().get());
+        checkVector(v.tryNormalize().get(), invSqrt3, invSqrt3, invSqrt3);
     }
 
     @Test

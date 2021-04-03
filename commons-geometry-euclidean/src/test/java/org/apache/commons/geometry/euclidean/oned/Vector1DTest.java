@@ -304,34 +304,34 @@ public class Vector1DTest {
     }
 
     @Test
-    public void testNormalizeOrNull() {
+    public void testTryNormalize() {
         // act/assert
-        checkVector(Vector1D.of(100).normalizeOrNull(), 1);
-        checkVector(Vector1D.of(-100).normalizeOrNull(), -1);
+        checkVector(Vector1D.of(100).tryNormalize().get(), 1);
+        checkVector(Vector1D.of(-100).tryNormalize().get(), -1);
 
-        checkVector(Vector1D.of(2).normalizeOrNull(), 1);
-        checkVector(Vector1D.of(-2).normalizeOrNull(), -1);
+        checkVector(Vector1D.of(2).tryNormalize().get(), 1);
+        checkVector(Vector1D.of(-2).tryNormalize().get(), -1);
 
-        checkVector(Vector1D.of(Double.MIN_VALUE).normalizeOrNull(), 1);
-        checkVector(Vector1D.of(-Double.MIN_VALUE).normalizeOrNull(), -1);
+        checkVector(Vector1D.of(Double.MIN_VALUE).tryNormalize().get(), 1);
+        checkVector(Vector1D.of(-Double.MIN_VALUE).tryNormalize().get(), -1);
 
-        checkVector(Vector1D.of(Double.MAX_VALUE).normalizeOrNull(), 1);
-        checkVector(Vector1D.of(-Double.MAX_VALUE).normalizeOrNull(), -1);
+        checkVector(Vector1D.of(Double.MAX_VALUE).tryNormalize().get(), 1);
+        checkVector(Vector1D.of(-Double.MAX_VALUE).tryNormalize().get(), -1);
 
-        Assertions.assertNull(Vector1D.ZERO.normalizeOrNull());
-        Assertions.assertNull(Vector1D.NaN.normalizeOrNull());
-        Assertions.assertNull(Vector1D.POSITIVE_INFINITY.normalizeOrNull());
-        Assertions.assertNull(Vector1D.NEGATIVE_INFINITY.normalizeOrNull());
+        Assertions.assertFalse(Vector1D.ZERO.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector1D.NaN.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector1D.POSITIVE_INFINITY.tryNormalize().isPresent());
+        Assertions.assertFalse(Vector1D.NEGATIVE_INFINITY.tryNormalize().isPresent());
     }
 
     @Test
-    public void testNormalizeOrNull_isIdempotent() {
+    public void testTryNormalize_isIdempotent() {
         // arrange
-        final Vector1D v = Vector1D.of(2).normalizeOrNull();
+        final Vector1D v = Vector1D.of(2).tryNormalize().get();
 
         // act/assert
-        Assertions.assertSame(v, v.normalizeOrNull());
-        checkVector(v.normalizeOrNull(), 1.0);
+        Assertions.assertSame(v, v.tryNormalize().get());
+        checkVector(v.tryNormalize().get(), 1.0);
     }
 
     @Test
