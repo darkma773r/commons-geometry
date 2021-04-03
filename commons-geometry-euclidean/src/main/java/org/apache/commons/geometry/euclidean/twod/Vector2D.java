@@ -790,11 +790,21 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
             final double normInv = 1 / norm;
 
             if (Vectors.isRealNonZero(normInv)) {
-                return new Unit(x * normInv, y * normInv);
+                return new Unit(
+                        x * normInv,
+                        y * normInv);
             } else if (Vectors.isRealNonZero(norm)) {
                 // the norm is finite but the inverse is not, meaning that
-                // the xyz values are subnormal; scale them and try again
-                return tryCreateNormalized(x * SUBNORMAL_SCALE, y * SUBNORMAL_SCALE, throwOnFailure);
+                // the xy values are subnormal; we'll scale them and recompute
+                final double scaledX = x * SUBNORMAL_SCALE;
+                final double scaledY = y * SUBNORMAL_SCALE;
+
+                final double scaledNorm = Vectors.norm(scaledX, scaledY);
+                final double scaledNormInv = 1.0 / scaledNorm;
+
+                return new Unit(
+                        scaledX * scaledNormInv,
+                        scaledY * scaledNormInv);
             } else if (throwOnFailure) {
                 throw Vectors.illegalNorm(norm);
             }
