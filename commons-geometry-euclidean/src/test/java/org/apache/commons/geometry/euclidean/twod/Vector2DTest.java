@@ -323,13 +323,15 @@ public class Vector2DTest {
         checkVector(Vector2D.of(0, 100).normalize(), 0, 1);
         checkVector(Vector2D.of(0, -100).normalize(), 0, -1);
         checkVector(Vector2D.of(-1, 2).normalize(), -1.0 / Math.sqrt(5), 2.0 / Math.sqrt(5));
+
+        checkVector(Vector2D.of(Double.MIN_VALUE, 0).normalize(), 1, 0);
+        checkVector(Vector2D.of(0, Double.MIN_VALUE).normalize(), 0, 1);
     }
 
     @Test
     public void testNormalize_illegalNorm() {
         // arrange
         final Pattern illegalNorm = Pattern.compile("^Illegal norm: (0\\.0|-?Infinity|NaN)");
-        final Pattern illegalNormInverse = Pattern.compile("^Illegal norm inverse: (0\\.0|-?Infinity|NaN)");
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(Vector2D.ZERO::normalize,
@@ -341,8 +343,6 @@ public class Vector2DTest {
         GeometryTestUtils.assertThrowsWithMessage(Vector2D.NEGATIVE_INFINITY::normalize,
                 IllegalArgumentException.class, illegalNorm);
 
-        GeometryTestUtils.assertThrowsWithMessage(Vector2D.of(Double.MIN_VALUE, 0)::normalize,
-                IllegalArgumentException.class, illegalNormInverse);
         GeometryTestUtils.assertThrowsWithMessage(Vector2D.of(Double.MAX_VALUE, Double.MAX_VALUE)::normalize,
                 IllegalArgumentException.class, illegalNorm);
     }
@@ -370,11 +370,13 @@ public class Vector2DTest {
         checkVector(Vector2D.of(2, 2).normalizeOrNull(), invSqrt2, invSqrt2);
         checkVector(Vector2D.of(-2, -2).normalizeOrNull(), -invSqrt2, -invSqrt2);
 
+        checkVector(Vector2D.of(Double.MIN_VALUE, 0).normalizeOrNull(), 1, 0);
+        checkVector(Vector2D.of(0, Double.MIN_VALUE).normalizeOrNull(), 0, 1);
+
         Assertions.assertNull(Vector2D.ZERO.normalizeOrNull());
         Assertions.assertNull(Vector2D.NaN.normalizeOrNull());
         Assertions.assertNull(Vector2D.POSITIVE_INFINITY.normalizeOrNull());
         Assertions.assertNull(Vector2D.NEGATIVE_INFINITY.normalizeOrNull());
-        Assertions.assertNull(Vector2D.of(Double.MIN_VALUE, 0).normalizeOrNull());
         Assertions.assertNull(Vector2D.of(Double.MAX_VALUE, Double.MAX_VALUE).normalizeOrNull());
     }
 

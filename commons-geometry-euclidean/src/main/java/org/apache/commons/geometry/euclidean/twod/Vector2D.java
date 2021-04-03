@@ -287,8 +287,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
      * called on a vector pointing along the positive x-axis, then a unit vector representing
      * the positive y-axis is returned.
      * @return a unit vector orthogonal to the current instance
-     * @throws IllegalArgumentException if the norm of the current instance (or its inverse)
-     *      is zero, NaN, or infinite
+     * @throws IllegalArgumentException if the norm of the current instance is zero, NaN,
+     *      or infinite
      */
     @Override
     public Vector2D.Unit orthogonal() {
@@ -693,6 +693,14 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
         /** Negation of unit vector (coordinates: 0, -1). */
         public static final Unit MINUS_Y = new Unit(0d, -1d);
 
+        /** Scale factor applied to subnormal coordinate values when attempting
+         * to normalize. This is used in cases where the norm is finite but the
+         * inverse norm is infinite. Scaling the coordinates before computing the
+         * norm allows the inverse to be computed as a real number. The scale is
+         * a power of 2 to avoid loss of precision.
+         */
+        private static final double SUBNORMAL_SCALE = 0x1.0p512;
+
         /** Simple constructor. Callers are responsible for ensuring that the given
          * values represent a normalized vector.
          * @param x abscissa (first coordinate value)
@@ -748,8 +756,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
          * @param x Vector coordinate.
          * @param y Vector coordinate.
          * @return a vector whose norm is 1.
-         * @throws IllegalArgumentException if the norm of the given value (or its inverse) is
-         *      zero, NaN, or infinite
+         * @throws IllegalArgumentException if the norm of the given value is zero, NaN,
+         *      or infinite
          */
         public static Unit from(final double x, final double y) {
             return tryCreateNormalized(x, y, true);
@@ -758,8 +766,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
         /** Create a normalized vector.
          * @param v Vector.
          * @return a vector whose norm is 1.
-         * @throws IllegalArgumentException if the norm of the given value (or its inverse) is
-         *      zero, NaN, or infinite
+         * @throws IllegalArgumentException if the norm of the given value is zero, NaN,
+         *      or infinite
          */
         public static Unit from(final Vector2D v) {
             return v instanceof Unit ?
@@ -775,8 +783,7 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
          * @param throwOnFailure if true, an exception will be thrown if a normalized vector cannot be created
          * @return normalized vector or null if one cannot be created and {@code throwOnFailure}
          *      is false
-         * @throws IllegalArgumentException if the computed normal or its inverse is zero, NaN, or
-         *      infinite
+         * @throws IllegalArgumentException if the computed norm is zero, NaN, or infinite
          */
         private static Unit tryCreateNormalized(final double x, final double y, final boolean throwOnFailure) {
             final double norm = Vectors.norm(x, y);
@@ -784,11 +791,11 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
 
             if (Vectors.isRealNonZero(normInv)) {
                 return new Unit(x * normInv, y * normInv);
+            } else if (Vectors.isRealNonZero(norm)) {
+                // the norm is finite but the inverse is not, meaning that
+                // the xyz values are subnormal; scale them and try again
+                return tryCreateNormalized(x * SUBNORMAL_SCALE, y * SUBNORMAL_SCALE, throwOnFailure);
             } else if (throwOnFailure) {
-                // throw the most specific exception we can
-                if (Vectors.isRealNonZero(norm)) {
-                    throw Vectors.illegalNormInverse(normInv);
-                }
                 throw Vectors.illegalNorm(norm);
             }
             return null;

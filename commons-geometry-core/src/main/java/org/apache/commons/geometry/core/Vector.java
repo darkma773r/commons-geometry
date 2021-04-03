@@ -94,16 +94,15 @@ public interface Vector<V extends Vector<V>> extends Spatial {
     /** Get a normalized vector aligned with the instance. The returned
      * vector has a magnitude of 1.
      * @return normalized vector
-     * @throws IllegalArgumentException if the norm (or norm inverse, if applicable)
-     *      is zero, NaN, or infinite
+     * @throws IllegalArgumentException if the norm is zero, NaN, or infinite
      * @see #normalizeOrNull()
      */
     V normalize();
 
     /** Get a normalized vector aligned with the instance, or null if such
-     * a vector cannot be computed, such as when the norm (or norm inverse, if applicable)
-     * is zero, NaN, or infinite. This method is equivalent to {@link #normalize()} but
-     * returns null instead of throwing an exception on failure.
+     * a vector cannot be computed, i.e. when the norm is zero, NaN, or infinite.
+     * This method is equivalent to {@link #normalize()} but returns null instead of
+     * throwing an exception on failure.
      * @return normalized vector or null if such a vector cannot be computed
      * @see #normalize()
      */

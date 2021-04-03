@@ -71,14 +71,6 @@ public final class Vectors {
         return new IllegalArgumentException("Illegal norm: " + norm);
     }
 
-    /** Return an exception indicating an illegal norm inverse value.
-     * @param normInv illegal norm inverse value
-     * @return exception indicating an illegal norm inverse value
-     */
-    public static IllegalArgumentException illegalNormInverse(final double normInv) {
-        return new IllegalArgumentException("Illegal norm inverse: " + normInv);
-    }
-
     /** Get the L<sub>2</sub> norm (commonly known as the Euclidean norm) for the vector
      * with the given components. This corresponds to the common notion of vector magnitude
      * or length and is defined as the square root of the sum of the squares of all vector components.

@@ -482,8 +482,7 @@ public class Vector1D extends EuclideanVector<Vector1D> {
          * @param throwOnFailure if true, an exception will be thrown if a normalized vector cannot be created
          * @return normalized vector or null if one cannot be created and {@code throwOnFailure}
          *      is false
-         * @throws IllegalArgumentException if the computed normal or its inverse is zero, NaN, or
-         *      infinite
+         * @throws IllegalArgumentException if the computed norm is zero, NaN, or infinite
          */
         private static Unit tryCreateNormalized(final double x, final boolean throwOnFailure) {
             final double norm = Vectors.norm(x);

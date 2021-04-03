@@ -766,6 +766,14 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         /** Negation of unit vector (coordinates: 0, 0, -1). */
         public static final Unit MINUS_Z = new Unit(0d, 0d, -1d);
 
+        /** Scale factor applied to subnormal coordinate values when attempting
+         * to normalize. This is used in cases where the norm is finite but the
+         * inverse norm is infinite. Scaling the coordinates before computing the
+         * norm allows the inverse to be computed as a real number. The scale is
+         * a power of 2 to avoid loss of precision.
+         */
+        private static final double SUBNORMAL_SCALE = 0x1.0p512;
+
         /** Simple constructor. Callers are responsible for ensuring that the given
          * values represent a normalized vector.
          * @param x x coordinate value
@@ -817,8 +825,8 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
          * @param y Vector coordinate.
          * @param z Vector coordinate.
          * @return a vector whose norm is 1.
-         * @throws IllegalArgumentException if the norm of the given value (or its inverse)
-         *      is zero, NaN, or infinite
+         * @throws IllegalArgumentException if the norm of the given value is zero, NaN,
+         *      or infinite
          */
         public static Unit from(final double x, final double y, final double z) {
             return tryCreateNormalized(x, y, z, true);
@@ -827,8 +835,8 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         /** Create a normalized vector.
          * @param v Vector.
          * @return a vector whose norm is 1.
-         * @throws IllegalArgumentException if the norm of the given value (or its inverse)
-         *      is zero, NaN, or infinite
+         * @throws IllegalArgumentException if the norm of the given value is zero, NaN,
+         *      or infinite
          */
         public static Unit from(final Vector3D v) {
             return v instanceof Unit ?
@@ -845,8 +853,7 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
          * @param throwOnFailure if true, an exception will be thrown if a normalized vector cannot be created
          * @return normalized vector or null if one cannot be created and {@code throwOnFailure}
          *      is false
-         * @throws IllegalArgumentException if the computed normal or its inverse is zero, NaN, or
-         *      infinite
+         * @throws IllegalArgumentException if the computed norm is zero, NaN, or infinite
          */
         private static Unit tryCreateNormalized(final double x, final double y, final double z,
                 final boolean throwOnFailure) {
@@ -855,11 +862,12 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
 
             if (Vectors.isRealNonZero(normInv)) {
                 return new Unit(x * normInv, y * normInv, z * normInv);
+            } else if (Vectors.isRealNonZero(norm)) {
+                // the norm is finite but the inverse is not, meaning that
+                // the xyz values are subnormal; scale them and try again
+                return tryCreateNormalized(
+                        x * SUBNORMAL_SCALE, y * SUBNORMAL_SCALE, z * SUBNORMAL_SCALE, throwOnFailure);
             } else if (throwOnFailure) {
-                // throw the most specific exception we can
-                if (Vectors.isRealNonZero(norm)) {
-                    throw Vectors.illegalNormInverse(normInv);
-                }
                 throw Vectors.illegalNorm(norm);
             }
             return null;

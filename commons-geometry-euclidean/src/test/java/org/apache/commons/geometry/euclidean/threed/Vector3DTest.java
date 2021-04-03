@@ -395,14 +395,18 @@ public class Vector3DTest {
         checkVector(Vector3D.of(2, 2, 2).normalize(), invSqrt3, invSqrt3, invSqrt3);
         checkVector(Vector3D.of(-2, -2, -2).normalize(), -invSqrt3, -invSqrt3, -invSqrt3);
 
+        checkVector(Vector3D.of(Double.MIN_VALUE, 0, 0).normalize(), 1, 0, 0);
+        checkVector(Vector3D.of(0, Double.MIN_VALUE, 0).normalize(), 0, 1, 0);
+        checkVector(Vector3D.of(0, 0, Double.MIN_VALUE).normalize(), 0, 0, 1);
+
         Assertions.assertEquals(1.0, Vector3D.of(5, -4, 2).normalize().norm(), EPS);
+
     }
 
     @Test
     public void testNormalize_illegalNorm() {
         // arrange
         final Pattern illegalNorm = Pattern.compile("^Illegal norm: (0\\.0|-?Infinity|NaN)");
-        final Pattern illegalNormInverse = Pattern.compile("^Illegal norm inverse: (0\\.0|-?Infinity|NaN)");
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(Vector3D.ZERO::normalize,
@@ -413,9 +417,6 @@ public class Vector3DTest {
                 IllegalArgumentException.class, illegalNorm);
         GeometryTestUtils.assertThrowsWithMessage(Vector3D.NEGATIVE_INFINITY::normalize,
                 IllegalArgumentException.class, illegalNorm);
-
-        GeometryTestUtils.assertThrowsWithMessage(Vector3D.of(Double.MIN_VALUE, 0, 0)::normalize,
-                IllegalArgumentException.class, illegalNormInverse);
         GeometryTestUtils.assertThrowsWithMessage(Vector3D.of(Double.MAX_VALUE, Double.MAX_VALUE, 0)::normalize,
                 IllegalArgumentException.class, illegalNorm);
     }
@@ -443,11 +444,14 @@ public class Vector3DTest {
         checkVector(Vector3D.of(2, 2, 2).normalizeOrNull(), invSqrt3, invSqrt3, invSqrt3);
         checkVector(Vector3D.of(-2, -2, -2).normalizeOrNull(), -invSqrt3, -invSqrt3, -invSqrt3);
 
+        checkVector(Vector3D.of(Double.MIN_VALUE, 0, 0).normalizeOrNull(), 1, 0, 0);
+        checkVector(Vector3D.of(0, Double.MIN_VALUE, 0).normalizeOrNull(), 0, 1, 0);
+        checkVector(Vector3D.of(0, 0, Double.MIN_VALUE).normalizeOrNull(), 0, 0, 1);
+
         Assertions.assertNull(Vector3D.ZERO.normalizeOrNull());
         Assertions.assertNull(Vector3D.NaN.normalizeOrNull());
         Assertions.assertNull(Vector3D.POSITIVE_INFINITY.normalizeOrNull());
         Assertions.assertNull(Vector3D.NEGATIVE_INFINITY.normalizeOrNull());
-        Assertions.assertNull(Vector3D.of(Double.MIN_VALUE, 0, 0).normalizeOrNull());
         Assertions.assertNull(Vector3D.of(Double.MAX_VALUE, Double.MAX_VALUE, 0).normalizeOrNull());
     }
 
