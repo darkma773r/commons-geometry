@@ -21,6 +21,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleFunction;
@@ -144,6 +145,69 @@ public class TeapotBuilder {
         debugOutput(top, "top.obj");
 
         return top;
+    }
+
+    private SimpleTriangleMesh buildUnitCylinder(final double radius, final double height,
+            final int segments, final int circleVertexCount) {
+
+        final SimpleTriangleMesh.Builder builder = SimpleTriangleMesh.builder(precision);
+
+        // add the cylinder vertices
+        final double maxZ = Math.abs(0.5 * height);
+        final double minZ = -maxZ;
+        final double zDelta = height / segments;
+        double zValue;
+
+        final double azDelta = PlaneAngleRadians.TWO_PI / circleVertexCount;
+        double az;
+
+        for (int i = 0; i <= segments; ++i) {
+            zValue = (i * zDelta) + minZ;
+
+            for (int v = 0; v < circleVertexCount; ++v) {
+                az = v * azDelta;
+
+                builder.addVertex(Vector3D.of(
+                        radius * Math.cos(az),
+                        radius * Math.sin(az),
+                        zValue
+                    ));
+            }
+        }
+
+        // add the bottom faces using a triangle fan
+        for (int i = 1; i < circleVertexCount - 1; ++i) {
+            builder.addFace(0, i, i + 1);
+        }
+
+        // add the side faces
+        int circleStart;
+        int v1;
+        int v2;
+        int v3;
+        int v4;
+        for (int s = 0; s < segments; ++s) {
+            circleStart = s * circleVertexCount;
+
+            for (int i = 0; i < circleVertexCount; ++i) {
+                v1 = i + circleStart;
+                v2 = ((i + 1) % circleVertexCount) + circleStart;
+                v3 = v2 + circleVertexCount;
+                v4 = v1 + circleVertexCount;
+
+                builder
+                    .addFace(v1, v2, v3)
+                    .addFace(v1, v3, v4);
+            }
+        }
+
+        // add the top faces using a triangle fan
+        final int lastCircleStart = circleVertexCount * segments;
+        for (int i = 1 + lastCircleStart; i < builder.getVertexCount() - 1; ++i) {
+            builder.addFace(lastCircleStart, i, i + 1);
+        }
+
+        return builder.build();
     }
 
     private RegionBSPTree3D buildHandle(final Bounds3D bodyBounds) {
@@ -368,5 +432,8 @@ public class TeapotBuilder {
         builder.setDebugDir(debugDir);
 
         builder.writeTeapot(outputFile);
+
+        SimpleTriangleMesh mesh = builder.buildUnitCylinder(1, 3, 10, 10);
+        IO3D.write(mesh, Paths.get("target/cylinder.obj"));
     }
 }
