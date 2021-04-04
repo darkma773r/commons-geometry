@@ -288,8 +288,7 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
      * called on a vector pointing along the positive x-axis, then a unit vector representing
      * the positive y-axis is returned.
      * @return a unit vector orthogonal to the current instance
-     * @throws IllegalArgumentException if the norm of the current instance is zero, NaN,
-     *      or infinite
+     * @throws IllegalArgumentException if the norm of the current instance is zero, NaN, or infinite
      */
     @Override
     public Vector2D.Unit orthogonal() {

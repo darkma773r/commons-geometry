@@ -104,8 +104,8 @@ public interface Vector<V extends Vector<V>> extends Spatial {
     /** Attempt to compute a normalized vector aligned with the instance, returning the
      * result as an {@link Optional}. This method is equivalent to {@link #normalize()}
      * but returns an empty optional instance instead of throwing an exception on failure.
-     * @return normalized vector or null if such a vector cannot be computed, i.e. if the
-     *      vector norm is zero, NaN, or infinite
+     * @return optional instance containing either a normalized vector or null if such a
+     *      vector cannot be computed, i.e. if the vector norm is zero, NaN, or infinite
      * @see #normalize()
      */
     Optional<? extends V> tryNormalize();

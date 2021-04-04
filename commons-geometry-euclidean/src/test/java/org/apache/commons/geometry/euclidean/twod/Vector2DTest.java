@@ -317,6 +317,9 @@ public class Vector2DTest {
 
     @Test
     public void testNormalize() {
+        // arrange
+        final double invSqrt2 = 1.0 / Math.sqrt(2);
+
         // act/assert
         checkVector(Vector2D.of(100, 0).normalize(), 1, 0);
         checkVector(Vector2D.of(-100, 0).normalize(), -1, 0);
@@ -326,6 +329,13 @@ public class Vector2DTest {
 
         checkVector(Vector2D.of(Double.MIN_VALUE, 0).normalize(), 1, 0);
         checkVector(Vector2D.of(0, Double.MIN_VALUE).normalize(), 0, 1);
+
+        checkVector(Vector2D.of(Double.MIN_VALUE, Double.MIN_VALUE).normalize(), invSqrt2, invSqrt2);
+
+        checkVector(Vector2D.of(Double.MIN_NORMAL, 0).normalize(), 1, 0, 0);
+        checkVector(Vector2D.of(0, Double.MIN_NORMAL).normalize(), 0, 1, 0);
+
+        checkVector(Vector2D.of(Double.MIN_NORMAL, Double.MIN_NORMAL).normalize(), invSqrt2, invSqrt2);
     }
 
     @Test

@@ -399,8 +399,17 @@ public class Vector3DTest {
         checkVector(Vector3D.of(0, Double.MIN_VALUE, 0).normalize(), 0, 1, 0);
         checkVector(Vector3D.of(0, 0, Double.MIN_VALUE).normalize(), 0, 0, 1);
 
-        Assertions.assertEquals(1.0, Vector3D.of(5, -4, 2).normalize().norm(), EPS);
+        checkVector(Vector3D.of(Double.MIN_VALUE, Double.MIN_VALUE, Double.MIN_VALUE).normalize(),
+                invSqrt3, invSqrt3, invSqrt3);
 
+        checkVector(Vector3D.of(Double.MIN_NORMAL, 0, 0).normalize(), 1, 0, 0);
+        checkVector(Vector3D.of(0, Double.MIN_NORMAL, 0).normalize(), 0, 1, 0);
+        checkVector(Vector3D.of(0, 0, Double.MIN_NORMAL).normalize(), 0, 0, 1);
+
+        checkVector(Vector3D.of(Double.MIN_NORMAL, Double.MIN_NORMAL, Double.MIN_NORMAL).normalize(),
+                invSqrt3, invSqrt3, invSqrt3);
+
+        Assertions.assertEquals(1.0, Vector3D.of(5, -4, 2).normalize().norm(), EPS);
     }
 
     @Test
