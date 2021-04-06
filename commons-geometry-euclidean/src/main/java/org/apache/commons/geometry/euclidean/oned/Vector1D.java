@@ -17,7 +17,6 @@
 package org.apache.commons.geometry.euclidean.oned;
 
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import org.apache.commons.geometry.core.internal.SimpleTupleFormat;
@@ -189,8 +188,8 @@ public class Vector1D extends EuclideanVector<Vector1D> {
 
     /** {@inheritDoc} */
     @Override
-    public Optional<Unit> tryNormalize() {
-        return Optional.ofNullable(Unit.tryCreateNormalized(x, false));
+    public Unit normalizeOrNull() {
+        return Unit.tryCreateNormalized(x, false);
     }
 
     /** {@inheritDoc} */
@@ -440,8 +439,8 @@ public class Vector1D extends EuclideanVector<Vector1D> {
 
         /** {@inheritDoc} */
         @Override
-        public Optional<Unit> tryNormalize() {
-            return Optional.of(this);
+        public Unit normalizeOrNull() {
+            return this;
         }
 
         /** {@inheritDoc} */

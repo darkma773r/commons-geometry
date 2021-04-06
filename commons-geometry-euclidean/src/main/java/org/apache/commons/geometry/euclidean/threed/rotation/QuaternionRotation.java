@@ -83,9 +83,11 @@ public final class QuaternionRotation implements Rotation3D {
      */
     @Override
     public Vector3D getAxis() {
-        return Vector3D.of(quat.getX(), quat.getY(), quat.getZ())
-                .tryNormalize()
-                .orElse(Vector3D.Unit.PLUS_X);
+        final Vector3D axis = Vector3D.of(quat.getX(), quat.getY(), quat.getZ())
+                .normalizeOrNull();
+        return axis != null ?
+                axis :
+                Vector3D.Unit.PLUS_X;
     }
 
     /**

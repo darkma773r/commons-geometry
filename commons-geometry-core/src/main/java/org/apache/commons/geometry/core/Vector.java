@@ -16,8 +16,6 @@
  */
 package org.apache.commons.geometry.core;
 
-import java.util.Optional;
-
 /** Interface representing a vector in a vector space or displacement vectors
  * in an affine space.
  *
@@ -97,18 +95,18 @@ public interface Vector<V extends Vector<V>> extends Spatial {
      * vector has a magnitude of 1.
      * @return normalized vector
      * @throws IllegalArgumentException if the norm is zero, NaN, or infinite
-     * @see #tryNormalize()
+     * @see #normalizeOrNull()
      */
     V normalize();
 
-    /** Attempt to compute a normalized vector aligned with the instance, returning the
-     * result as an {@link Optional}. This method is equivalent to {@link #normalize()}
-     * but returns an empty optional instance instead of throwing an exception on failure.
-     * @return optional instance containing either a normalized vector or null if such a
-     *      vector cannot be computed, i.e. if the vector norm is zero, NaN, or infinite
+    /** Attempt to compute a normalized vector aligned with the instance, returning null if
+     * such a vector cannot be computed. This method is equivalent to {@link #normalize()}
+     * but returns null instead of throwing an exception on failure.
+     * @return normalized vector or null if such a vector cannot be computed, i.e. if the
+     *      norm is zero, NaN, or infinite
      * @see #normalize()
      */
-    Optional<? extends V> tryNormalize();
+    V normalizeOrNull();
 
     /** Multiply the instance by a scalar.
      * @param a scalar

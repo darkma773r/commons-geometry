@@ -19,7 +19,6 @@ package org.apache.commons.geometry.euclidean.threed;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import org.apache.commons.geometry.core.internal.DoubleFunction3N;
@@ -249,8 +248,8 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
 
     /** {@inheritDoc} */
     @Override
-    public Optional<Unit> tryNormalize() {
-        return Optional.ofNullable(Unit.tryCreateNormalized(x, y, z, false));
+    public Unit normalizeOrNull() {
+        return Unit.tryCreateNormalized(x, y, z, false);
     }
 
     /** {@inheritDoc} */
@@ -767,13 +766,25 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         /** Negation of unit vector (coordinates: 0, 0, -1). */
         public static final Unit MINUS_Z = new Unit(0d, 0d, -1d);
 
-        /** Scale factor applied to subnormal coordinate values when attempting
-         * to normalize. This is used in cases where the norm is finite but the
-         * inverse norm is infinite. Scaling the coordinates before computing the
-         * norm allows the inverse to be computed as a real number. The scale is
-         * a power of 2 to avoid loss of precision.
+        /** Maximum coordinate value for computing normalized vectors
+         * with raw, unscaled values.
          */
-        private static final double SUBNORMAL_SCALE = 0x1.0p512;
+        private static final double UNSCALED_MAX = 0x1.0p+500;
+
+        /** Minimum coordinate value for computing normalized vectors
+         * with raw, unscaled values.
+         */
+        private static final double UNSCALED_MIN = 0x1.0p-500;
+
+        /** Factor used to scale up coordinate values in order to produce
+         * normalized coordinates without overflow or underflow.
+         */
+        private static final double SCALE_UP_FACTOR = 0x1.0p600;
+
+        /** Factor used to scale down coordinate values in order to produce
+         * normalized coordinates without overflow or underflow.
+         */
+        private static final double SCALE_DOWN_FACTOR = 0x1.0p-600;
 
         /** Simple constructor. Callers are responsible for ensuring that the given
          * values represent a normalized vector.
@@ -805,8 +816,8 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
 
         /** {@inheritDoc} */
         @Override
-        public Optional<Unit> tryNormalize() {
-            return Optional.of(this);
+        public Unit normalizeOrNull() {
+            return this;
         }
 
         /** {@inheritDoc} */
@@ -858,30 +869,38 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
          */
         private static Unit tryCreateNormalized(final double x, final double y, final double z,
                 final boolean throwOnFailure) {
-            final double norm = Vectors.norm(x, y, z);
-            final double normInv = 1.0 / norm;
 
-            if (Vectors.isRealNonZero(normInv)) {
-                return new Unit(
-                        x * normInv,
-                        y * normInv,
-                        z * normInv);
-            } else if (Vectors.isRealNonZero(norm)) {
-                // the norm is finite but the inverse is not, meaning that
-                // the xyz values are subnormal; we'll scale them and recompute
-                final double scaledX = x * SUBNORMAL_SCALE;
-                final double scaledY = y * SUBNORMAL_SCALE;
-                final double scaledZ = z * SUBNORMAL_SCALE;
+            final double scaledX;
+            final double scaledY;
+            final double scaledZ;
 
-                final double scaledNorm = Vectors.norm(scaledX, scaledY, scaledZ);
-                final double scaledNormInv = 1.0 / scaledNorm;
+            final double maxCoord = Math.max(Math.max(Math.abs(x), Math.abs(y)), Math.abs(z));
+            if (maxCoord > UNSCALED_MAX) {
+                scaledX = x * SCALE_DOWN_FACTOR;
+                scaledY = y * SCALE_DOWN_FACTOR;
+                scaledZ = z * SCALE_DOWN_FACTOR;
+            } else if (maxCoord < UNSCALED_MIN) {
+                scaledX = x * SCALE_UP_FACTOR;
+                scaledY = y * SCALE_UP_FACTOR;
+                scaledZ = z * SCALE_UP_FACTOR;
+            } else {
+                scaledX = x;
+                scaledY = y;
+                scaledZ = z;
+            }
 
+            final double scaledNormInv = 1.0 / Math.sqrt(
+                    (scaledX * scaledX) +
+                    (scaledY * scaledY) +
+                    (scaledZ * scaledZ));
+
+            if (Vectors.isRealNonZero(scaledNormInv)) {
                 return new Unit(
                         scaledX * scaledNormInv,
                         scaledY * scaledNormInv,
                         scaledZ * scaledNormInv);
             } else if (throwOnFailure) {
-                throw Vectors.illegalNorm(norm);
+                throw Vectors.illegalNorm(Vectors.norm(x, y, z));
             }
             return null;
         }

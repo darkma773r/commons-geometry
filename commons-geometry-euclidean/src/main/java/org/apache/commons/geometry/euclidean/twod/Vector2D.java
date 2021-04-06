@@ -19,7 +19,6 @@ package org.apache.commons.geometry.euclidean.twod;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import org.apache.commons.geometry.core.internal.DoubleFunction2N;
@@ -216,8 +215,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
 
     /** {@inheritDoc} */
     @Override
-    public Optional<Unit> tryNormalize() {
-        return Optional.ofNullable(Unit.tryCreateNormalized(x, y, false));
+    public Unit normalizeOrNull() {
+        return Unit.tryCreateNormalized(x, y, false);
     }
 
     /** {@inheritDoc} */
@@ -693,13 +692,25 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
         /** Negation of unit vector (coordinates: 0, -1). */
         public static final Unit MINUS_Y = new Unit(0d, -1d);
 
-        /** Scale factor applied to subnormal coordinate values when attempting
-         * to normalize. This is used in cases where the norm is finite but the
-         * inverse norm is infinite. Scaling the coordinates before computing the
-         * norm allows the inverse to be computed as a real number. The scale is
-         * a power of 2 to avoid loss of precision.
+        /** Maximum coordinate value for computing normalized vectors
+         * with raw, unscaled values.
          */
-        private static final double SUBNORMAL_SCALE = 0x1.0p512;
+        private static final double UNSCALED_MAX = 0x1.0p+500;
+
+        /** Minimum coordinate value for computing normalized vectors
+         * with raw, unscaled values.
+         */
+        private static final double UNSCALED_MIN = 0x1.0p-500;
+
+        /** Factor used to scale up coordinate values in order to produce
+         * normalized coordinates without overflow or underflow.
+         */
+        private static final double SCALE_UP_FACTOR = 0x1.0p600;
+
+        /** Factor used to scale down coordinate values in order to produce
+         * normalized coordinates without overflow or underflow.
+         */
+        private static final double SCALE_DOWN_FACTOR = 0x1.0p-600;
 
         /** Simple constructor. Callers are responsible for ensuring that the given
          * values represent a normalized vector.
@@ -730,8 +741,8 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
 
         /** {@inheritDoc} */
         @Override
-        public Optional<Unit> tryNormalize() {
-            return Optional.of(this);
+        public Unit normalizeOrNull() {
+            return this;
         }
 
         /** {@inheritDoc} */
@@ -786,27 +797,29 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
          * @throws IllegalArgumentException if the computed norm is zero, NaN, or infinite
          */
         private static Unit tryCreateNormalized(final double x, final double y, final boolean throwOnFailure) {
-            final double norm = Vectors.norm(x, y);
-            final double normInv = 1 / norm;
+            final double scaledX;
+            final double scaledY;
 
-            if (Vectors.isRealNonZero(normInv)) {
-                return new Unit(
-                        x * normInv,
-                        y * normInv);
-            } else if (Vectors.isRealNonZero(norm)) {
-                // the norm is finite but the inverse is not, meaning that
-                // the xy values are subnormal; we'll scale them and recompute
-                final double scaledX = x * SUBNORMAL_SCALE;
-                final double scaledY = y * SUBNORMAL_SCALE;
+            final double maxCoord = Math.max(Math.abs(x), Math.abs(y));
+            if (maxCoord > UNSCALED_MAX) {
+                scaledX = x * SCALE_DOWN_FACTOR;
+                scaledY = y * SCALE_DOWN_FACTOR;
+            } else if (maxCoord < UNSCALED_MIN) {
+                scaledX = x * SCALE_UP_FACTOR;
+                scaledY = y * SCALE_UP_FACTOR;
+            } else {
+                scaledX = x;
+                scaledY = y;
+            }
 
-                final double scaledNorm = Vectors.norm(scaledX, scaledY);
-                final double scaledNormInv = 1.0 / scaledNorm;
+            final double scaledNormInv = 1.0 / Vectors.norm(scaledX, scaledY);
 
+            if (Vectors.isRealNonZero(scaledNormInv)) {
                 return new Unit(
                         scaledX * scaledNormInv,
                         scaledY * scaledNormInv);
             } else if (throwOnFailure) {
-                throw Vectors.illegalNorm(norm);
+                throw Vectors.illegalNorm(Vectors.norm(x, y));
             }
             return null;
         }
