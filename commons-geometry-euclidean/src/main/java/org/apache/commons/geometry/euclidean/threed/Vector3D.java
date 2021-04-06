@@ -870,6 +870,14 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         private static Unit tryCreateNormalized(final double x, final double y, final double z,
                 final boolean throwOnFailure) {
 
+            final double normInv = 1.0 / Math.sqrt((x * x) + (y  * y) + (z * z));
+            if (Vectors.isRealNonZero(normInv)) {
+                return new Unit(
+                        x * normInv,
+                        y * normInv,
+                        z * normInv);
+            }
+
             final double scaledX;
             final double scaledY;
             final double scaledZ;
