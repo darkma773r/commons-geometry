@@ -697,11 +697,6 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
          */
         private static final double UNSCALED_MAX = 0x1.0p+500;
 
-        /** Minimum coordinate value for computing normalized vectors
-         * with raw, unscaled values.
-         */
-        private static final double UNSCALED_MIN = 0x1.0p-500;
-
         /** Factor used to scale up coordinate values in order to produce
          * normalized coordinates without overflow or underflow.
          */
@@ -797,6 +792,20 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
          * @throws IllegalArgumentException if the computed norm is zero, NaN, or infinite
          */
         private static Unit tryCreateNormalized(final double x, final double y, final boolean throwOnFailure) {
+
+            // Compute the inverse norm directly. If the result is a non-zero real number,
+            // then we can go ahead and construct the unit vector immediately. If not,
+            // we'll do some extra work for edge cases.
+            final double norm = Vectors.norm(x, y);
+            final double normInv = 1.0 / norm;
+            if (Vectors.isRealNonZero(normInv)) {
+                return new Unit(
+                        x * normInv,
+                        y * normInv);
+            }
+
+            // Direct computation did not work. Try scaled versions of the coordinates
+            // to handle overflow and underflow.
             final double scaledX;
             final double scaledY;
 
@@ -804,12 +813,9 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
             if (maxCoord > UNSCALED_MAX) {
                 scaledX = x * SCALE_DOWN_FACTOR;
                 scaledY = y * SCALE_DOWN_FACTOR;
-            } else if (maxCoord < UNSCALED_MIN) {
+            } else {
                 scaledX = x * SCALE_UP_FACTOR;
                 scaledY = y * SCALE_UP_FACTOR;
-            } else {
-                scaledX = x;
-                scaledY = y;
             }
 
             final double scaledNormInv = 1.0 / Vectors.norm(scaledX, scaledY);
@@ -819,7 +825,7 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
                         scaledX * scaledNormInv,
                         scaledY * scaledNormInv);
             } else if (throwOnFailure) {
-                throw Vectors.illegalNorm(Vectors.norm(x, y));
+                throw Vectors.illegalNorm(norm);
             }
             return null;
         }

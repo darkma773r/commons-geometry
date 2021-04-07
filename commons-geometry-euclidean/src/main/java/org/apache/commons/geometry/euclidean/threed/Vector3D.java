@@ -771,11 +771,6 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
          */
         private static final double UNSCALED_MAX = 0x1.0p+500;
 
-        /** Minimum coordinate value for computing normalized vectors
-         * with raw, unscaled values.
-         */
-        private static final double UNSCALED_MIN = 0x1.0p-500;
-
         /** Factor used to scale up coordinate values in order to produce
          * normalized coordinates without overflow or underflow.
          */
@@ -870,7 +865,11 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         private static Unit tryCreateNormalized(final double x, final double y, final double z,
                 final boolean throwOnFailure) {
 
-            final double normInv = 1.0 / Math.sqrt((x * x) + (y  * y) + (z * z));
+            // Compute the inverse norm directly. If the result is a non-zero real number,
+            // then we can go ahead and construct the unit vector immediately. If not,
+            // we'll do some extra work for edge cases.
+            final double norm = Math.sqrt((x * x) + (y * y) + (z * z));
+            final double normInv = 1.0 / norm;
             if (Vectors.isRealNonZero(normInv)) {
                 return new Unit(
                         x * normInv,
@@ -878,6 +877,8 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
                         z * normInv);
             }
 
+            // Direct computation did not work. Try scaled versions of the coordinates
+            // to handle overflow and underflow.
             final double scaledX;
             final double scaledY;
             final double scaledZ;
@@ -887,14 +888,10 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
                 scaledX = x * SCALE_DOWN_FACTOR;
                 scaledY = y * SCALE_DOWN_FACTOR;
                 scaledZ = z * SCALE_DOWN_FACTOR;
-            } else if (maxCoord < UNSCALED_MIN) {
+            } else {
                 scaledX = x * SCALE_UP_FACTOR;
                 scaledY = y * SCALE_UP_FACTOR;
                 scaledZ = z * SCALE_UP_FACTOR;
-            } else {
-                scaledX = x;
-                scaledY = y;
-                scaledZ = z;
             }
 
             final double scaledNormInv = 1.0 / Math.sqrt(
@@ -908,7 +905,7 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
                         scaledY * scaledNormInv,
                         scaledZ * scaledNormInv);
             } else if (throwOnFailure) {
-                throw Vectors.illegalNorm(Vectors.norm(x, y, z));
+                throw Vectors.illegalNorm(norm);
             }
             return null;
         }

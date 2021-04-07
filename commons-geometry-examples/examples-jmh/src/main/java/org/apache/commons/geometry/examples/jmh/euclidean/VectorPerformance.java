@@ -18,7 +18,6 @@ package org.apache.commons.geometry.examples.jmh.euclidean;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
@@ -410,53 +409,6 @@ public class VectorPerformance {
      */
     @Benchmark
     public void normalizeOrNull3D(final VectorInput3D input, final Blackhole bh) {
-        testFunction(input, bh, v -> v.normalizeOrNull());
-    }
-
-    /** Benchmark testing the performance of the {@link Vector3D#normalizeOrNull()}
-     * method.
-     * @param input benchmark state input
-     * @param bh jmh blackhole for consuming output
-     */
-    @Benchmark
-    public void precheck(final VectorInput3D input, final Blackhole bh) {
-        testFunction(input, bh, v -> {
-            final double n = v.norm();
-            if (Double.isFinite(n) && Double.compare(n, 0.0) != 0) {
-                return v.normalize();
-            }
-            return null;
-        });
-    }
-
-    @Benchmark
-    public void tryCatch(final VectorInput3D input, final Blackhole bh) {
-        testFunction(input, bh, v -> {
-            try {
-                return v.normalize();
-            } catch (IllegalArgumentException e) {
-                return null;
-            }
-        });
-    }
-
-    /** Benchmark testing the performance of the {@link Vector3D#normalizeOrNull()}
-     * method.
-     * @param input benchmark state input
-     * @param bh jmh blackhole for consuming output
-     */
-    @Benchmark
-    public void optional(final VectorInput3D input, final Blackhole bh) {
-        testFunction(input, bh, v -> Optional.ofNullable(v.normalizeOrNull()));
-    }
-
-    /** Benchmark testing the performance of the {@link Vector3D#normalizeOrNull()}
-     * method.
-     * @param input benchmark state input
-     * @param bh jmh blackhole for consuming output
-     */
-    @Benchmark
-    public void ornull(final VectorInput3D input, final Blackhole bh) {
         testFunction(input, bh, v -> v.normalizeOrNull());
     }
 }
