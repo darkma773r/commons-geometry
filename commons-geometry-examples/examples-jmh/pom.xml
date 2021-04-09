@@ -33,14 +33,14 @@
   <properties>
     <!-- OSGi -->
     <commons.osgi.symbolicName>org.apache.commons.geometry.examples.jmh</commons.osgi.symbolicName>
-    <commons.osgi.export>org.apache.commons.geometry.examples.jmh</commons.osgi.export>
+    <commons.osgi.export>org.apache.commons.geometry.examples.jmh.*</commons.osgi.export>
     <!-- Java 9+ -->
     <commons.automatic.module.name>org.apache.commons.geometry.examples.jmh</commons.automatic.module.name>
     <!-- Workaround to avoid duplicating config files. -->
     <geometry.parent.dir>${basedir}/../..</geometry.parent.dir>
 
     <!-- JMH Benchmark related properties: version, name of the benchmarking uber jar. -->
-    <jmh.version>1.27</jmh.version>
+    <jmh.version>1.29</jmh.version>
     <uberjar.name>examples-jmh</uberjar.name>
     <project.mainClass>org.openjdk.jmh.Main</project.mainClass>
   </properties>
