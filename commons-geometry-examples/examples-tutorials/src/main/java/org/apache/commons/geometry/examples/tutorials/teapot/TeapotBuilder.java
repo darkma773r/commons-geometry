@@ -332,7 +332,7 @@ public class TeapotBuilder {
      *  <li><em>outputFile</em> - File to write the constructed teapot to.</li>
      *  <li><em>debugDir</em> - (Optional) Directory to write geometry files for important
      *      components used in the construction of the teapot.</li>
-     * <ol>
+     * </ol>
      * @param args argument array
      * @throws IOException if an I/O error occurs
      */
