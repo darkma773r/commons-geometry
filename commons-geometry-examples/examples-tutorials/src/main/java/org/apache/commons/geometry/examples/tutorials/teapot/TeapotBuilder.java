@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.DoubleFunction;
+import java.util.function.UnaryOperator;
 
 import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
@@ -76,7 +77,10 @@ public class TeapotBuilder {
         final RegionBSPTree3D spout = buildSpout(1);
 
         // merge them all together
-        final RegionBSPTree3D teapot = unionAll(body, top, handle, spout);
+        final RegionBSPTree3D teapot = RegionBSPTree3D.empty();
+        teapot.union(body, top);
+        teapot.union(handle);
+        teapot.union(spout);
 
         // subtract scaled-down versions of the body and spout to
         // create the hollow interior
@@ -95,8 +99,7 @@ public class TeapotBuilder {
     }
 
     /** Build the teapot body.
-     * @param initialRadius radius of the sphere used as the first step in body construction;
-     *      the returned body is not a perfect sphere
+     * @param initialRadius radius of the sphere used as the first step in body construction
      * @return teapot body
      */
     private RegionBSPTree3D buildBody(final double initialRadius) {
@@ -132,7 +135,8 @@ public class TeapotBuilder {
         top.transform(t);
 
         // intersect the translated body with a cylinder
-        final SimpleTriangleMesh cylinder = buildCylinderMesh(0.5, 10, 1, 20);
+        final SimpleTriangleMesh cylinder =
+                buildUnitCylinderMesh(1, 20, AffineTransformMatrix3D.createScale(0.5, 0.5, 10));
         top.intersection(cylinder.toTree());
 
         // add a small squashed sphere on top; use the bounds of the top in order to place
@@ -156,15 +160,10 @@ public class TeapotBuilder {
      */
     private RegionBSPTree3D buildHandle() {
         final double handleRadius = 0.1;
-        final double curveRadius = 0.5;
-        final double height = 1 - (2 * handleRadius);
-        final double minZ = -0.5 * height;
+        final double height = 0.8;
 
-        final SimpleTriangleMesh cylinder = buildCylinderMesh(0.1, height, 10, 14);
-
-        final SimpleTriangleMesh.Builder builder = SimpleTriangleMesh.builder(precision)
-            .ensureVertexCapacity(cylinder.getVertexCount())
-            .ensureFaceCapacity(cylinder.getFaceCount());
+        final AffineTransformMatrix3D initialScale =
+                AffineTransformMatrix3D.createScale(handleRadius, handleRadius, height - (2 * handleRadius));
 
         final QuaternionRotation startRotation =
                 QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, -PlaneAngleRadians.PI_OVER_TWO);
@@ -172,26 +171,29 @@ public class TeapotBuilder {
                 QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO);
         final DoubleFunction<QuaternionRotation> slerp = startRotation.slerp(endRotation);
 
-        final Vector3D curveCenter = Vector3D.of(curveRadius, 0, 0);
+        final Vector3D curveCenter = Vector3D.of(0.5 * height, 0, 0);
 
-        cylinder.getVertices().stream()
-            .map(v -> {
-                final double t = (v.getZ() - minZ) / height;
-                final AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(curveCenter, slerp.apply(t));
+        final AffineTransformMatrix3D translation =
+                AffineTransformMatrix3D.createTranslation(Vector3D.of(-1.38, 0, 0));
 
-                final Vector3D handleCenter = mat.apply(Vector3D.ZERO);
-                final Vector3D tv = handleCenter.add(mat.applyVector(Vector3D.of(v.getX(), v.getY(), 0)));
+        final UnaryOperator<Vector3D> vertexTransform = v -> {
+            final double t = v.getZ();
 
-                return (t > 0 && t < 1) ?
-                        tv :
-                        tv.add(Vector3D.of(height, 0, 0));
-            })
-            .map(AffineTransformMatrix3D.createTranslation(Vector3D.of(-1.38, 0, 0)))
-            .forEach(builder::addVertex);
+            final Vector3D scaled = initialScale.apply(v);
 
-        cylinder.faces().forEach(f -> builder.addFace(f.getVertexIndices()));
+            final AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(curveCenter, slerp.apply(t));
+            final Vector3D handleCenter = mat.apply(Vector3D.ZERO);
+            final Vector3D exteriorVertex =
+                    handleCenter.add(mat.applyVector(Vector3D.of(scaled.getX(), scaled.getY(), 0)));
 
-        return builder.build().toTree();
+            final Vector3D result = (t > 0 && t < 1) ?
+                    exteriorVertex :
+                    exteriorVertex.add(Vector3D.Unit.PLUS_X);
+
+            return translation.apply(result);
+        };
+
+        return buildUnitCylinderMesh(10, 14, vertexTransform).toTree();
     }
 
     /** Build the teapot spout.
@@ -200,70 +202,62 @@ public class TeapotBuilder {
      * @return teapot spout
      */
     private RegionBSPTree3D buildSpout(final double initialRadius) {
-        final double height = 1;
-        final double minZ = -0.5 * height;
+        final Vector2D baseScale = Vector2D.of(0.4, 0.2).multiply(initialRadius);
+        final Vector2D topScale = baseScale.multiply(0.6);
         final double shearZ = 0.9;
 
-        final Vector2D baseScale = Vector2D.of(0.4, 0.2);
-        final Vector2D topScale = baseScale.multiply(0.6);
+        final AffineTransformMatrix3D translation =
+                AffineTransformMatrix3D.createTranslation(Vector3D.of(0.25, 0, -0.4));
 
-        final SimpleTriangleMesh cylinder = buildCylinderMesh(initialRadius, height, 1, 14);
+        final UnaryOperator<Vector3D> vertexTransform = v -> {
+            final Vector2D scale = baseScale.lerp(topScale, v.getZ());
 
-        final SimpleTriangleMesh.Builder builder = SimpleTriangleMesh.builder(precision)
-            .ensureVertexCapacity(cylinder.getVertexCount())
-            .ensureFaceCapacity(cylinder.getFaceCount());
+            final Vector3D tv = Vector3D.of(
+                        (v.getX() * scale.getX()) + (v.getZ() * shearZ),
+                        v.getY() * scale.getY(),
+                        v.getZ()
+                    );
 
-        cylinder.getVertices().stream()
-            .map(v -> {
-                final double t = (v.getZ() - minZ) / height;
-                final Vector2D scale = baseScale.lerp(topScale, t);
-                return Vector3D.of(
-                            (v.getX() * scale.getX()) + (v.getZ() * shearZ),
-                            v.getY() * scale.getY(),
-                            v.getZ()
-                        );
-            })
-            .map(AffineTransformMatrix3D.createTranslation(Vector3D.of(0.7, 0, 0)))
-            .forEach(builder::addVertex);
+            return translation.apply(tv);
+        };
 
-        cylinder.faces().forEach(f -> builder.addFace(f.getVertexIndices()));
-
-        return builder.build().toTree();
+        return buildUnitCylinderMesh(1, 14, vertexTransform).toTree();
     }
 
-    /** Construct a triangle mesh approximating a cylinder. The constructed cylinder is centered
-     * at the origin.
-     * @param radius radius of the cylinder
-     * @param height height of the cylinder
-     * @param segments number of vertical segments used in cylinder construction
+    /** Construct a triangle mesh approximating a cylinder of radius one and length one oriented with its
+     * based on the origin and extending along the positive z-axis. The vertices may be transformed by
+     * {@code vertexTransform} during construction, meaning that the resulting mesh may no longer represent
+     * a cylinder.
+     * @param segments number of vertical segments used in the cylinder
      * @param circleVertexCount number of vertices used to approximate the outside circle
-     * @return triangle mesh approximation of a cylinder
+     * @param vertexTransform function used to transform each computed vertex from its position on the unit
+     *      cylinder to its position in the returned mesh
+     * @return triangle mesh
      */
-    private SimpleTriangleMesh buildCylinderMesh(final double radius, final double height,
-            final int segments, final int circleVertexCount) {
+    private SimpleTriangleMesh buildUnitCylinderMesh(final int segments, final int circleVertexCount,
+            final UnaryOperator<Vector3D> vertexTransform) {
 
         final SimpleTriangleMesh.Builder builder = SimpleTriangleMesh.builder(precision);
 
         // add the cylinder vertices
-        final double maxZ = Math.abs(0.5 * height);
-        final double minZ = -maxZ;
-        final double zDelta = height / segments;
+        final double zDelta = 1.0 / segments;
         double zValue;
 
         final double azDelta = PlaneAngleRadians.TWO_PI / circleVertexCount;
         double az;
 
+        Vector3D vertex;
         for (int i = 0; i <= segments; ++i) {
-            zValue = (i * zDelta) + minZ;
+            zValue = (i * zDelta);
 
             for (int v = 0; v < circleVertexCount; ++v) {
                 az = v * azDelta;
 
-                builder.addVertex(Vector3D.of(
-                        radius * Math.cos(az),
-                        radius * Math.sin(az),
-                        zValue
-                    ));
+                vertex = Vector3D.of(
+                        Math.cos(az),
+                        Math.sin(az),
+                        zValue);
+                builder.addVertex(vertexTransform.apply(vertex));
             }
         }
 
@@ -302,28 +296,6 @@ public class TeapotBuilder {
         }
 
         return builder.build();
-    }
-
-    /** Compute the union of all of the given regions, returning the result as a new
-     * BSP tree.
-     * @param trees BSP trees to compute the union of
-     * @return new BSP tree representing the union of all of the arguments
-     */
-    private static RegionBSPTree3D unionAll(final RegionBSPTree3D... trees) {
-        RegionBSPTree3D result = RegionBSPTree3D.empty();
-
-        int i = 0;
-        if (trees.length > 1) {
-            // use the two-argument version first if possible
-            result.union(trees[0], trees[1]);
-            i = 2;
-        }
-
-        for (; i < trees.length; ++i) {
-            result.union(trees[i]);
-        }
-
-        return result;
     }
 
     /** Entry point for command-line execution of the {@link TeapotBuilder} class. Two positional
