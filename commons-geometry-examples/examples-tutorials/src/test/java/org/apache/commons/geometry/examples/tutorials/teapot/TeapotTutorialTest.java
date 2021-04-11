@@ -25,6 +25,6 @@ public class TeapotTutorialTest {
     @Test
     public void testTeapotBuilder() throws IOException {
         // act/assert
-        TeapotBuilder.main(new String[] { "target/teapot.obj", "target/teapot-debug" });
+        TeapotBuilder.main(new String[] { "target/teapot.stl", "target/teapot-debug" });
     }
 }
