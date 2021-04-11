@@ -27,15 +27,53 @@
     <section name="Contents" id="toc">
       <ul>
         <li>
-          <a href="#overview">Overview</a>
+          <a href="#introduction">Introduction</a>
+        </li>
+        <li>
+          <a href="#getting-started">Getting Started</a>
         </li>
       </ul>
     </section>
     
-    <section id="overview">
+    <section name="Introduction" id="introduction">
       <p>
-      This tutorial gives a brief introduction to the 3D solid geometry capabilities of <em>Commons Geometry</em>.
+      <em>Commons Geometry</em> contains a number of methods for manipulating solid, 3D dimensional figures. 
+      These geometric figures can be combined in various ways to produce new figures. In this tutorial,
+      we will explore these features by using them to construct a 3D model of a teapot from scratch. The image
+      below shows the result of our efforts. The final code for this tutorial can be found in the 
+      <a class="code" href="../commons-geometry-examples/commons-geometry-examples-tutorials/apidocs/org/apache/commons/geometry/examples/tutorials/teapot/TeapotBuilder.html">
+      TeapotBuilder</a> class.
       </p>
+      <p>
+      <strong>NOTE:</strong> Unless otherwise noted, all images used in this tutorial have been rendered 
+      using <a href="https://www.blender.org/" target="_blank">Blender</a>.
+      </p> 
+      <img src="../images/tutorials/teapot/teapot-final.png" />
+    </section>
+    
+    <section name="Getting Started" id="getting-started">
+      <p>
+      The first step we will take on our journey is the creation of a class encapsulating our teapot-construction
+      logic, aptly named <a class="code" href="../commons-geometry-examples/commons-geometry-examples-tutorials/apidocs/org/apache/commons/geometry/examples/tutorials/teapot/TeapotBuilder.html">TeapotBuilder</a>.
+      This class constructor will accept only a single argument: an instance of 
+      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/core/precision/DoublePrecisionContext.html">DoublePrecisionContext</a>.
+      This is a ubiquitous type in <em>Commons Geometry</em> and is used to provide a method of comparing
+      floating point numbers without being susceptible to small floating point errors introduced during computations.
+      Typically, users of <em>Commons Geometry</em> will construct a single instance of this type for use by multiple
+      objects throughout an entire operation, or even application. Since we don't want our lowly class to assume such a 
+      heavy responsibility, we will simply accept a <span class="code">DoublePrecisionContext</span> in the
+      constructor.
+      </p>
+      <source>
+public class TeapotBuilder {
+
+    private final DoublePrecisionContext precision;
+
+    public TeapotBuilder(final DoublePrecisionContext precision) {
+        this.precision = precision;
+    }
+}
+      </source>
     </section>
   </body>
 </document>
