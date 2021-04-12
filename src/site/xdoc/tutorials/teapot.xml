@@ -55,14 +55,14 @@
       <p>
       The first step we will take on our journey is the creation of a class encapsulating our teapot-construction
       logic, aptly named <a class="code" href="../commons-geometry-examples/commons-geometry-examples-tutorials/apidocs/org/apache/commons/geometry/examples/tutorials/teapot/TeapotBuilder.html">TeapotBuilder</a>.
-      This class constructor will accept only a single argument: an instance of 
+      The constructor will accept only a single argument: an instance of 
       <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/core/precision/DoublePrecisionContext.html">DoublePrecisionContext</a>.
       This is a ubiquitous type in <em>Commons Geometry</em> and is used to provide a method of comparing
       floating point numbers without being susceptible to small floating point errors introduced during computations.
       Typically, users of <em>Commons Geometry</em> will construct a single instance of this type for use by multiple
-      objects throughout an entire operation, or even application. Since we don't want our lowly class to assume such a 
-      heavy responsibility, we will simply accept a <span class="code">DoublePrecisionContext</span> in the
-      constructor.
+      objects throughout an entire operation, or even an entire application. Since we don't want our lowly class to 
+      assume such a heavy responsibility, we will simply accept a <span class="code">DoublePrecisionContext</span> in
+      the constructor.
       </p>
       <source>
 public class TeapotBuilder {
@@ -73,6 +73,58 @@ public class TeapotBuilder {
         this.precision = precision;
     }
 }
+      </source>
+      <p>
+      Next, we will create a stub method for our teapot-building code. We will fill in this method as we work through
+      the tutorial.
+      </p>
+      <source>
+public RegionBSPTree3D buildTeapot() {
+    RegionBSPTree3D teapot = RegionBSPTree3D.empty();
+    
+    // TODO: actually build a teapot here
+    
+    return null;
+}
+      </source>
+      <p>
+      We have chosen the <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/RegionBSPTree3D.html">RegionBSPTree3D</a>
+      type for both the construction of the teapot geometry as well as the return value. This is the primary type
+      in <em>Commons Geometry</em> for manipulating solid geometries. (There are similar such types for each space and 
+      dimension supported by the library, for example 
+      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/twod/RegionBSPTree2D.html">RegionBSPTree2D</a>
+      for 2D Euclidean space and 
+      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/spherical/twod/RegionBSPTree2S.html">RegionBSPTree2S</a>
+      for 2D spherical space.) This type uses a 
+      <a target="_blank" href="https://en.wikipedia.org/wiki/Binary_space_partitioning">binary space partitioning (BSP) tree</a>
+      to represent arbitrary regions of space, including regions of infinite size. This is accomplished by recursively
+      dividing a space in two by partitioning planes (or, more generally, "hyperplanes"). The spaces on either side of
+      the planes are then given the labels "inside" or "outside". A region is then composed of all of the "inside" portions
+      of the BSP tree.
+      </p>
+      <p>
+      A major benefit of using BSP trees to represent regions is that it allows us to perform boolean operations such
+      as union, intersection, difference, and xor on arbitrary regions. This is exactly how we will build our teapot geometry:
+      by using the BSP tree boolean operations to combine simpler shapes into the final product.
+      </p>
+      <p>
+      Before constructing our first geometry, we need to handle one more bit of housekeeping, namely, how to view our
+      work. The easiest way to do this is to export our geometries using a common 3D file format, such as STL, and view the
+      model in a 3D modeling program. I enjoy working with <a href="https://www.blender.org/" target="_blank">Blender</a>
+      so that is the modeling program I have chosen to use for this tutorial. However any program able to load and display
+      3D models should work. To create our geometry files, we will use the 3D file writing capabilities built in to <em>Commons Geometry</em>
+      and accessible through the 
+      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/io/euclidean/threed/IO3D.html">IO3D</a>
+      convenience class. See the
+      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/io/euclidean/threed/GeometryFormat3D.html">GeometryFormat3D</a>
+      enum for a list of supported file formats.
+      </p>
+      <source>
+TeapotBuilder builder = new TeapotBuilder(precision);
+
+RegionBSPTree3D teapot = builder.buildTeapot();
+
+IO3D.write(teapot, Paths.get("teapot.stl"));
       </source>
     </section>
   </body>
