@@ -32,6 +32,9 @@
         <li>
           <a href="#getting-started">Getting Started</a>
         </li>
+        <li>
+          <a href="#body">Creating the body</a>
+        </li>
       </ul>
     </section>
     
@@ -72,8 +75,7 @@ public class TeapotBuilder {
     public TeapotBuilder(final DoublePrecisionContext precision) {
         this.precision = precision;
     }
-}
-      </source>
+}</source>
       <p>
       Next, we will create a stub method for our teapot-building code. We will fill in this method as we work through
       the tutorial.
@@ -85,8 +87,7 @@ public RegionBSPTree3D buildTeapot() {
     // TODO: actually build a teapot here
     
     return null;
-}
-      </source>
+}</source>
       <p>
       We have chosen the <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/RegionBSPTree3D.html">RegionBSPTree3D</a>
       type for both the construction of the teapot geometry as well as the return value. This is the primary type
@@ -124,8 +125,10 @@ TeapotBuilder builder = new TeapotBuilder(precision);
 
 RegionBSPTree3D teapot = builder.buildTeapot();
 
-IO3D.write(teapot, Paths.get("teapot.stl"));
-      </source>
+IO3D.write(teapot, Paths.get("teapot.stl"));</source>
+    </section>
+    
+    <section name="Creating the body" id="body">
     </section>
   </body>
 </document>
