@@ -56,11 +56,14 @@
       <a class="code" href="../commons-geometry-examples/commons-geometry-examples-tutorials/apidocs/org/apache/commons/geometry/examples/tutorials/teapot/TeapotBuilder.html">
       TeapotBuilder</a> class.
       </p>
+      
       <p>
-      <strong>NOTE:</strong> Unless otherwise noted, all images used in this tutorial have been rendered 
+      <strong>NOTE:</strong> All images used in this tutorial have been rendered 
       using <a href="https://www.blender.org/" target="_blank">Blender</a>.
       </p> 
+      
       <img src="../images/tutorials/teapot/teapot-final.png" />
+      
     </section>
     
     <section name="Getting Started" id="getting-started">
@@ -76,6 +79,7 @@
       assume such a heavy responsibility, we will simply accept a <span class="code">DoublePrecisionContext</span> in
       the constructor.
       </p>
+      
       <source>
 public class TeapotBuilder {
 
@@ -85,6 +89,7 @@ public class TeapotBuilder {
         this.precision = precision;
     }
 }</source>
+
       <p>
       Next, we will create a stub method for our teapot-building code. We will fill in this method as we work through
       the tutorial.
@@ -97,6 +102,7 @@ public RegionBSPTree3D buildTeapot() {
     
     return teapot;
 }</source>
+
       <p>
       We have chosen the <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/RegionBSPTree3D.html">RegionBSPTree3D</a>
       type for both the construction of the teapot geometry as well as the return value. This is the primary type
@@ -112,11 +118,13 @@ public RegionBSPTree3D buildTeapot() {
       the planes are then given the labels "inside" or "outside". A region is then composed of all of the "inside" portions
       of the BSP tree.
       </p>
+      
       <p>
       A major benefit of using BSP trees to represent regions is that it allows us to perform boolean operations such
       as union, intersection, difference, and xor on arbitrary regions. This is exactly how we will build our teapot geometry:
       by using the BSP tree boolean operations to combine simpler shapes into the final product.
       </p>
+      
       <p>
       Before constructing our first geometry, we need to handle one more bit of housekeeping, namely, how to view our
       work. The easiest way to do this is to export our geometries using a common 3D file format, such as STL, and view the
@@ -129,17 +137,21 @@ public RegionBSPTree3D buildTeapot() {
       <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/io/euclidean/threed/GeometryFormat3D.html">GeometryFormat3D</a>
       enum for a list of supported file formats.
       </p>
+      
       <source>
 TeapotBuilder builder = new TeapotBuilder(precision);
 
 RegionBSPTree3D teapot = builder.buildTeapot();
 
 IO3D.write(teapot, Paths.get("teapot.stl"));</source>
+
     <p>
     With this bit of code place, we can now run our <span class="code">TeapotBuilder</span>, load the <var>teapot.stl</var>
     file in our 3D modeling program, and see our first pass at a teapot!
     </p>
-    <img src="../images/tutorials/teapot/teapot-first-pass.png" />
+    
+    <img src="../images/tutorials/teapot/empty.png" />
+    
     <p>
     Well, that is a bit underwhelming to say the least. The <span class="code">RegionBSPTree3D</span> instance that we 
     are returning from our <span class="code">TeapotBuilder</span> is completely empty so there is nothing to look at.
@@ -159,6 +171,7 @@ IO3D.write(teapot, Paths.get("teapot.stl"));</source>
         We will start on the teapot body by creating a new private method named <span class="code">buildBody</span> and 
         referencing it in the primary <span class="code">buildTeapot</span> method.
         </p>
+        
         <source>
 public RegionBSPTree3D buildTeapot() {
     // build parts
@@ -175,6 +188,7 @@ private RegionBSPTree3D buildBody() {
     // TODO
     return RegionBSPTree3D.empty();
 }</source>
+
         <p>
         You'll notice that we've also started using one of the boolean operations mentioned earlier: <code>union</code>.
         The line <code>teapot.union(body)</code> computes the union of the <code>teapot</code>
@@ -182,14 +196,17 @@ private RegionBSPTree3D buildBody() {
         This is how we will merge all of the parts of our teapot into a single 3D region. Now, let's start building
         the body.
         </p>
+        
         <p>
         Unlike some fancier models, our teapot is going to have a simple, rounded body. We will start by creating a sphere
         and go from there. Luckily, <em>Commons Geometry</em> provides a 
         <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/shape/Sphere.html">Sphere</a>
         class to help us.
         </p>
+        
         <source>
 Sphere sphere = Sphere.from(Vector3D.ZERO, 1, precision);</source>
+
         <p>
         We now have a <code>Sphere</code> instance centered on the origin with a radius of <var>1</var>. However, our
         instance represents an analytic sphere, meaning it is does not contain any flat surfaces. This is great for
@@ -200,13 +217,17 @@ Sphere sphere = Sphere.from(Vector3D.ZERO, 1, precision);</source>
         The documentation explains the details of the conversion. For our purposes, we will use the argument <var>4</var>, which
         will give us a BSP tree with <var>2048</var> facets.
         </p>
+        
         <source>
 Sphere sphere = Sphere.from(Vector3D.ZERO, 1, precision);
 RegionBSPTree3D body = sphere.toTree(4);</source>
+
         <p>
         This finally gives us something we can look at in our 3D modeling program.
         </p>
+        
         <img src="../images/tutorials/teapot/sphere.png" />
+        
         <p>
         Our next step is to tweak the sphere to make it more teapot-like. First, we will squash it vertically a little
         to make it less of a perfect sphere. Our tool of choice for this squashing exercise is the 
@@ -217,13 +238,17 @@ RegionBSPTree3D body = sphere.toTree(4);</source>
         it lets us perform operations like translate, scale, and rotate on geometries. Here, we will use it to scale
         down our sphere approximation along the z-axis, while keeping the x and y scales the same.
         </p>
+        
         <source>
 AffineTransformMatrix3D t = AffineTransformMatrix3D.createScale(1, 1, 0.75);
 body.transform(t);</source>
+
         <p>
         Our sphere now looks flattened a bit.
         </p>
+        
         <img src="../images/tutorials/teapot/sphere-flattened.png" />
+        
         <p>
         Note that our choice to scale along the z-axis (as opposed to the x or y axes) was completely arbitrary; our 
         sphere was entirely symmetrical and we had no definition of what was "up" and what was "down" for our teapot. 
@@ -232,6 +257,7 @@ body.transform(t);</source>
         "forward" (the direction that the spout is pointing) in teapot-space. Keeping this orientation in mind 
         will help us when working through later transformations.
         </p>
+        
         <p>
         Our teapot is now pleasantly flattened but it is still very likely to roll off tables and create all manner 
         of messes. To solve this shortcoming, we will chop off part of the bottom to make a flat base for the teapot
@@ -239,6 +265,7 @@ body.transform(t);</source>
         plane. As such, we can define this plane, construct a region of infinite size with that plane as the "top", 
         and compute the difference between our flattened sphere and the infinite region.   
         </p>
+        
         <source>
 Plane bottomPlane = Planes.fromPointAndNormal(
         Vector3D.of(0, 0, -0.6),
@@ -246,31 +273,70 @@ Plane bottomPlane = Planes.fromPointAndNormal(
         precision);
 PlaneConvexSubset bottom = bottomPlane.span();
 body.difference(RegionBSPTree3D.from(Arrays.asList(bottom)));</source>
+
         <p>
         There's a lot going on in just a few lines there so let's go through it step by step.
         </p>
+        
         <source>
 Plane bottomPlane = Planes.fromPointAndNormal(
         Vector3D.of(0, 0, -0.6),
         Vector3D.Unit.PLUS_Z,
         precision);</source>
         <p>
+        
         Here we construct our plane from a point lying in the plane, the plane normal, and our ever-present
         <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/core/precision/DoublePrecisionContext.html">DoublePrecisionContext</a>.
         We chose a point that is directly "below" the origin per our previous definition of the teapot orientation and
         thus will intersect the bottom of the teapot. The normal points "up", along the positive z axis. 
         </p>
+        
         <source>
 PlaneConvexSubset bottom = bottomPlane.span();</source>
+
         <p>
         This may well be the most confusing line in this section. This line constructs a 
-        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons.geometry/euclidean/threed/PlaneConvexSubset.html">PlaneConvexSubset</a>
-        that represents all of the points lying in the plane we created just before. These seem like equivalent concepts 
-        but they're slightly different. The plane can be pictured as a container defining what points are available, while
-        the convex subset selects a convex group of those points. Convex subsets include triangles, convex polygons,
-        half-spaces, and, as in this case, every single last point in the entire plane (i.e., the "span").
-        
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/PlaneConvexSubset.html">PlaneConvexSubset</a>
+        that represents all of the points lying in the plane we just created. These seem like equivalent concepts &mdash;
+        a plane and another object that represents the exact same set of points &mdash;
+        but they're slightly different. The plane <em>defines</em> what points are available, while
+        the convex subset <em>selects</em> (in an abstract sense) a convex group of those points. Examples of plane 
+        convex subsets include triangles, convex polygons, plane half-spaces, and, as in this case, 
+        every single last point in the entire plane (i.e., the "span"). This concepts is generalized to all spaces
+        and dimensions with the 
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/core/partitioning/Hyperplane.html">Hyperplane</a>
+        and
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/core/partitioning/HyperplaneConvexSubset.html">HyperplaneConvexSubset</a>
+        interfaces.
         </p>
+        
+        <p>
+        The reason we needed to convert from a 
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/Plane.html">Plane</a>
+        to a 
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/PlaneConvexSubset.html">PlaneConvexSubset</a>
+        is because BSP trees are constructed from plane convex subsets and not planes, which brings us to the next line.
+        </p>
+        
+        <source>
+body.difference(RegionBSPTree3D.from(Arrays.asList(bottom)));
+
+return body;</source>
+        <p>
+        These lines construct a BSP tree from our bottom plane convex subset and then compute the difference between 
+        <var>body</var> and the new BSP tree, storing the result back into <var>body</var>. When BSP trees are constructed
+        from plane convex subsets, the inside of the region is by default the part opposite the direction of the plane normal.
+        Since we constructed our plane with the normal along the positive z-axis (i.e. "up"), the inside of our BSP tree
+        is everything from our plane "down" along the negative z-axis. When we subtract this from the body, we end up with
+        a rounded top and a flat bottom.
+        </p>
+        
+        <img src="../images/tutorials/teapot/body.png" />
+        
+      </subsection>
+      
+      <subsection name="The Lid" id="lid">
+        
       </subsection>
     </section>
   </body>
