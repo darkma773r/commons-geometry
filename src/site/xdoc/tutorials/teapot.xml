@@ -336,6 +336,299 @@ return body;</source>
       </subsection>
       
       <subsection name="The Lid" id="lid">
+        <p>
+        Next we will make the lid of our teapot. This will be more of a decorative item than an actual lid since it
+        will be part of the body itself and not a separate piece. As before, we will begin by creating a helper method.
+        </p>
+        
+        <source>
+public RegionBSPTree3D buildTeapot() {
+    // build parts
+    RegionBSPTree3D body = buildBody();
+    RegionBSPTree3D lid = buildLid(body);
+
+    // combine into the final product
+    RegionBSPTree3D teapot = RegionBSPTree3D.empty();
+    teapot.union(body, lid);
+
+    return teapot;
+}
+
+private RegionBSPTree3D buildLid(RegionBSPTree3D body) {
+    // TODO
+    return RegionBSPTree3D.empty();
+}</source>
+        
+        <p>
+        One thing to note here is that we are now using the two argument version of <var>union</var> to combine the 
+        body and lid. The two argument form of this method computes the union of the arguments and stores the results 
+        in the caller, overwriting whatever was there previously. This is equivalent to calling 
+        <code>teapot.union(body)</code> and then 
+        <code>teapot.union(lid)</code> but is more efficient since we don't need to copy all of the <var>body</var>
+        BSP tree nodes into <var>teapot</var> before computing the union with <var>lid</var>. We can use this method 
+        since we know that <var>teapot</var> is empty at the time of the call and don't care about retaining its 
+        previous state.
+        </p>
+        
+        <p>
+        You may be wondering why we passed the <var>body</var> BSP tree to our new method. The answer is that we
+        want the top of the lid to match the curve of the body exactly and the best way to do that is to have
+        access to the body itself. Our overall plan of attack here will be to
+        <ol>
+          <li>translate a copy of the body "up" a small amount,</li>
+          <li>trim this translated portion to the correct size, and</li>
+          <li>add a small, flattened sphere on top.</li>
+        </ol>
+        Simple enough. Let's get started. The first step is easy.
+        </p>
+        
+        <source>
+final RegionBSPTree3D lid = body.copy();
+
+final AffineTransformMatrix3D t = AffineTransformMatrix3D.createTranslation(0, 0, 0.03);
+lid.transform(t);</source>
+        
+        <p>
+        Our lid is now slightly raised above the body and matches its curve exactly. Unfortunately, the lid is also the
+        same <em>size</em> as the body which makes its job as lid somewhat difficult. We need to trim it to have a radius
+        less than the radius of the body, but how do we do that? One option is to intersect it with a cylinder of the
+        appropriate radius. If the cylinder is oriented along the positive z-axis ("up"), then it will trim off the
+        parts of the body that we don't want while retaining the curved top. Perfect. Now all we need is a way to 
+        construct a cylinder with the correct dimensions. It's time for another helper method.
+        </p>
+        
+        <p>
+        There are many ways we could go about creating our cylinder helper method. We could, for example, have it return
+        a BSP tree like all of our other methods so far. This would work in the case of the lid. However, for other
+        parts of the teapot, we are going to want fine-grain control over the position of vertices throughout the cylinder,
+        including the sides. Therefore, we will design our helper method to return a
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/mesh/TriangleMesh.html">TriangleMesh</a>,
+        which will give us the precision vertex placement that we need. The method will accept 3 arguments:
+        <ol>
+          <li>the number of vertical segments in the cylinder,</li>
+          <li>the number of vertices forming the cylinder circle, and</li>
+          <li>a function that callers can use to place each vertex into its final location.</li>
+        </ol>
+        The cylinder will be constructed pointing along the positive z-axis with vertex z values going from zero to one.
+        However, the final orientation of the mesh will be determined by the supplied transform function.
+        </p>
+        
+        <source>
+private TriangleMesh buildUnitCylinderMesh(int segments, int circleVertexCount,
+        UnaryOperator&lt;Vector3D&gt; vertexTransform) {
+    // TODO
+    return null;
+}</source>
+
+        <p>
+        We will use the 
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/mesh/SimpleTriangleMesh.html">SimpleTriangleMesh</a>
+        class to build our mesh. This class has a builder type that allows us to easily define vertices and faces.
+        </p>
+        
+        <source>
+SimpleTriangleMesh.Builder builder = SimpleTriangleMesh.builder(precision);</source>
+        
+        <p>
+        Next, we will define the vertices. As mentioned above, the cylinder will initially be constructed along the
+        positive z-axis with z values in the range zero to one. The cylinder vertices will then be transformed to their
+        final locations using the function supplied by the caller. The final vertex locations do not affect the face 
+        definitions, however, so after this step we can continue on with the rest of cylinder construction as if the 
+        vertices were in their original locations.
+        </p>
+        
+        <source>
+double zDelta = 1.0 / segments;
+double zValue;
+
+double azDelta = PlaneAngleRadians.TWO_PI / circleVertexCount;
+double az;
+
+Vector3D vertex;
+for (int i = 0; i &lt;= segments; ++i) {
+    zValue = (i * zDelta);
+
+    for (int v = 0; v &lt; circleVertexCount; ++v) {
+        az = v * azDelta;
+
+        vertex = Vector3D.of(
+                Math.cos(az),
+                Math.sin(az),
+                zValue);
+        builder.addVertex(vertexTransform.apply(vertex));
+    }
+}</source>
+        
+        <p>
+        Now come the face definitions. We need to define the faces on the bottom, sides, and top of the cylinder, making
+        sure at each step that the triangle normals point outward.
+        </p>
+        
+<source>
+// add the bottom faces using a triangle fan, making sure
+// that the triangles are oriented so that the face normal
+// points down
+for (int i = 1; i &lt; circleVertexCount - 1; ++i) {
+    builder.addFace(0, i + 1, i);
+}
+
+// add the side faces
+int circleStart;
+int v1;
+int v2;
+int v3;
+int v4;
+for (int s = 0; s &lt; segments; ++s) {
+    circleStart = s * circleVertexCount;
+
+    for (int i = 0; i &lt; circleVertexCount; ++i) {
+        v1 = i + circleStart;
+        v2 = ((i + 1) % circleVertexCount) + circleStart;
+        v3 = v2 + circleVertexCount;
+        v4 = v1 + circleVertexCount;
+
+        builder
+            .addFace(v1, v2, v3)
+            .addFace(v1, v3, v4);
+    }
+}
+
+// add the top faces using a triangle fan
+final int lastCircleStart = circleVertexCount * segments;
+for (int i = 1 + lastCircleStart; i &lt; builder.getVertexCount() - 1; ++i) {
+    builder.addFace(lastCircleStart, i, i + 1);
+}
+
+return builder.build();</source>
+
+        <p>
+        That should do it! Now we can use this in our lid construction, making sure to pass
+        a transform that will give us the radius that we want with enough height to make sure
+        we don't miss any part of the top.
+        </p>
+        
+        <source>
+TriangleMesh cylinder = buildUnitCylinderMesh(1, 20, AffineTransformMatrix3D.createScale(0.5, 0.5, 10));
+lid.intersection(cylinder.toTree());</source>
+        
+        <p>
+        This gives us the following.
+        </p>
+        
+        <img src="../images/tutorials/teapot/lid-no-handle.png" />
+        
+        <p>
+        The fact that the lid is extremely thick does not matter in our case. We will be merging it with the teapot
+        body soon and the lower portion will simply become part of the body.
+        </p>
+        
+        <p>
+        All that's left now is the small rounded handle on top of the lid. We've already done this for the body
+        so this is simple. The only difference is that we will be using the axis-aligned bounding box of the
+        lid in order to place the handle in the correct location.
+        </p>
+        
+        <source>
+Sphere sphere = Sphere.from(Vector3D.of(0, 0, 0), 0.15, precision);
+RegionBSPTree3D sphereTree = sphere.toTree(2);
+
+Bounds3D lidBounds = lid.getBounds();
+double sphereZ = lidBounds.getMax().getZ() + 0.075;
+sphereTree.transform(AffineTransformMatrix3D.createScale(1, 1, 0.75)
+        .translate(0, 0, sphereZ));
+
+lid.union(sphereTree);</source>
+
+        <p>
+        This gives us our complete teapot lid.
+        </p>
+        
+        <img src="../images/tutorials/teapot/lid.png" />
+        
+      </subsection>
+      
+      <subsection name="The Handle" id="handle">
+        <p>
+        Constructing the handle of our teapot is going to be something of an adventure; not only will be need to apply
+        scaling and translations to our starting geometry, we will need to interpolate between a range of 3D rotations.
+        In this case, perhaps it would be best to see the end product first before we jump into the details. That will
+        give us a frame of reference for what we're working toward.
+        </p>
+        
+        <img src="../images/tutorials/teapot/handle.png" />
+        
+        <p>
+        As you can see, the handle is a long, straight cylinder that we've curved back on itself, leaving straight
+        sections at the beginning and end. This means that we can use our new cylinder mesh helper method to construct
+        the shape. Let's start by adding our private builder methods to our class, leaving a placeholder for the portion
+        where we manipulate the position of the cylinder.
+        </p>
+        
+        <source>
+public RegionBSPTree3D buildTeapot() {
+    // build parts
+    RegionBSPTree3D body = buildBody();
+    RegionBSPTree3D lid = buildLid(body);
+    RegionBSPTree3D handle = buildHandle();
+
+    // combine into the final product
+    RegionBSPTree3D teapot = RegionBSPTree3D.empty();
+    teapot.union(body, lid);
+    teapot.union(handle);
+
+    return teapot;
+}
+
+private RegionBSPTree3D buildHandle() {
+    UnaryOperator&lt;Vector3D&gt; vertexTransform = v -> {
+        // TODO
+        return v;
+    };
+    
+    return buildUnitCylinderMesh(10, 14, vertexTransform).toTree();
+}</source>
+        
+        <p>
+        We now have the start of our handle in place. Note that we've used a larger number of cylinder segments 
+        (<var>14</var>) so we have enough to smoothly curve the shape. Since we're not modifying the shape of 
+        the cylinder yet, our handle looks like this.
+        </p>
+        
+        <img src="../images/tutorials/teapot/handle-start.png" />
+        
+        <p>
+        The handle is a cylinder with a radius of <var>1</var> and a height (along the positive z-axis) of <var>1</var>
+        with its base at the origin. We will need to apply scaling, rotations, and translations to get this cylinder
+        into the correct shape and location. Let's start with the trickiest bit first: the rotations.
+        </p>
+        
+        <p>
+        The 
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/rotation/QuaternionRotation.html">QuaternionRotation</a>
+        class is to go-to class in <em>Commons Geometry</em> for rotations in 3D. Instances of this class can be pictured
+        as representing a single rotation of a specific amount around some axis in 3D space. If we applied a single rotation
+        to our cylinder, the entire thing would rotate but retain the same shape. This is not what we want. We want a
+        curve in the middle of the shape, which means we need to apply different rotations to different portions of the
+        cylinder. Our tool for this is the 
+        <a href="https://en.wikipedia.org/wiki/Slerp">Slerp</a> algorithm. This algorithm smoothly interpolates between
+        a start and stop quaternion rotation, giving us the series of rotations that we need for our curve. Let's create
+        our slerp function in code.
+        </p>
+        
+        <source>
+QuaternionRotation startRotation =
+        QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, -PlaneAngleRadians.PI_OVER_TWO);
+QuaternionRotation endRotation =
+        QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO);
+DoubleFunction&lt;QuaternionRotation&gt; slerp = startRotation.slerp(endRotation);</source>
+
+        <p>
+        The line <code>startRotation.slerp(endRotation)</code> returns a <code>DoubleFunction</code> that accepts a
+        double value and returns a <var>QuaternionRotation</var> instance. If we pass <var>0</var>, we get a rotation
+        equal to <var>startRotation</var>. If we pass <var>1</var>, we get a rotation equal to <var>endRotation</var>.
+        If we pass any other number between <var>0</var> and <var>1</var>, we get an interpolated rotation between 
+        the two.
+        </p>
         
       </subsection>
     </section>

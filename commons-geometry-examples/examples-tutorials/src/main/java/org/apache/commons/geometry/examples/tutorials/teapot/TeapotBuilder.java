@@ -36,6 +36,7 @@ import org.apache.commons.geometry.euclidean.threed.Planes;
 import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.SimpleTriangleMesh;
+import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
 import org.apache.commons.geometry.euclidean.threed.shape.Sphere;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
@@ -72,13 +73,13 @@ public class TeapotBuilder {
     public RegionBSPTree3D buildTeapot(final Map<String, RegionBSPTree3D> debugOutputs) {
         // build the parts
         final RegionBSPTree3D body = buildBody(1);
-        final RegionBSPTree3D top = buildTop(body);
+        final RegionBSPTree3D lid = buildLid(body);
         final RegionBSPTree3D handle = buildHandle();
         final RegionBSPTree3D spout = buildSpout(1);
 
         // merge them all together
         final RegionBSPTree3D teapot = RegionBSPTree3D.empty();
-        teapot.union(body, top);
+        teapot.union(body, lid);
         teapot.union(handle);
         teapot.union(spout);
 
@@ -90,7 +91,7 @@ public class TeapotBuilder {
         // add debug outputs if needed
         if (debugOutputs != null) {
             debugOutputs.put("body", body);
-            debugOutputs.put("top", top);
+            debugOutputs.put("lid", lid);
             debugOutputs.put("handle", handle);
             debugOutputs.put("spout", spout);
         }
@@ -122,37 +123,37 @@ public class TeapotBuilder {
         return body;
     }
 
-    /** Build the top of the teapot.
-     * @param body region representing the teapot body
-     * @return teapot top
+    /** Build the lid of the teapot.
+     * @param body region representing the teapot lid
+     * @return teapot lid
      */
-    private RegionBSPTree3D buildTop(final RegionBSPTree3D body) {
+    private RegionBSPTree3D buildLid(final RegionBSPTree3D body) {
         // make a copy of the body so that we match its curve exactly
-        final RegionBSPTree3D top = body.copy();
+        final RegionBSPTree3D lid = body.copy();
 
-        // translate the top to be above the body
+        // translate the lid to be above the body
         final AffineTransformMatrix3D t = AffineTransformMatrix3D.createTranslation(0, 0, 0.03);
-        top.transform(t);
+        lid.transform(t);
 
         // intersect the translated body with a cylinder
-        final SimpleTriangleMesh cylinder =
+        final TriangleMesh cylinder =
                 buildUnitCylinderMesh(1, 20, AffineTransformMatrix3D.createScale(0.5, 0.5, 10));
-        top.intersection(cylinder.toTree());
+        lid.intersection(cylinder.toTree());
 
         // add a small squashed sphere on top; use the bounds of the top in order to place
         // the sphere at the correct position
         final Sphere sphere = Sphere.from(Vector3D.of(0, 0, 0), 0.15, precision);
         final RegionBSPTree3D sphereTree = sphere.toTree(2);
 
-        final Bounds3D topBounds = top.getBounds();
-        final double sphereZ = topBounds.getMax().getZ() + 0.075;
+        final Bounds3D lidBounds = lid.getBounds();
+        final double sphereZ = lidBounds.getMax().getZ() + 0.075;
         sphereTree.transform(AffineTransformMatrix3D.createScale(1, 1, 0.75)
                 .translate(0, 0, sphereZ));
 
         // make the small sphere a part of the top
-        top.union(sphereTree);
+        lid.union(sphereTree);
 
-        return top;
+        return lid;
     }
 
     /** Build the handle of the teapot.
@@ -234,7 +235,7 @@ public class TeapotBuilder {
      *      cylinder to its position in the returned mesh
      * @return triangle mesh
      */
-    private SimpleTriangleMesh buildUnitCylinderMesh(final int segments, final int circleVertexCount,
+    private TriangleMesh buildUnitCylinderMesh(final int segments, final int circleVertexCount,
             final UnaryOperator<Vector3D> vertexTransform) {
 
         final SimpleTriangleMesh.Builder builder = SimpleTriangleMesh.builder(precision);
