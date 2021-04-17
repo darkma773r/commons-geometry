@@ -878,7 +878,7 @@ private RegionBSPTree3D buildSpout(double initialRadius) {
 }</source>
 
       <p>
-      This finally gives us our final result.
+      This gives us our final result.
       </p>
 
       <img src="../images/tutorials/teapot/teapot-final.png" />
