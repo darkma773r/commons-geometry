@@ -580,7 +580,7 @@ public RegionBSPTree3D buildTeapot() {
 }
 
 private RegionBSPTree3D buildHandle() {
-    UnaryOperator&lt;Vector3D&gt; vertexTransform = v -> {
+    UnaryOperator&lt;Vector3D&gt; vertexTransform = v -&gt; {
         // TODO
         return v;
     };
@@ -598,17 +598,30 @@ private RegionBSPTree3D buildHandle() {
 
         <p>
         The handle is a cylinder with a radius of <var>1</var> and a height (along the positive z-axis) of <var>1</var>
-        with its base at the origin. We will need to apply scaling, rotations, and translations to get this cylinder
-        into the correct shape and location. Let's start with the trickiest bit first: the rotations.
+        with its base at the origin. We will need to apply scaling, rotation, and translation to get this cylinder
+        into the correct shape and location. The scaling is no problem since we've already done that several times.
+        We want our handle to have a radius of <var>0.1</var> so we scale by that factor in the x and y axes. For the
+        z-axis (height), we'll leave the value at <var>1</var> for now.
         </p>
 
-        <p>
-        The
+        <source>
+double handleRadius = 0.1;
+double height = 1;
+
+AffineTransformMatrix3D scale = AffineTransformMatrix3D.createScale(handleRadius, handleRadius, height);
+
+UnaryOperator&lt;Vector3D&gt; vertexTransform = v -&gt; {
+    return scale.apply(v);
+};
+
+return buildUnitCylinderMesh(10, 14, vertexTransform).toTree();</source>
+
+        <p>Now on to the tricky bit: the rotation. The
         <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/rotation/QuaternionRotation.html">QuaternionRotation</a>
         class is to go-to class in <em>Commons Geometry</em> for rotations in 3D. Instances of this class can be pictured
         as representing a single rotation of a certain amount around some axis in 3D space. If we applied a single rotation
         to our cylinder, the entire thing would rotate but retain the same shape. This is not what we want. We want a
-        curve in the middle of the shape, which means we need to apply different rotations to different portions of the
+        curve in the middle of the handle, which means we need to apply different rotations to different portions of the
         cylinder. Our tool for this is the
         <a href="https://en.wikipedia.org/wiki/Slerp">Slerp</a> algorithm. This algorithm smoothly interpolates between
         a start and stop quaternion rotation, giving us the series of rotations that we need for our curve. Let's create
@@ -630,70 +643,35 @@ DoubleFunction&lt;QuaternionRotation&gt; slerp = startRotation.slerp(endRotation
         </p>
 
         <p>
-        Let's apply our new slerp function to our cylinder and see what happens. Since the cylinder z-values range from
-        <var>0</var> to <var>1</var>, they make the perfect argument to pass to our slerp function to determine the
-        rotation for each vertex. We want to make sure to rotate around a point <em>outside</em> of the cylinder
-        instead of the origin, which is where rotations occur by default. Otherwise, the cylinder will be rotating back
-        onto itself which is not what we want. We'll also scale the cylinder in the x and y directions before rotating
-        to make the handle more narrow.
-        </p>
-
-        <source>
-double handleRadius = 0.1;
-double height = 1;
-
-AffineTransformMatrix3D initialScale = AffineTransformMatrix3D.createScale(handleRadius, handleRadius, height);
-
-QuaternionRotation startRotation = QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, -PlaneAngleRadians.PI_OVER_TWO);
-QuaternionRotation endRotation = QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO);
-DoubleFunction&lt;QuaternionRotation&gt; slerp = startRotation.slerp(endRotation);
-
-Vector3D curveCenter = Vector3D.of(0.5 * height, 0, 0);
-
-UnaryOperator&lt;Vector3D&gt; vertexTransform = v -&gt; {
-    double t = v.getZ();
-
-    Vector3D scaled = initialScale.apply(v);
-
-    QuaternionRotation rot = slerp.apply(t);
-    AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(curveCenter, rot);
-
-    return mat.apply(scaled);
-};
-
-return buildUnitCylinderMesh(10, 14, vertexTransform).toTree();</source>
-
-        <img src="../images/tutorials/teapot/handle-2.png" />
-
-        <p>
-        Okay. It's a start. We have a curve but it looks more like a spiral than a half-circle. Plus, the segments
-        (or "joints") of the handle are at weird angles. They should all point straight back to the center of the
-        curve but they don't.
-        </p>
-
-        <p>
-        Let's try again, but this time we'll only rotate the very center of the cylinder. This will give us a nice curve.
-        We'll then enforce that the vertices on the exterior maintain their relative positions with regard to the handle
-        center and curve center. Below is our updated vertex transform.
+        Let's apply our new slerp function to the cylinder. Since the cylinder z-values range from <var>0</var> to
+        <var>1</var>, they make the perfect argument to pass to <var>slerp</var> to determine the rotation for each
+        vertex. When we apply the rotation, we need to keep the following in mind:
+        <ol>
+          <li>We want to make sure to rotate around a point <em>outside</em> of the cylinder
+          instead of the origin, which is where rotations occur by default.
+          <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/AffineTransformMatrix3D.html">AffineTransformMatrix3D</a>
+          has a method to create this type of rotation.</li>
+          <li>In order to keep the curve smooth, we will start rotating each point from its position on the xy plane
+          (with z = 0). This prevents the rotation from being affected by the changing distance of the vertex from
+          the curve center.</li>
+        </ol>
+        Below is our updated vertex transform code.
         </p>
 
         <source>
 double t = v.getZ();
 
-Vector3D scaled = initialScale.apply(v);
+Vector3D scaled = scale.apply(v);
 
 QuaternionRotation rot = slerp.apply(t);
 AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(curveCenter, rot);
 
-Vector3D handleCenter = mat.apply(Vector3D.ZERO);
-Vector3D exteriorVertex = handleCenter.add(mat.applyVector(Vector3D.of(scaled.getX(), scaled.getY(), 0)));
+return mat.apply(Vector3D.of(scaled.getX(), scaled.getY(), 0));</source>
 
-return exteriorVertex;</source>
-
-        <img src="../images/tutorials/teapot/handle-3.png" />
+        <img src="../images/tutorials/teapot/handle-2.png" />
 
         <p>
-        So much better! We only need a few more tweaks:
+        Looks good! We only need a few more tweaks:
         <ol>
           <li>We want the beginning and end segments of the curve to extend straight out along the x-axis. We'll add
           an additional x-axis offset when the <var>t</var> is at <var>0</var> (the start) or <var>1</var> (the end).
@@ -713,7 +691,7 @@ return exteriorVertex;</source>
 double handleRadius = 0.1;
 double height = 1 - (2 * handleRadius);
 
-AffineTransformMatrix3D initialScale = AffineTransformMatrix3D.createScale(handleRadius, handleRadius, height);
+AffineTransformMatrix3D scale = AffineTransformMatrix3D.createScale(handleRadius, handleRadius, height);
 
 QuaternionRotation startRotation = QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, -PlaneAngleRadians.PI_OVER_TWO);
 QuaternionRotation endRotation = QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO);
@@ -724,19 +702,18 @@ Vector3D curveCenter = Vector3D.of(0.5 * height, 0, 0);
 AffineTransformMatrix3D translation = AffineTransformMatrix3D.createTranslation(Vector3D.of(-1.38, 0, 0));
 
 UnaryOperator&lt;Vector3D&gt; vertexTransform = v -&gt; {
-    double t = v.getZ();
+    final double t = v.getZ();
 
-    Vector3D scaled = initialScale.apply(v);
+    final Vector3D scaled = scale.apply(v);
 
-    QuaternionRotation rot = slerp.apply(t);
-    AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(curveCenter, rot);
+    final QuaternionRotation rot = slerp.apply(t);
+    final AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(curveCenter, rot);
 
-    Vector3D handleCenter = mat.apply(Vector3D.ZERO);
-    Vector3D exteriorVertex = handleCenter.add(mat.applyVector(Vector3D.of(scaled.getX(), scaled.getY(), 0)));
+    final Vector3D rotated = mat.apply(Vector3D.of(scaled.getX(), scaled.getY(), 0));
 
     final Vector3D result = (t &gt; 0 &amp;&amp; t &lt; 1) ?
-            exteriorVertex :
-            exteriorVertex.add(Vector3D.Unit.PLUS_X);
+            rotated :
+            rotated.add(Vector3D.Unit.PLUS_X);
 
     return translation.apply(result);
 };

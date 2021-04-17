@@ -163,7 +163,7 @@ public class TeapotBuilder {
         final double handleRadius = 0.1;
         final double height = 1 - (2 * handleRadius);
 
-        final AffineTransformMatrix3D initialScale =
+        final AffineTransformMatrix3D scale =
                 AffineTransformMatrix3D.createScale(handleRadius, handleRadius, height);
 
         final QuaternionRotation startRotation =
@@ -180,18 +180,16 @@ public class TeapotBuilder {
         final UnaryOperator<Vector3D> vertexTransform = v -> {
             final double t = v.getZ();
 
-            final Vector3D scaled = initialScale.apply(v);
+            final Vector3D scaled = scale.apply(v);
 
             final QuaternionRotation rot = slerp.apply(t);
             final AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(curveCenter, rot);
 
-            final Vector3D handleCenter = mat.apply(Vector3D.ZERO);
-            final Vector3D exteriorVertex =
-                    handleCenter.add(mat.applyVector(Vector3D.of(scaled.getX(), scaled.getY(), 0)));
+            final Vector3D rotated = mat.apply(Vector3D.of(scaled.getX(), scaled.getY(), 0));
 
             final Vector3D result = (t > 0 && t < 1) ?
-                    exteriorVertex :
-                    exteriorVertex.add(Vector3D.Unit.PLUS_X);
+                    rotated :
+                    rotated.add(Vector3D.Unit.PLUS_X);
 
             return translation.apply(result);
         };
