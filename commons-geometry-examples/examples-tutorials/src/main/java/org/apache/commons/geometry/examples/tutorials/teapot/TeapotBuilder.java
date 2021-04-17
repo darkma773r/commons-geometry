@@ -161,10 +161,10 @@ public class TeapotBuilder {
      */
     private RegionBSPTree3D buildHandle() {
         final double handleRadius = 0.1;
-        final double height = 0.8;
+        final double height = 1 - (2 * handleRadius);
 
         final AffineTransformMatrix3D initialScale =
-                AffineTransformMatrix3D.createScale(handleRadius, handleRadius, height - (2 * handleRadius));
+                AffineTransformMatrix3D.createScale(handleRadius, handleRadius, height);
 
         final QuaternionRotation startRotation =
                 QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, -PlaneAngleRadians.PI_OVER_TWO);
@@ -182,7 +182,9 @@ public class TeapotBuilder {
 
             final Vector3D scaled = initialScale.apply(v);
 
-            final AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(curveCenter, slerp.apply(t));
+            final QuaternionRotation rot = slerp.apply(t);
+            final AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(curveCenter, rot);
+
             final Vector3D handleCenter = mat.apply(Vector3D.ZERO);
             final Vector3D exteriorVertex =
                     handleCenter.add(mat.applyVector(Vector3D.of(scaled.getX(), scaled.getY(), 0)));
