@@ -23,7 +23,7 @@
   <body>
 
     <h1>Solid Geometry Tutorial</h1>
-    <h3>Building teapots with Commons Geometry</h3>
+    <h3>Teapot Construction 101</h3>
     <section name="Contents" id="toc">
       <ul>
         <li>
@@ -51,7 +51,7 @@
       <p>
       <em>Commons Geometry</em> contains a number of methods for manipulating solid, 3D dimensional figures.
       These geometric figures can be combined in various ways to produce new figures. In this tutorial,
-      we will explore these features by using them to construct a 3D model of a teapot from scratch. The image
+      we will explore these features by constructing a 3D model of a teapot from scratch. The image
       below shows the result of our efforts. The final code for this tutorial can be found in the
       <a class="code" href="../commons-geometry-examples/commons-geometry-examples-tutorials/apidocs/org/apache/commons/geometry/examples/tutorials/teapot/TeapotBuilder.html">
       TeapotBuilder</a> class.
@@ -648,7 +648,7 @@ DoubleFunction&lt;QuaternionRotation&gt; slerp = startRotation.slerp(endRotation
         vertex. When we apply the rotation, we need to keep the following in mind:
         <ol>
           <li>We want to make sure to rotate around a point <em>outside</em> of the cylinder
-          instead of the origin, which is where rotations occur by default.
+          instead of around the origin, which is where rotations occur by default.
           <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/AffineTransformMatrix3D.html">AffineTransformMatrix3D</a>
           has a method to create this type of rotation.</li>
           <li>In order to keep the curve smooth, we will start rotating each point from its position on the xy plane
@@ -719,6 +719,104 @@ UnaryOperator&lt;Vector3D&gt; vertexTransform = v -&gt; {
 };
 
 return buildUnitCylinderMesh(10, 14, vertexTransform).toTree();</source>
+
+        <p>
+        Voila&#768;.
+        </p>
+
+        <img src="../images/tutorials/teapot/handle.png" />
+
+      </subsection>
+
+      <subsection name="The Spout" id="spout">
+        <p>
+        Now that we have the handle under our belt, the spout will be a piece of cake. Our general approach will be
+        the same as the handle, where we begin with a cylinder and transform the mesh vertices into their final
+        positions. Instead of a curve, however, we will be creating a taper and a shear. Let's create our method stubs
+        to start.
+        </p>
+
+        <source>
+public RegionBSPTree3D buildTeapot() {
+    // build parts
+    RegionBSPTree3D body = buildBody();
+    RegionBSPTree3D lid = buildLid(body);
+    RegionBSPTree3D handle = buildHandle();
+    RegionBSPTree3D spout = buildSpout();
+
+    // combine into the final product
+    RegionBSPTree3D teapot = RegionBSPTree3D.empty();
+    teapot.union(body, lid);
+    teapot.union(handle);
+    teapot.union(spout);
+
+    return teapot;
+}
+
+private RegionBSPTree3D buildSpout() {
+    UnaryOperator&lt;Vector3D&gt; vertexTransform = v -&gt; {
+        // TODO
+        return v;
+    };
+
+    return buildUnitCylinderMesh(10, 14, vertexTransform).toTree();
+}</source>
+
+        <p>
+        We'll start with the taper. We want the spout to be an oval that is wider at the base and narrower
+        near the top. We can represent this as a scaling in the horizontal plane and store the scale factors in a
+        2D vector. We'll define the factors for the base and then simply compute the factors for the top as a multiple
+        of that. The scaling for each vertex is then a linear interpolation between the two, using the vertex z value
+        as the parameter.
+        </p>
+
+        <source>
+Vector2D baseScale = Vector2D.of(0.4, 0.2);
+Vector2D topScale = baseScale.multiply(0.6);
+
+UnaryOperator&lt;Vector3D&gt; vertexTransform = v -&gt; {
+    Vector2D scale = baseScale.lerp(topScale, v.getZ());
+
+    Vector3D tv = Vector3D.of(
+                v.getX() * scale.getX(),
+                v.getY() * scale.getY(),
+                v.getZ()
+            );
+
+    return tv;
+};
+
+return buildUnitCylinderMesh(1, 14, vertexTransform).toTree();</source>
+
+        <img src="../images/tutorials/teapot/spout-1.png" />
+
+        <p>
+        Now for the shear, or slant, in the positive x direction. This is simply a multiple of the vertex z value that
+        we add to the x value. While we're at it, we'll also translate the spout to its final position in the teapot.
+        </p>
+
+        <source>
+Vector2D baseScale = Vector2D.of(0.4, 0.2);
+Vector2D topScale = baseScale.multiply(0.6);
+double shearZ = 0.9;
+
+AffineTransformMatrix3D translation = AffineTransformMatrix3D.createTranslation(Vector3D.of(0.25, 0, -0.4));
+
+UnaryOperator&lt;Vector3D&gt; vertexTransform = v -&lt; {
+    Vector2D scale = baseScale.lerp(topScale, v.getZ());
+
+    Vector3D tv = Vector3D.of(
+                (v.getX() * scale.getX()) + (v.getZ() * shearZ),
+                v.getY() * scale.getY(),
+                v.getZ()
+            );
+
+    return translation.apply(tv);
+};
+
+return buildUnitCylinderMesh(1, 14, vertexTransform).toTree();</source>
+
+        <img src="../images/tutorials/teapot/spout-final.png" />
 
       </subsection>
     </section>
