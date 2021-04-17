@@ -117,9 +117,9 @@ public class TeapotBuilder {
         final AffineTransformMatrix3D outerCylinderTransform = AffineTransformMatrix3D.createScale(0.5, 0.5, 10);
         final RegionBSPTree3D lidTrimCylinder = buildUnitCylinderMesh(1, 20, outerCylinderTransform).toTree();
 
-        final Plane cutPlane = Planes.fromPointAndNormal(Vector3D.of(0, 0, 0.645), Vector3D.Unit.MINUS_Z, precision);
+        final Plane step = Planes.fromPointAndNormal(Vector3D.of(0, 0, 0.63), Vector3D.Unit.MINUS_Z, precision);
 
-        final RegionBSPTree3D extractor = RegionBSPTree3D.from(Arrays.asList(cutPlane.span()));
+        final RegionBSPTree3D extractor = RegionBSPTree3D.from(Arrays.asList(step.span()));
         extractor.union(innerCylinder);
         extractor.intersection(lidTrimCylinder);
 

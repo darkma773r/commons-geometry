@@ -33,16 +33,22 @@
           <a href="#getting-started">Getting Started</a>
         </li>
         <li>
-          <a href="#parts">Building the parts</a>
+          <a href="#parts">Building the Parts</a>
           <ul>
-            <li><a href="#body">Body</a></li>
-            <li><a href="#lid">Lid</a></li>
-            <li><a href="#handle">Handle</a></li>
-            <li><a href="#spout">Spout</a></li>
+            <li><a href="#body">The Body</a></li>
+            <li><a href="#lid">The Lid</a></li>
+            <li><a href="#handle">The Handle</a></li>
+            <li><a href="#spout">The Spout</a></li>
           </ul>
         </li>
         <li>
-          <a href="#putting-it-together">Putting it all together</a>
+          <a href="#putting-it-all-together">Putting It All Together</a>
+        </li>
+        <li>
+          <a href="#extra-credit">Extra Credit</a>
+        </li>
+        <li>
+          <a href="#conclusion">Conclusion</a>
         </li>
       </ul>
     </section>
@@ -882,6 +888,96 @@ private RegionBSPTree3D buildSpout(double initialRadius) {
       </p>
 
       <img src="../images/tutorials/teapot/teapot-final.png" />
+    </section>
+
+    <section name="Extra Credit" id="extra-credit">
+      <p>
+      Let's say that we want to take this even further. We're not satisfied with our single-piece teapot and want
+      where the lid is a separate piece that we can remove but still fits precisely into the body. We can use what
+      we've learned about BSP trees and boolean operations to accomplish this fairly easily. Our approach will be
+      to create an "extractor" region consisting of an outer cylinder and an inner cylinder, where the inner cylinder
+      extends further down than the outer one. We will scale and position this region to that it just fits over the
+      teapot lid. The teapot lid then becomes the intersection of teapot and the extractor while the body becomes the
+      difference. Let's put this into code. Our method will simply return a map containing the name of the part and
+      the associated region.
+      </p>
+
+      <source>
+public Map&lt;String, RegionBSPTree3D&gt; buildSeparatedTeapot() {
+    // construct the single-piece teapot
+    RegionBSPTree3D teapot = buildTeapot();
+
+    // create a region to extract the lid
+    AffineTransformMatrix3D innerCylinderTransform = AffineTransformMatrix3D.createScale(0.4, 0.4, 1)
+            .translate(0, 0, 0.5);
+    RegionBSPTree3D innerCylinder = buildUnitCylinderMesh(1, 20, innerCylinderTransform).toTree();
+
+    AffineTransformMatrix3D outerCylinderTransform = AffineTransformMatrix3D.createScale(0.5, 0.5, 10);
+    RegionBSPTree3D lidTrimCylinder = buildUnitCylinderMesh(1, 20, outerCylinderTransform).toTree();
+
+    Plane step = Planes.fromPointAndNormal(Vector3D.of(0, 0, 0.645), Vector3D.Unit.MINUS_Z, precision);
+
+    RegionBSPTree3D extractor = RegionBSPTree3D.from(Arrays.asList(step.span()));
+    extractor.union(innerCylinder);
+    extractor.intersection(lidTrimCylinder);
+
+    // extract the lid
+    RegionBSPTree3D lid = RegionBSPTree3D.empty();
+    lid.intersection(teapot, extractor);
+
+    // remove the lid from the body
+    RegionBSPTree3D body = RegionBSPTree3D.empty();
+    body.difference(teapot, extractor);
+
+    // build the output
+    final Map&lt;String, RegionBSPTree3D&gt; result = new LinkedHashMap&lt;&gt;();
+    result.put("lid", lid);
+    result.put("body", body);
+
+    return result;
+}</source>
+
+      <p>
+      While we can easily write these parts out into separate geometry files, it would be very convenient to keep them
+      together. The OBJ file format supports multiple, named geometries in a single file so let's use that to create
+      our output file. We will use the low-level
+      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/io/euclidean/threed/obj/ObjWriter.html">ObjWriter</a>
+      class instead of the
+      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/io/euclidean/threed/IO3D.html">IO3D</a>
+      convenience class in order to gain access to OBJ-specific features.
+      </p>
+
+      <source>
+Map&lt;String, RegionBSPTree3D&gt; partMap = builder.buildSeparatedTeapot();
+try (ObjWriter writer = new ObjWriter(Files.newBufferedWriter(Paths.get("separated-teapot.obj")))) {
+
+    for (Map.Entry&lt;String, RegionBSPTree3D&gt; entry : partMap.entrySet()) {
+        writer.writeObjectName(entry.getKey());
+        writer.writeBoundaries(entry.getValue());
+    }
+}</source>
+
+      <p>
+      Loading this into our 3D modeling program gives us two separate geometries that we can manipulate independently.
+      The image below shows the teapot with the lid lifted up to reveal the interior.
+      </p>
+
+      <img src="../images/tutorials/teapot/separated-teapot.png" />
+
+    </section>
+
+    <section name="Conclusion" id="conclusion">
+      <p>
+      In this tutorial, we've explored creating and combining solid geometries with <em>Commons Geometry</em>.
+      These are powerful features of the library and can be used to perform a wide range of operations. However, this
+      is just the beginning. Once we have our geometries in place, we can compute useful properties such
+      as
+      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/BoundarySource3D.html#getSize">volume</a>,
+      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/BoundarySource3D.html#getBoundarySize">surface area</a>,
+      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/BoundarySource3D.html#getCentroid">and center of mass</a>
+      or perform visibility checks by
+      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/Linecastable3D.html">raycasting or linecasting</a>.
+      </p>
     </section>
   </body>
 </document>
