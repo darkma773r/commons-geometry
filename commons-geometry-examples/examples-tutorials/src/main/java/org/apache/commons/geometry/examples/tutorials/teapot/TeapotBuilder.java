@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.DoubleFunction;
 import java.util.function.UnaryOperator;
@@ -41,6 +42,7 @@ import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
 import org.apache.commons.geometry.euclidean.threed.shape.Sphere;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.geometry.io.euclidean.threed.IO3D;
+import org.apache.commons.geometry.io.euclidean.threed.obj.ObjWriter;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
 
 /** Class used to construct a simple 3D teapot shape using the
@@ -97,6 +99,44 @@ public class TeapotBuilder {
         }
 
         return teapot;
+    }
+
+    /** Build a teapot separated into its component parts. The keys of the returned map are
+     * the component names and the values are the regions.
+     * @return map of teapot component names to regions
+     */
+    public Map<String, RegionBSPTree3D> buildSeparatedTeapot() {
+        // construct the single-piece teapot
+        final RegionBSPTree3D teapot = buildTeapot();
+
+        // create a region to extract the lid
+        final AffineTransformMatrix3D innerCylinderTransform = AffineTransformMatrix3D.createScale(0.4, 0.4, 1)
+                .translate(0, 0, 0.5);
+        final RegionBSPTree3D innerCylinder = buildUnitCylinderMesh(1, 20, innerCylinderTransform).toTree();
+
+        final AffineTransformMatrix3D outerCylinderTransform = AffineTransformMatrix3D.createScale(0.5, 0.5, 10);
+        final RegionBSPTree3D lidTrimCylinder = buildUnitCylinderMesh(1, 20, outerCylinderTransform).toTree();
+
+        final Plane cutPlane = Planes.fromPointAndNormal(Vector3D.of(0, 0, 0.645), Vector3D.Unit.MINUS_Z, precision);
+
+        final RegionBSPTree3D extractor = RegionBSPTree3D.from(Arrays.asList(cutPlane.span()));
+        extractor.union(innerCylinder);
+        extractor.intersection(lidTrimCylinder);
+
+        // extract the lid
+        final RegionBSPTree3D lid = RegionBSPTree3D.empty();
+        lid.intersection(teapot, extractor);
+
+        // remove the lid from the body
+        final RegionBSPTree3D body = RegionBSPTree3D.empty();
+        body.difference(teapot, extractor);
+
+        // build the output
+        final Map<String, RegionBSPTree3D> result = new LinkedHashMap<>();
+        result.put("lid", lid);
+        result.put("body", body);
+
+        return result;
     }
 
     /** Build the teapot body.
@@ -326,10 +366,21 @@ public class TeapotBuilder {
         IO3D.write(teapot, outputFile);
 
         if (args.length > 1) {
-            // write components to the debug file
+            // write additional files to the debug dir
             final Path debugDir = Paths.get(args[1]);
             Files.createDirectories(debugDir);
 
+            // build and write teapot components
+            final Map<String, RegionBSPTree3D> partMap = builder.buildSeparatedTeapot();
+            try (ObjWriter writer = new ObjWriter(Files.newBufferedWriter(debugDir.resolve("separated-teapot.obj")))) {
+
+                for (Map.Entry<String, RegionBSPTree3D> entry : partMap.entrySet()) {
+                    writer.writeObjectName(entry.getKey());
+                    writer.writeBoundaries(entry.getValue());
+                }
+            }
+
+            // write debug outputs
             for (Map.Entry<String, RegionBSPTree3D> entry : debugOutputs.entrySet()) {
                 IO3D.write(entry.getValue(), debugDir.resolve(entry.getKey() + ".stl"));
             }
