@@ -820,5 +820,68 @@ return buildUnitCylinderMesh(1, 14, vertexTransform).toTree();</source>
 
       </subsection>
     </section>
+
+    <section name="Putting it all together" id="putting-it-together">
+      <p>
+      Now that we have all of the parts of our teapot in place, we can run the code one more time and view our teapot.
+      </p>
+
+      <img src="../images/tutorials/teapot/teapot-solid.png" />
+
+      <p>
+      It looks pretty good! One thing is off, though: our teapot is completely solid. In order to make it hollow like
+      a real teapot, we'd need to hollow out the body and the interior of the spout. Luckily, we can do this with just
+      a small tweaks to the code we have. We can add parameters to our body and spout construction methods that control
+      the overall size of the produced region. We can then subtract these smaller regions from the teapot to hollow it
+      out.
+      </p>
+
+      <source>
+public RegionBSPTree3D buildTeapot(Map&lt;String, RegionBSPTree3D&gt; debugOutputs) {
+    // build the parts
+    RegionBSPTree3D body = buildBody(1);
+    RegionBSPTree3D lid = buildLid(body);
+    RegionBSPTree3D handle = buildHandle();
+    RegionBSPTree3D spout = buildSpout(1);
+
+    // merge them all together
+    RegionBSPTree3D teapot = RegionBSPTree3D.empty();
+    teapot.union(body, lid);
+    teapot.union(handle);
+    teapot.union(spout);
+
+    // subtract scaled-down versions of the body and spout to
+    // create the hollow interior
+    teapot.difference(buildBody(0.9));
+    teapot.difference(buildSpout(0.8));
+
+    return teapot;
+}
+
+private RegionBSPTree3D buildBody(double initialRadius) {
+    Sphere sphere = Sphere.from(Vector3D.ZERO, initialRadius, precision);
+
+    // ...
+
+    Plane bottomPlane = Planes.fromPointAndNormal(
+            Vector3D.of(0, 0, -0.6 * initialRadius),
+            Vector3D.Unit.PLUS_Z,
+            precision);
+
+    // ...
+}
+
+private RegionBSPTree3D buildSpout(double initialRadius) {
+    Vector2D baseScale = Vector2D.of(0.4, 0.2).multiply(initialRadius);
+
+    // ...
+}</source>
+
+      <p>
+      This finally gives us our final result.
+      </p>
+
+      <img src="../images/tutorials/teapot/teapot-final.png" />
+    </section>
   </body>
 </document>
