@@ -50,6 +50,18 @@ import org.apache.commons.numbers.angle.PlaneAngleRadians;
  */
 public class TeapotBuilder {
 
+    /** Name used to identify the teapot body geometry. */
+    private static final String BODY_NAME = "body";
+
+    /** Name used to identify the teapot lid geometry. */
+    private static final String LID_NAME = "lid";
+
+    /** Name used to identify the teapot handle geometry. */
+    private static final String HANDLE_NAME = "handle";
+
+    /** Name used to identify the teapot spout geometry. */
+    private static final String SPOUT_NAME = "spout";
+
     /** Precision context used during region construction. */
     private final DoublePrecisionContext precision;
 
@@ -92,10 +104,10 @@ public class TeapotBuilder {
 
         // add debug outputs if needed
         if (debugOutputs != null) {
-            debugOutputs.put("body", body);
-            debugOutputs.put("lid", lid);
-            debugOutputs.put("handle", handle);
-            debugOutputs.put("spout", spout);
+            debugOutputs.put(BODY_NAME, body);
+            debugOutputs.put(LID_NAME, lid);
+            debugOutputs.put(HANDLE_NAME, handle);
+            debugOutputs.put(SPOUT_NAME, spout);
         }
 
         return teapot;
@@ -133,8 +145,8 @@ public class TeapotBuilder {
 
         // build the output
         final Map<String, RegionBSPTree3D> result = new LinkedHashMap<>();
-        result.put("lid", lid);
-        result.put("body", body);
+        result.put(LID_NAME, lid);
+        result.put(BODY_NAME, body);
 
         return result;
     }
@@ -289,7 +301,7 @@ public class TeapotBuilder {
 
         Vector3D vertex;
         for (int i = 0; i <= segments; ++i) {
-            zValue = (i * zDelta);
+            zValue = i * zDelta;
 
             for (int v = 0; v < circleVertexCount; ++v) {
                 az = v * azDelta;
