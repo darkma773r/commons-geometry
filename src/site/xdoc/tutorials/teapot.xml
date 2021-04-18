@@ -111,13 +111,13 @@ public RegionBSPTree3D buildTeapot() {
 
       <p>
       We have chosen the
-      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/RegionBSPTree3D.html">RegionBSPTree3D</a>
+      <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/RegionBSPTree3D.html">RegionBSPTree3D</a>
       type for both the construction of the teapot geometry as well as the return value. This is the primary type
       in <em>Commons Geometry</em> for manipulating solid geometries. (There are similar such types for each space and
       dimension supported by the library, such as
-      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/twod/RegionBSPTree2D.html">RegionBSPTree2D</a>
+      <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/twod/RegionBSPTree2D.html">RegionBSPTree2D</a>
       for 2D Euclidean space and
-      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/spherical/twod/RegionBSPTree2S.html">RegionBSPTree2S</a>
+      <a class="code" href="../commons-geometry-spherical/apidocs/org/apache/commons/geometry/spherical/twod/RegionBSPTree2S.html">RegionBSPTree2S</a>
       for 2D spherical space.) This type uses a <a href="bsp-tree.html">binary space partitioning (BSP) tree</a>
       to represent arbitrary regions of space, including regions of infinite size. This is accomplished by recursively
       dividing a space in two by partitioning planes (or "hyperplanes", to use the more general term). The spaces on either side of
@@ -139,9 +139,9 @@ public RegionBSPTree3D buildTeapot() {
       so that is the modeling program I have chosen to use for this tutorial. However any program able to load and display
       3D models should work. To create our geometry files, we will use the 3D file writing capabilities of <em>Commons Geometry</em>
       accessible through the
-      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/io/euclidean/threed/IO3D.html">IO3D</a>
+      <a class="code" href="../commons-geometry-io-euclidean/apidocs/org/apache/commons/geometry/io/euclidean/threed/IO3D.html">IO3D</a>
       convenience class. See the
-      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/io/euclidean/threed/GeometryFormat3D.html">GeometryFormat3D</a>
+      <a class="code" href="../commons-geometry-io-euclidean/apidocs/org/apache/commons/geometry/io/euclidean/threed/GeometryFormat3D.html">GeometryFormat3D</a>
       enum for a list of supported file formats.
       </p>
 
@@ -161,14 +161,14 @@ IO3D.write(teapot, Paths.get("teapot.stl"));</source>
     <section name="Building the Parts" id="parts">
       <p>
       Our teapot will contain four main parts: the body, the lid, the handle, and the spout. We will create
-      private methods for each of theses parts in our <span class="code">TeapotBuilder</span> class. Later, we will
+      private methods for each of theses parts in our <var>TeapotBuilder</var> class. Later, we will
       combine the outputs of these methods to form the final geometry.
       </p>
 
       <subsection name="The Body" id="body">
         <p>
         The first part we will construct is the teapot body. We will start by creating a private method named
-        <span class="code">buildBody</span> in our builder class and referencing it in our main build method.
+        <var>buildBody</var> in our builder class and referencing it in our main build method.
         We'll return the body directly for the time being so we can view the output.
         </p>
 
@@ -190,7 +190,7 @@ private RegionBSPTree3D buildBody() {
         <p>
         Unlike some fancier types you might see, our teapot is going to have a simple, rounded body. So, we will start
         by creating a sphere and go from there. Luckily, <em>Commons Geometry</em> provides a
-        <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/shape/Sphere.html">Sphere</a>
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/shape/Sphere.html">Sphere</a>
         class to help us.
         </p>
 
@@ -198,11 +198,11 @@ private RegionBSPTree3D buildBody() {
 Sphere sphere = Sphere.from(Vector3D.ZERO, 1, precision);</source>
 
         <p>
-        We now have a <code>Sphere</code> instance centered on the origin with a radius of <var>1</var>. However, our
+        We now have a <var>Sphere</var> instance centered on the origin with a radius of <var>1</var>. However, our
         instance represents an analytic sphere, meaning it is does not contain any flat surfaces. This is great for
         many use cases, but we need flat surfaces in order to construct a BSP tree. To convert
         from our mathematically perfect sphere abstraction to a BSP tree sphere approximation, we will use the
-        <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/shape/Sphere.html#toTree">Sphere.toTree()</a>
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/shape/Sphere.html#toTree-int-">Sphere.toTree()</a>
         method. This method accepts a single argument that determines the number of facets that will be used in the approximation.
         The documentation explains the details of the conversion. For our purposes, we will use the argument <var>4</var>, which
         will give us a BSP tree with <var>2048</var> facets.
@@ -221,10 +221,10 @@ RegionBSPTree3D body = sphere.toTree(4);</source>
         <p>
         Our next step is to tweak the sphere to make it more teapot-like. First, we will squash it vertically a little
         to make it less of a perfect sphere. Our tool of choice for this squashing exercise is the
-        <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/AffineTransformMatrix3D.html">AffineTransformMatrix3D</a>
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/AffineTransformMatrix3D.html">AffineTransformMatrix3D</a>
         class, which we will be using quite frequently in the remainder of this tutorial.
         This class represents a 4x4 transform matrix that can be used to perform
-        <a href="https://en.wikipedia.org/wiki/Affine_transformation">affine transformations</a> in 3D space. In short,
+        <a target="_blank" href="https://en.wikipedia.org/wiki/Affine_transformation">affine transformations</a> in 3D space. In short,
         it lets us perform operations like translate, scale, and rotate on geometries. Here, we will use it to scale
         down our sphere approximation along the z-axis, while keeping the x and y axes the same.
         </p>
@@ -294,9 +294,9 @@ PlaneConvexSubset bottom = bottomPlane.span();</source>
         convex subsets include triangles, convex polygons, plane half-spaces, and, as in this case,
         every single last point in the entire plane (i.e., the "span"). These concepts are generalized to all geometric
         spaces and dimensions with the
-        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/core/partitioning/Hyperplane.html">Hyperplane</a>
+        <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/core/partitioning/Hyperplane.html">Hyperplane</a>
         and
-        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/core/partitioning/HyperplaneConvexSubset.html">HyperplaneConvexSubset</a>
+        <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/core/partitioning/HyperplaneConvexSubset.html">HyperplaneConvexSubset</a>
         interfaces. The reason we needed to convert from a
         <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/Plane.html">Plane</a>
         to a
@@ -622,7 +622,7 @@ DoubleFunction&lt;QuaternionRotation&gt; slerp = startRotation.slerp(endRotation
         <ol>
           <li>We want to make sure to rotate around a point <em>outside</em> of the cylinder
           instead of around the origin, which is where rotations occur by default.
-          <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/AffineTransformMatrix3D.html">AffineTransformMatrix3D</a>
+          <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/AffineTransformMatrix3D.html">AffineTransformMatrix3D</a>
           has a method to create this type of transformation.</li>
           <li>In order to keep the curve smooth, we will start rotating each point from its position projected on the
           xy plane (with z = 0). This prevents the rotation from being affected by the changing distance of the vertex from
@@ -738,7 +738,7 @@ private RegionBSPTree3D buildSpout() {
         factors in 2D vectors. We'll define the factors for the base and then simply compute the factors for the top
         as a multiple of that. The scaling for each vertex is then a linear interpolation between the two, with the
         vertex z value as the interpolation parameter. We'll use the vector
-        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/twod/Vector2D.html#lerp">lerp</a>
+        <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/twod/Vector2D.html#lerp-org.apache.commons.geometry.euclidean.twod.Vector2D-double-">lerp</a>
         method to perform the interpolation.
         </p>
 
@@ -797,7 +797,7 @@ return buildUnitCylinderMesh(1, 14, vertexTransform).toTree();</source>
       <p>
       Now that we have all of the parts of our teapot in place we can begin combining them to construct the full teapot.
       We simply need to compute the union of all of the parts using the BSP tree
-      <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/RegionBSPTree3D#union">union</a> method.
+      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/core/partitioning/bsp/AbstractRegionBSPTree.html#union-org.apache.commons.geometry.core.partitioning.bsp.AbstractRegionBSPTree-">union</a> method.
       </p>
 
       <source>
@@ -939,12 +939,12 @@ public Map&lt;String, RegionBSPTree3D&gt; buildSeparatedTeapot() {
       <p>
       While we can easily write these parts out into separate geometry files, it would be very convenient to keep them
       together. The
-      <a href="https://en.wikipedia.org/wiki/Wavefront_.obj_file">OBJ</a>
+      <a target="_blank" href="https://en.wikipedia.org/wiki/Wavefront_.obj_file">OBJ</a>
       file format supports multiple named geometries in a single file so let's use that to create
       our output file. We will use the low-level
-      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/io/euclidean/threed/obj/ObjWriter.html">ObjWriter</a>
+      <a class="code" href="../commons-geometry-io-euclidean/apidocs/org/apache/commons/geometry/io/euclidean/threed/obj/ObjWriter.html">ObjWriter</a>
       class instead of the
-      <a class="code" href="../commons-geometry-core/apidocs/org/apache/commons/geometry/io/euclidean/threed/IO3D.html">IO3D</a>
+      <a class="code" href="../commons-geometry-io-euclidean/apidocs/org/apache/commons/geometry/io/euclidean/threed/IO3D.html">IO3D</a>
       convenience class in order to gain access to OBJ-specific features.
       </p>
 
@@ -972,12 +972,12 @@ try (ObjWriter writer = new ObjWriter(Files.newBufferedWriter(Paths.get("separat
       In this tutorial, we've explored creating and combining solid geometries with <em>Commons Geometry</em>.
       These are powerful features of the library and can be used in a wide range of applications. However, this
       is just the beginning. Once we have our geometries in place, we can perform other useful tasks, such as computing
-      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/BoundarySource3D.html#getSize">volume</a>,
-      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/BoundarySource3D.html#getBoundarySize">surface area</a>,
+      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/core/partitioning/bsp/AbstractRegionBSPTree.html#getSize--">volume</a>,
+      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/core/partitioning/bsp/AbstractRegionBSPTree.html#getBoundarySize--">surface area</a>,
       and
-      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/BoundarySource3D.html#getCentroid">center of mass</a>
+      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/core/partitioning/bsp/AbstractRegionBSPTree.html#getCentroid--">center of mass</a>
       or performing visibility checks using
-      <a href="../commons-geometry-core/apidocs/org/apache/commons/geometry/euclidean/threed/Linecastable3D.html">raycasting or linecasting</a>.
+      <a href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/line/Linecastable3D.html">raycasting or linecasting</a>.
       Hopefully what you've learned in this tutorial will give you a solid base to build on as you explore these and
       other features of the library.
       </p>
