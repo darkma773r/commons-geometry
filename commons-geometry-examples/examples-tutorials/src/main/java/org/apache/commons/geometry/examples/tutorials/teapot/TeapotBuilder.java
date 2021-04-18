@@ -79,7 +79,7 @@ public class TeapotBuilder {
         final RegionBSPTree3D handle = buildHandle();
         final RegionBSPTree3D spout = buildSpout(1);
 
-        // merge them all together
+        // combine into the final region
         final RegionBSPTree3D teapot = RegionBSPTree3D.empty();
         teapot.union(body, lid);
         teapot.union(handle);
@@ -115,13 +115,13 @@ public class TeapotBuilder {
         final RegionBSPTree3D innerCylinder = buildUnitCylinderMesh(1, 20, innerCylinderTransform).toTree();
 
         final AffineTransformMatrix3D outerCylinderTransform = AffineTransformMatrix3D.createScale(0.5, 0.5, 10);
-        final RegionBSPTree3D lidTrimCylinder = buildUnitCylinderMesh(1, 20, outerCylinderTransform).toTree();
+        final RegionBSPTree3D outerCylinder = buildUnitCylinderMesh(1, 20, outerCylinderTransform).toTree();
 
         final Plane step = Planes.fromPointAndNormal(Vector3D.of(0, 0, 0.63), Vector3D.Unit.MINUS_Z, precision);
 
         final RegionBSPTree3D extractor = RegionBSPTree3D.from(Arrays.asList(step.span()));
         extractor.union(innerCylinder);
-        extractor.intersection(lidTrimCylinder);
+        extractor.intersection(outerCylinder);
 
         // extract the lid
         final RegionBSPTree3D lid = RegionBSPTree3D.empty();
