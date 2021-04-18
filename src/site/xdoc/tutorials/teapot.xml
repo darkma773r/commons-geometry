@@ -216,7 +216,7 @@ RegionBSPTree3D body = sphere.toTree(4);</source>
         This finally gives us something we can look at in our 3D modeling program.
         </p>
 
-        <img src="../images/tutorials/teapot/sphere.png" />
+        <img src="../images/tutorials/teapot/body-sphere.png" />
 
         <p>
         Our next step is to tweak the sphere to make it more teapot-like. First, we will squash it vertically a little
@@ -237,7 +237,7 @@ body.transform(t);</source>
         Our sphere now looks flattened a bit.
         </p>
 
-        <img src="../images/tutorials/teapot/sphere-flattened.png" />
+        <img src="../images/tutorials/teapot/body-sphere-flattened.png" />
 
         <p>
         Note that our choice to scale along the z-axis (as opposed to the x or y axes) was completely arbitrary; our
@@ -316,7 +316,7 @@ body.difference(RegionBSPTree3D.from(Arrays.asList(bottom)));</source>
         a rounded top and a flat bottom.
         </p>
 
-        <img src="../images/tutorials/teapot/body.png" />
+        <img src="../images/tutorials/teapot/body-final.png" />
 
       </subsection>
 
@@ -511,7 +511,7 @@ lid.union(sphereTree);</source>
         This completes our teapot lid.
         </p>
 
-        <img src="../images/tutorials/teapot/lid.png" />
+        <img src="../images/tutorials/teapot/lid-final.png" />
 
       </subsection>
 
@@ -523,7 +523,7 @@ lid.union(sphereTree);</source>
         give us a frame of reference for what we're working toward. Below is our goal for the handle.
         </p>
 
-        <img src="../images/tutorials/teapot/handle.png" />
+        <img src="../images/tutorials/teapot/handle-final.png" />
 
         <p>
         As you can see, the handle is a long, straight cylinder that we've curved back on itself, leaving straight
@@ -559,7 +559,7 @@ private RegionBSPTree3D buildHandle() {
         the cylinder yet, our handle looks like this.
         </p>
 
-        <img src="../images/tutorials/teapot/unit-cylinder.png" />
+        <img src="../images/tutorials/teapot/handle-cylinder.png" />
 
         <p>
         The handle is a cylinder with a radius of <var>1</var> and a height (along the positive z-axis) of <var>1</var>
@@ -585,7 +585,7 @@ return buildUnitCylinderMesh(10, 14, vertexTransform).toTree();</source>
         This gives our handle the thickness that we want.
         </p>
 
-        <img src="../images/tutorials/teapot/handle-straight.png" />
+        <img src="../images/tutorials/teapot/handle-cylinder-scaled.png" />
 
         <p>Now on to the tricky bit: the rotation. The
         <a class="code" href="../commons-geometry-euclidean/apidocs/org/apache/commons/geometry/euclidean/threed/rotation/QuaternionRotation.html">QuaternionRotation</a>
@@ -698,7 +698,7 @@ return buildUnitCylinderMesh(10, 14, vertexTransform).toTree();</source>
         Voila&#768;.
         </p>
 
-        <img src="../images/tutorials/teapot/handle.png" />
+        <img src="../images/tutorials/teapot/handle-final.png" />
 
       </subsection>
 
@@ -963,7 +963,7 @@ try (ObjWriter writer = new ObjWriter(Files.newBufferedWriter(Paths.get("separat
       The image below shows the teapot with the lid lifted up to reveal the interior.
       </p>
 
-      <img src="../images/tutorials/teapot/separated-teapot.png" />
+      <img src="../images/tutorials/teapot/teapot-separated.png" />
 
     </section>
 
