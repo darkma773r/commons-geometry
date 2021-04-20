@@ -163,8 +163,8 @@ public class AffineTransformMatrixPerformance {
         }
     }
 
-    /** Benchmark testing the performance of transforming an array of double arrays by converting each to
-     * a Vector3D.
+    /** Benchmark testing the performance of transforming an array of doubles by converting each group
+     * to a Vector3D.
      * @param arrayInput array input
      * @param transformInput transform input
      * @param bh blackhole instance
@@ -187,6 +187,39 @@ public class AffineTransformMatrixPerformance {
             bh.consume(out.getX());
             bh.consume(out.getY());
             bh.consume(out.getZ());
+        }
+    }
+
+    /** Benchmark testing the performance of transforming an an array of doubles by transforming
+     * the components directly.
+     * @param arrayInput array input
+     * @param transformInput transform input
+     * @param bh blackhole instance
+     */
+    @Benchmark
+    public void transformArrayComponents3D(final TransformArrayInput arrayInput,
+            final TransformMatrixInput3D transformInput, final Blackhole bh) {
+        final double[] arr = arrayInput.getArray();
+        final AffineTransformMatrix3D t = transformInput.getTransform();
+
+        double inX;
+        double inY;
+        double inZ;
+        double outX;
+        double outY;
+        double outZ;
+        for (int i = 0; i < arr.length; i += 3) {
+            inX = arr[i];
+            inY = arr[i + 1];
+            inZ = arr[i + 2];
+
+            outX = t.applyX(inX, inY, inZ);
+            outY = t.applyX(inX, inY, inZ);
+            outZ = t.applyX(inX, inY, inZ);
+
+            bh.consume(outX);
+            bh.consume(outY);
+            bh.consume(outZ);
         }
     }
 }
