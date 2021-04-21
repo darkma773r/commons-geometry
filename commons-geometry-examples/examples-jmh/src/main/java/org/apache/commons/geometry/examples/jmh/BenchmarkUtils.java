@@ -30,7 +30,7 @@ public final class BenchmarkUtils {
      * @param rng random number generator
      * @return the random number
      */
-    public static double createRandomDouble(final UniformRandomProvider rng) {
+    public static double randomDouble(final UniformRandomProvider rng) {
         // Create random doubles using random bits in the sign bit and the mantissa.
         // Then create an exponent in the range -64 to 64. Thus the sum product
         // of 4 max or min values will not over or underflow.
@@ -39,5 +39,20 @@ public final class BenchmarkUtils {
         // The exponent must be unsigned so + 1023 to the signed exponent
         final long exp = rng.nextInt(129) - 64 + 1023;
         return Double.longBitsToDouble(bits | (exp << 52));
+    }
+
+    /** Create an array of doubles populated using {@link #createRandomDouble(UniformRandomProvider)}.
+     * @param rng uniform random provider
+     * @param len array length
+     * @return array containing {@code len} random doubles
+     */
+    public static double[] randomDoubleArray(final UniformRandomProvider rng, final int len) {
+        final double[] arr = new double[len];
+
+        for (int i = 0; i < arr.length; ++i) {
+            arr[i] = randomDouble(rng);
+        }
+
+        return arr;
     }
 }

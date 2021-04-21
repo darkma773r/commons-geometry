@@ -145,7 +145,7 @@ public class VectorPerformance {
         private DoubleSupplier createDoubleSupplier(final String type, final UniformRandomProvider rng) {
             switch (type) {
             case RANDOM:
-                return () -> BenchmarkUtils.createRandomDouble(rng);
+                return () -> BenchmarkUtils.randomDouble(rng);
             case NORMALIZABLE:
                 final ZigguratNormalizedGaussianSampler sampler = ZigguratNormalizedGaussianSampler.of(rng);
                 return () -> {
