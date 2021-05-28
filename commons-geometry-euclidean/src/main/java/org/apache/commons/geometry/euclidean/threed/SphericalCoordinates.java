@@ -293,7 +293,7 @@ public final class SphericalCoordinates implements Spatial {
         // normalize the polar angle; this is the angle between the polar vector and the point ray
         // so it is unsigned (unlike the azimuth) and should be in the range [0, pi]
         if (Double.isFinite(polar)) {
-            return Math.abs(PlaneAngleRadians.normalizeBetweenMinusPiAndPi(polar));
+            return Math.abs(PlaneAngleRadians.WITHIN_MINUS_PI_AND_PI.applyAsDouble(polar));
         }
 
         return polar;

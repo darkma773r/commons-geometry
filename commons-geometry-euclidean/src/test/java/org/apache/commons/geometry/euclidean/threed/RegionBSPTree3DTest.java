@@ -28,8 +28,6 @@ import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.SplitLocation;
 import org.apache.commons.geometry.core.partitioning.bsp.RegionCutRule;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D.PartitionedRegionBuilder3D;
 import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D.RegionNode3D;
@@ -40,6 +38,7 @@ import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
 import org.apache.commons.geometry.euclidean.twod.path.LinePath;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -47,8 +46,8 @@ public class RegionBSPTree3DTest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     @Test
     public void testCtor_default() {
@@ -1144,7 +1143,7 @@ public class RegionBSPTree3DTest {
     public void testTwoBoxes_separationLessThanTolerance() {
         // arrange
         final double eps = 1e-6;
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(eps);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
 
         // act
         final RegionBSPTree3D tree = RegionBSPTree3D.empty();
@@ -1879,7 +1878,7 @@ public class RegionBSPTree3DTest {
         return createRect(a, b, TEST_PRECISION);
     }
 
-    private static RegionBSPTree3D createRect(final Vector3D a, final Vector3D b, final DoublePrecisionContext precision) {
+    private static RegionBSPTree3D createRect(final Vector3D a, final Vector3D b, final Precision.DoubleEquivalence precision) {
         return Parallelepiped.axisAligned(a, b, precision).toTree();
     }
 

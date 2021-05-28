@@ -25,12 +25,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.SplitLocation;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.spherical.SphericalTestUtils;
 import org.apache.commons.geometry.spherical.oned.Point1S;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -38,8 +37,8 @@ public class ConvexArea2STest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     @Test
     public void testFull() {
@@ -535,7 +534,7 @@ public class ConvexArea2STest {
     public void testGetCentroid_diminishingLunes() {
         // arrange
         final double eps = 1e-14;
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(eps);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
 
         final double centerAz = 1;
         final double centerPolar = 0.5 * Math.PI;
@@ -570,7 +569,7 @@ public class ConvexArea2STest {
     public void testGetCentroid_diminishingSquares() {
         // arrange
         final double eps = 1e-14;
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(eps);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
 
         final double centerAz = 1;
         final double centerPolar = 0.5 * Math.PI;

@@ -24,8 +24,6 @@ import java.util.Comparator;
 import java.util.regex.Pattern;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
 import org.apache.commons.numbers.core.Precision;
@@ -1027,8 +1025,8 @@ public class Vector3DTest {
     @Test
     public void testPrecisionEquals() {
         // arrange
-        final DoublePrecisionContext smallEps = new EpsilonDoublePrecisionContext(1e-6);
-        final DoublePrecisionContext largeEps = new EpsilonDoublePrecisionContext(1e-1);
+        final Precision.DoubleEquivalence smallEps = Precision.doubleEquivalenceOfEpsilon(1e-6);
+        final Precision.DoubleEquivalence largeEps = Precision.doubleEquivalenceOfEpsilon(1e-1);
 
         final Vector3D vec = Vector3D.of(1, -2, 3);
 
@@ -1058,8 +1056,8 @@ public class Vector3DTest {
     @Test
     public void testIsZero() {
         // arrange
-        final DoublePrecisionContext smallEps = new EpsilonDoublePrecisionContext(1e-6);
-        final DoublePrecisionContext largeEps = new EpsilonDoublePrecisionContext(1e-1);
+        final Precision.DoubleEquivalence smallEps = Precision.doubleEquivalenceOfEpsilon(1e-6);
+        final Precision.DoubleEquivalence largeEps = Precision.doubleEquivalenceOfEpsilon(1e-1);
 
         // act/assert
         Assertions.assertTrue(Vector3D.of(0.0, -0.0, 0.0).isZero(smallEps));

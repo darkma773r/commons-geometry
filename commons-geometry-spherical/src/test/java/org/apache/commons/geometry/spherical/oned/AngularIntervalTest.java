@@ -22,9 +22,8 @@ import org.apache.commons.geometry.core.Region;
 import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.SplitLocation;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,8 +31,8 @@ public class AngularIntervalTest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     @Test
     public void testOf_doubles() {
@@ -87,8 +86,8 @@ public class AngularIntervalTest {
     @Test
     public void testOf_orientedPoints() {
         // arrange
-        final DoublePrecisionContext precisionA = new EpsilonDoublePrecisionContext(1e-3);
-        final DoublePrecisionContext precisionB = new EpsilonDoublePrecisionContext(1e-2);
+        final Precision.DoubleEquivalence precisionA = Precision.doubleEquivalenceOfEpsilon(1e-3);
+        final Precision.DoubleEquivalence precisionB = Precision.doubleEquivalenceOfEpsilon(1e-2);
 
         final CutAngle zeroPos = CutAngles.createPositiveFacing(Point1S.ZERO, precisionA);
         final CutAngle zeroNeg = CutAngles.createNegativeFacing(Point1S.ZERO, precisionA);
@@ -534,8 +533,8 @@ public class AngularIntervalTest {
     @Test
     public void testConvex_of_cutAngles() {
         // arrange
-        final DoublePrecisionContext precisionA = new EpsilonDoublePrecisionContext(1e-3);
-        final DoublePrecisionContext precisionB = new EpsilonDoublePrecisionContext(1e-2);
+        final Precision.DoubleEquivalence precisionA = Precision.doubleEquivalenceOfEpsilon(1e-3);
+        final Precision.DoubleEquivalence precisionB = Precision.doubleEquivalenceOfEpsilon(1e-2);
 
         final CutAngle zeroPos = CutAngles.createPositiveFacing(Point1S.ZERO, precisionA);
         final CutAngle zeroNeg = CutAngles.createNegativeFacing(Point1S.ZERO, precisionA);

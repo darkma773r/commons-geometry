@@ -22,11 +22,11 @@ import java.util.Objects;
 import org.apache.commons.geometry.core.Point;
 import org.apache.commons.geometry.core.internal.DoubleFunction1N;
 import org.apache.commons.geometry.core.internal.SimpleTupleFormat;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.twod.PolarCoordinates;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.numbers.angle.PlaneAngle;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 
 /** This class represents a point on the 1-sphere, or in other words, an
  * azimuth angle on a circle. The value of the azimuth angle is not normalized
@@ -206,7 +206,7 @@ public final class Point1S implements Point<Point1S> {
      */
     public Point1S normalize(final double center) {
         if (isFinite()) {
-            final double az = PlaneAngleRadians.normalize(azimuth, center);
+            final double az = PlaneAngleRadians.normalizer(center).applyAsDouble(azimuth);
             return new Point1S(az, normalizedAzimuth);
         }
         throw new IllegalArgumentException("Cannot normalize azimuth value: " + azimuth);
@@ -233,7 +233,7 @@ public final class Point1S implements Point<Point1S> {
      * @param precision precision context used for floating point comparisons
      * @return true if this instance is equivalent to the argument
      */
-    public boolean eq(final Point1S other, final DoublePrecisionContext precision) {
+    public boolean eq(final Point1S other, final Precision.DoubleEquivalence precision) {
         final double dist = signedDistance(other);
         return precision.eqZero(dist);
     }

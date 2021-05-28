@@ -27,11 +27,10 @@ import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.SplitLocation;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.twod.path.LinePath;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -39,8 +38,8 @@ public class ConvexAreaTest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     @Test
     public void testFull() {
@@ -345,7 +344,7 @@ public class ConvexAreaTest {
         // to floating point errors).
 
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-2);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-2);
 
         final Vector2D p1 = Vector2D.ZERO;
         final Vector2D p2 = Vector2D.of(0.99, 0);
@@ -790,7 +789,7 @@ public class ConvexAreaTest {
         // the boundaries split by the splitter all lies on a single side.
 
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-10);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-10);
 
         final Vector2D p1 = Vector2D.of(-100.27622744776312, -39.236143934478704);
         final Vector2D p2 = Vector2D.of(-100.23149336840831, -39.28090397981739);
@@ -880,7 +879,7 @@ public class ConvexAreaTest {
     @Test
     public void testConvexPolygonFromVertices_notEnoughUniqueVertices() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-3);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-3);
 
         final Pattern unclosedPattern = Pattern.compile("Cannot construct convex polygon from unclosed path.*");
         final Pattern notEnoughElementsPattern =
@@ -980,7 +979,7 @@ public class ConvexAreaTest {
     public void testConvexPolygonFromVertices_handlesDuplicatePoints() {
         // arrange
         final double eps = 1e-3;
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(eps);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
 
         // act
         final ConvexArea area = ConvexArea.convexPolygonFromVertices(Arrays.asList(

@@ -23,10 +23,9 @@ import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.partitioning.HyperplaneConvexSubset;
 import org.apache.commons.geometry.core.partitioning.HyperplaneLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.spherical.SphericalTestUtils;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -34,8 +33,8 @@ public class CutAngleTest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     @Test
     public void testFromAzimuthAndDirection() {
@@ -275,7 +274,7 @@ public class CutAngleTest {
     @Test
     public void testEq() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-3);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-3);
 
         final CutAngle a = CutAngles.fromPointAndDirection(Point1S.ZERO, true, precision);
 
@@ -304,7 +303,7 @@ public class CutAngleTest {
     @Test
     public void testHashCode() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-3);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-3);
 
         final CutAngle a = CutAngles.fromPointAndDirection(Point1S.ZERO, true, TEST_PRECISION);
         final CutAngle b = CutAngles.fromPointAndDirection(Point1S.PI, true, TEST_PRECISION);
@@ -327,7 +326,7 @@ public class CutAngleTest {
     @Test
     public void testEquals() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-3);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-3);
 
         final CutAngle a = CutAngles.fromPointAndDirection(Point1S.ZERO, true, TEST_PRECISION);
         final CutAngle b = CutAngles.fromPointAndDirection(Point1S.PI, true, TEST_PRECISION);
@@ -361,7 +360,7 @@ public class CutAngleTest {
     @Test
     public void testSubset_split() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-3);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-3);
 
         final CutAngle pt = CutAngles.createPositiveFacing(-1.5, precision);
         final HyperplaneConvexSubset<Point1S> sub = pt.span();
@@ -408,7 +407,7 @@ public class CutAngleTest {
     @Test
     public void testSubset_classify() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-1);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-1);
         final CutAngle pt = CutAngles.createPositiveFacing(1, precision);
         final HyperplaneConvexSubset<Point1S> sub = pt.span();
 
@@ -427,7 +426,7 @@ public class CutAngleTest {
     @Test
     public void testSubset_contains() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-1);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-1);
         final CutAngle pt = CutAngles.createPositiveFacing(1, precision);
         final HyperplaneConvexSubset<Point1S> sub = pt.span();
 
@@ -446,7 +445,7 @@ public class CutAngleTest {
     @Test
     public void testSubset_closestContained() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-1);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-1);
         final CutAngle pt = CutAngles.createPositiveFacing(1, precision);
         final HyperplaneConvexSubset<Point1S> sub = pt.span();
 
@@ -509,9 +508,9 @@ public class CutAngleTest {
         checkCutAngle(angle, az, positiveFacing, TEST_PRECISION);
     }
 
-    private static void checkCutAngle(final CutAngle angle, final double az, final boolean positiveFacing, final DoublePrecisionContext precision) {
+    private static void checkCutAngle(final CutAngle angle, final double az, final boolean positiveFacing, final Precision.DoubleEquivalence precision) {
         Assertions.assertEquals(az, angle.getAzimuth(), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.normalizeBetweenZeroAndTwoPi(az), angle.getNormalizedAzimuth(), TEST_EPS);
+        Assertions.assertEquals(PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(az), angle.getNormalizedAzimuth(), TEST_EPS);
         Assertions.assertEquals(az, angle.getPoint().getAzimuth(), TEST_EPS);
         Assertions.assertEquals(positiveFacing, angle.isPositiveFacing());
 

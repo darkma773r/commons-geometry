@@ -22,13 +22,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.threed.line.Line3D;
 import org.apache.commons.geometry.euclidean.threed.line.Lines3D;
 import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -36,8 +35,8 @@ public class PlaneTest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     @Test
     public void testFromNormal() {
@@ -897,7 +896,7 @@ public class PlaneTest {
     public void testEq() {
         // arrange
         final double eps = 1e-3;
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(eps);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
 
         final Vector3D pt = Vector3D.of(1, 2, 3);
         final Vector3D normal = Vector3D.Unit.PLUS_X;
@@ -911,7 +910,7 @@ public class PlaneTest {
         final Plane c = Planes.fromPointAndNormal(pt, Vector3D.Unit.MINUS_X, precision);
         final Plane d = Planes.fromPointAndNormal(pt, normal, TEST_PRECISION);
 
-        final Plane e = Planes.fromPointAndNormal(ptPrime, normalPrime, new EpsilonDoublePrecisionContext(eps));
+        final Plane e = Planes.fromPointAndNormal(ptPrime, normalPrime, Precision.doubleEquivalenceOfEpsilon(eps));
 
         // act/assert
         Assertions.assertTrue(a.eq(a, precision));
@@ -933,7 +932,7 @@ public class PlaneTest {
         final Plane a = Planes.fromPointAndNormal(pt, normal, TEST_PRECISION);
         final Plane b = Planes.fromPointAndNormal(Vector3D.of(2, 2, 3), normal, TEST_PRECISION);
         final Plane c = Planes.fromPointAndNormal(pt, Vector3D.of(1, 1, 0), TEST_PRECISION);
-        final Plane d = Planes.fromPointAndNormal(pt, normal, new EpsilonDoublePrecisionContext(1e-8));
+        final Plane d = Planes.fromPointAndNormal(pt, normal, Precision.doubleEquivalenceOfEpsilon(1e-8));
         final Plane e = Planes.fromPointAndNormal(pt, normal, TEST_PRECISION);
 
         // act/assert
@@ -957,7 +956,7 @@ public class PlaneTest {
         final Plane a = Planes.fromPointAndNormal(pt, normal, TEST_PRECISION);
         final Plane b = Planes.fromPointAndNormal(Vector3D.of(2, 2, 3), normal, TEST_PRECISION);
         final Plane c = Planes.fromPointAndNormal(pt, Vector3D.Unit.MINUS_X, TEST_PRECISION);
-        final Plane d = Planes.fromPointAndNormal(pt, normal, new EpsilonDoublePrecisionContext(1e-8));
+        final Plane d = Planes.fromPointAndNormal(pt, normal, Precision.doubleEquivalenceOfEpsilon(1e-8));
         final Plane e = Planes.fromPointAndNormal(pt, normal, TEST_PRECISION);
 
         // act/assert

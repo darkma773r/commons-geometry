@@ -257,9 +257,9 @@ public abstract class AbstractLinePathConnector
 
                     if (cmp == 0) {
                         // sort by line angle
-                        final double aAngle = PlaneAngleRadians.normalizeBetweenMinusPiAndPi(
+                        final double aAngle = PlaneAngleRadians.WITHIN_MINUS_PI_AND_PI.applyAsDouble(
                                 this.getLineSubset().getLine().getAngle());
-                        final double bAngle = PlaneAngleRadians.normalizeBetweenMinusPiAndPi(
+                        final double bAngle = PlaneAngleRadians.WITHIN_MINUS_PI_AND_PI.applyAsDouble(
                                 other.getLineSubset().getLine().getAngle());
 
                         cmp = Double.compare(aAngle, bAngle);

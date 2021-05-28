@@ -26,13 +26,12 @@ import java.util.stream.Stream;
 import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.SplitLocation;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.spherical.SphericalTestUtils;
 import org.apache.commons.geometry.spherical.oned.Point1S;
 import org.apache.commons.geometry.spherical.twod.RegionBSPTree2S.RegionNode2S;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -44,8 +43,8 @@ public class RegionBSPTree2STest {
     // or very small regions
     private static final double CENTROID_EPS = 1e-5;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     private static final GreatCircle EQUATOR = GreatCircles.fromPoleAndU(
             Vector3D.Unit.PLUS_Z, Vector3D.Unit.PLUS_X, TEST_PRECISION);
@@ -1034,7 +1033,7 @@ public class RegionBSPTree2STest {
         }
     }
 
-    private static RegionBSPTree2S latLongToTree(final DoublePrecisionContext precision, final double[][] points) {
+    private static RegionBSPTree2S latLongToTree(final Precision.DoubleEquivalence precision, final double[][] points) {
         final GreatArcPath.Builder pathBuilder = GreatArcPath.builder(precision);
 
         for (final double[] point : points) {
@@ -1135,7 +1134,7 @@ public class RegionBSPTree2STest {
     }
 
     private static RegionBSPTree2S circleToPolygon(final Point2S center, final double radius, final int numPts,
-                                                   final boolean clockwise, final DoublePrecisionContext precision) {
+                                                   final boolean clockwise, final Precision.DoubleEquivalence precision) {
         final List<Point2S> pts = new ArrayList<>(numPts);
 
         // get an arbitrary point on the circle boundary

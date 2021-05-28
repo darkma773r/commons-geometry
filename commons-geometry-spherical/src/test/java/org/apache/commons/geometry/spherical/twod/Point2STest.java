@@ -20,11 +20,10 @@ package org.apache.commons.geometry.spherical.twod;
 import java.util.Comparator;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.spherical.SphericalTestUtils;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -255,8 +254,8 @@ public class Point2STest {
     @Test
     public void testEq() {
         // arrange
-        final DoublePrecisionContext smallEps = new EpsilonDoublePrecisionContext(1e-5);
-        final DoublePrecisionContext largeEps = new EpsilonDoublePrecisionContext(5e-1);
+        final Precision.DoubleEquivalence smallEps = Precision.doubleEquivalenceOfEpsilon(1e-5);
+        final Precision.DoubleEquivalence largeEps = Precision.doubleEquivalenceOfEpsilon(5e-1);
 
         final Point2S a = Point2S.of(1.0, 2.0);
         final Point2S b = Point2S.of(1.0, 2.01);

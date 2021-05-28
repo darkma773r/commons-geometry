@@ -22,10 +22,9 @@ import org.apache.commons.geometry.core.Region;
 import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.SplitLocation;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -33,8 +32,8 @@ public class RegionBSPTree1STest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     private static final Transform1S HALF_PI_PLUS_AZ = Transform1S.createRotation(PlaneAngleRadians.PI_OVER_TWO);
 
@@ -148,7 +147,7 @@ public class RegionBSPTree1STest {
 
             Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, tree.getSize(), TEST_EPS);
             Assertions.assertEquals(0, tree.getBoundarySize(), TEST_EPS);
-            Assertions.assertEquals(PlaneAngleRadians.normalizeBetweenZeroAndTwoPi(theta + (0.25 * PlaneAngleRadians.PI)),
+            Assertions.assertEquals(PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(theta + (0.25 * PlaneAngleRadians.PI)),
                     tree.getCentroid().getNormalizedAzimuth(), TEST_EPS);
         }
     }
@@ -914,8 +913,8 @@ public class RegionBSPTree1STest {
     }
 
     private static void checkInterval(final AngularInterval interval, final double min, final double max) {
-        final double normalizedMin = PlaneAngleRadians.normalizeBetweenZeroAndTwoPi(min);
-        final double normalizedMax = PlaneAngleRadians.normalizeBetweenZeroAndTwoPi(max);
+        final double normalizedMin = PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(min);
+        final double normalizedMax = PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(max);
 
         if (TEST_PRECISION.eq(normalizedMin, normalizedMax)) {
             Assertions.assertTrue(interval.isFull());

@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.core.RegionLocation;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.threed.Bounds3D;
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
@@ -39,6 +37,7 @@ import org.apache.commons.geometry.euclidean.threed.line.LinecastPoint3D;
 import org.apache.commons.geometry.euclidean.threed.line.Lines3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.apache.commons.rng.UniformRandomProvider;
 import org.apache.commons.rng.simple.RandomSource;
 import org.junit.jupiter.api.Assertions;
@@ -48,8 +47,8 @@ public class SphereTest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     @Test
     public void testFrom() {
@@ -81,7 +80,7 @@ public class SphereTest {
     @Test
     public void testFrom_illegalRadius() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-2);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-2);
 
         // act/assert
         Assertions.assertThrows(IllegalArgumentException.class, () -> Sphere.from(Vector3D.ZERO, -1, TEST_PRECISION));
@@ -364,7 +363,7 @@ public class SphereTest {
     public void testToTree_randomSpheres() {
         // arrange
         final UniformRandomProvider rand = RandomSource.create(RandomSource.XO_RO_SHI_RO_128_PP, 1L);
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-10);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-10);
         final double min = 1e-1;
         final double max = 1e2;
 
@@ -414,7 +413,7 @@ public class SphereTest {
     @Test
     public void testToTree_subdivideFails() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-5);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-5);
         final Sphere s = Sphere.from(Vector3D.ZERO, 1, precision);
 
         // act/assert
@@ -500,7 +499,7 @@ public class SphereTest {
     @Test
     public void testHashCode() {
         // arrange
-        final DoublePrecisionContext otherPrecision = new EpsilonDoublePrecisionContext(1e-2);
+        final Precision.DoubleEquivalence otherPrecision = Precision.doubleEquivalenceOfEpsilon(1e-2);
 
         final Sphere a = Sphere.from(Vector3D.of(1, 2, 3), 3, TEST_PRECISION);
         final Sphere b = Sphere.from(Vector3D.of(1, 1, 3), 3, TEST_PRECISION);
@@ -524,7 +523,7 @@ public class SphereTest {
     @Test
     public void testEquals() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-2);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-2);
 
         final Sphere a = Sphere.from(Vector3D.of(1, 2, 3), 3, TEST_PRECISION);
         final Sphere b = Sphere.from(Vector3D.of(1, 1, 3), 3, TEST_PRECISION);

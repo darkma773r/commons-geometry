@@ -29,9 +29,9 @@ import org.apache.commons.geometry.core.partitioning.HyperplaneSubset;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.bsp.AbstractBSPTree;
 import org.apache.commons.geometry.core.partitioning.bsp.AbstractRegionBSPTree;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 
 /** BSP tree representing regions in 1D spherical space.
  */
@@ -289,7 +289,7 @@ public class RegionBSPTree1S extends AbstractRegionBSPTree<Point1S, RegionBSPTre
         CutAngle min = start.getMin();
         CutAngle max = end.getMax();
 
-        final DoublePrecisionContext precision = (min != null) ? min.getPrecision() : max.getPrecision();
+        final Precision.DoubleEquivalence precision = (min != null) ? min.getPrecision() : max.getPrecision();
 
         // flip the hyperplanes if needed since there's no
         // guarantee that the inside will be on the minus side
@@ -366,7 +366,7 @@ public class RegionBSPTree1S extends AbstractRegionBSPTree<Point1S, RegionBSPTre
             scaledCentroidSum = scaledCentroidSum.add(interval.getCentroid().getVector().withNorm(intervalSize));
         }
 
-        final DoublePrecisionContext precision = ((CutAngle) getRoot().getCutHyperplane()).getPrecision();
+        final Precision.DoubleEquivalence precision = ((CutAngle) getRoot().getCutHyperplane()).getPrecision();
 
         final Point1S centroid = scaledCentroidSum.eq(Vector2D.ZERO, precision) ?
                  null :

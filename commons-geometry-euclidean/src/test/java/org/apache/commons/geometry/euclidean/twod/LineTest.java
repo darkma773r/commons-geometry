@@ -17,13 +17,12 @@
 package org.apache.commons.geometry.euclidean.twod;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.oned.AffineTransformMatrix1D;
 import org.apache.commons.geometry.euclidean.oned.Vector1D;
 import org.apache.commons.geometry.euclidean.twod.Line.SubspaceTransform;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -31,8 +30,8 @@ public class LineTest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     @Test
     public void testFromPoints() {
@@ -110,7 +109,7 @@ public class LineTest {
             final Line line = Lines.fromPointAndAngle(vec, theta, TEST_PRECISION);
 
             // act/assert
-            Assertions.assertEquals(PlaneAngleRadians.normalizeBetweenZeroAndTwoPi(theta),
+            Assertions.assertEquals(PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(theta),
                     line.getAngle(), TEST_EPS);
         }
     }
@@ -873,7 +872,7 @@ public class LineTest {
     public void testIsParallel_closeToEpsilon() {
         // arrange
         final double eps = 1e-3;
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(eps);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
 
         final Vector2D p = Vector2D.of(1, 2);
 
@@ -924,7 +923,7 @@ public class LineTest {
     public void testContains_point_closeToEpsilon() {
         // arrange
         final double eps = 1e-3;
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(eps);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
 
         final Vector2D p1 = Vector2D.of(-1, 0);
         final Vector2D p2 = Vector2D.of(0, 2);
@@ -1005,7 +1004,7 @@ public class LineTest {
     public void testIsParallel_closeToParallel() {
         // arrange
         final double eps = 1e-3;
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(eps);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
 
         final Vector2D p1 = Vector2D.of(1, 2);
         final Vector2D p2 = Vector2D.of(1, -2);
@@ -1128,7 +1127,7 @@ public class LineTest {
     @Test
     public void testEq() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-3);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-3);
 
         final Vector2D p = Vector2D.of(1, 2);
         final double angle = 1.0;
@@ -1160,8 +1159,8 @@ public class LineTest {
     @Test
     public void testHashCode() {
         // arrange
-        final DoublePrecisionContext precision1 = new EpsilonDoublePrecisionContext(1e-4);
-        final DoublePrecisionContext precision2 = new EpsilonDoublePrecisionContext(1e-5);
+        final Precision.DoubleEquivalence precision1 = Precision.doubleEquivalenceOfEpsilon(1e-4);
+        final Precision.DoubleEquivalence precision2 = Precision.doubleEquivalenceOfEpsilon(1e-5);
 
         final Vector2D p = Vector2D.of(1, 2);
         final Vector2D v = Vector2D.of(1, 1);
@@ -1186,8 +1185,8 @@ public class LineTest {
     @Test
     public void testEquals() {
      // arrange
-        final DoublePrecisionContext precision1 = new EpsilonDoublePrecisionContext(1e-4);
-        final DoublePrecisionContext precision2 = new EpsilonDoublePrecisionContext(1e-5);
+        final Precision.DoubleEquivalence precision1 = Precision.doubleEquivalenceOfEpsilon(1e-4);
+        final Precision.DoubleEquivalence precision2 = Precision.doubleEquivalenceOfEpsilon(1e-5);
 
         final Vector2D p = Vector2D.of(1, 2);
         final Vector2D v = Vector2D.of(1, 1);

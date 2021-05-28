@@ -24,9 +24,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.threed.AffineTransformMatrix3D;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
@@ -36,6 +35,7 @@ import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Triangle3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -43,8 +43,8 @@ public class SimpleTriangleMeshTest {
 
     private static final double TEST_EPS = 1e-10;
 
-    private static final DoublePrecisionContext TEST_PRECISION =
-            new EpsilonDoublePrecisionContext(TEST_EPS);
+    private static final Precision.DoubleEquivalence TEST_PRECISION =
+            Precision.doubleEquivalenceOfEpsilon(TEST_EPS);
 
     @Test
     public void testFrom_verticesAndFaces() {
@@ -309,9 +309,9 @@ public class SimpleTriangleMeshTest {
     @Test
     public void testToTriangleMesh() {
         // arrange
-        final DoublePrecisionContext precision1 = new EpsilonDoublePrecisionContext(1e-1);
-        final DoublePrecisionContext precision2 = new EpsilonDoublePrecisionContext(1e-2);
-        final DoublePrecisionContext precision3 = new EpsilonDoublePrecisionContext(1e-1);
+        final Precision.DoubleEquivalence precision1 = Precision.doubleEquivalenceOfEpsilon(1e-1);
+        final Precision.DoubleEquivalence precision2 = Precision.doubleEquivalenceOfEpsilon(1e-2);
+        final Precision.DoubleEquivalence precision3 = Precision.doubleEquivalenceOfEpsilon(1e-1);
 
         final SimpleTriangleMesh mesh = SimpleTriangleMesh.from(Parallelepiped.unitCube(TEST_PRECISION), precision1);
 
@@ -332,7 +332,7 @@ public class SimpleTriangleMeshTest {
     @Test
     public void testFace_doesNotDefineTriangle() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-1);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-1);
         final Vector3D[] vertices = {
             Vector3D.ZERO,
             Vector3D.of(0.01, -0.01, 0.01),
@@ -450,7 +450,7 @@ public class SimpleTriangleMeshTest {
     @Test
     public void testBuilder_mixedBuildMethods() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-1);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-1);
         final SimpleTriangleMesh.Builder builder = SimpleTriangleMesh.builder(precision);
 
         // act

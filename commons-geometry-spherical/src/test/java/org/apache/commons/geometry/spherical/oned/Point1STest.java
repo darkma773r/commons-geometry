@@ -19,12 +19,11 @@ package org.apache.commons.geometry.spherical.oned;
 import java.util.Comparator;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
-import org.apache.commons.geometry.core.precision.EpsilonDoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.twod.PolarCoordinates;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.numbers.angle.PlaneAngle;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -227,8 +226,8 @@ public class Point1STest {
     @Test
     public void testEq() {
         // arrange
-        final DoublePrecisionContext highPrecision = new EpsilonDoublePrecisionContext(1e-10);
-        final DoublePrecisionContext lowPrecision = new EpsilonDoublePrecisionContext(1e-2);
+        final Precision.DoubleEquivalence highPrecision = Precision.doubleEquivalenceOfEpsilon(1e-10);
+        final Precision.DoubleEquivalence lowPrecision = Precision.doubleEquivalenceOfEpsilon(1e-2);
 
         final Point1S a = Point1S.of(1);
         final Point1S b = Point1S.of(0.9999);
@@ -252,7 +251,7 @@ public class Point1STest {
     @Test
     public void testEq_wrapAround() {
         // arrange
-        final DoublePrecisionContext precision = new EpsilonDoublePrecisionContext(1e-2);
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-2);
 
         final Point1S a = Point1S.ZERO;
         final Point1S b = Point1S.of(1e-3);
@@ -340,8 +339,8 @@ public class Point1STest {
             // arrange
             final Point1S pt = Point1S.of(az);
 
-            final double expectedPiNorm = PlaneAngleRadians.normalizeBetweenZeroAndTwoPi(az);
-            final double expectedZeroNorm = PlaneAngleRadians.normalizeBetweenMinusPiAndPi(az);
+            final double expectedPiNorm = PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(az);
+            final double expectedZeroNorm = PlaneAngleRadians.WITHIN_MINUS_PI_AND_PI.applyAsDouble(az);
 
             // act
             final Point1S piNorm = pt.normalize(Point1S.PI);
@@ -447,7 +446,7 @@ public class Point1STest {
     }
 
     private static void checkPoint(final Point1S pt, final double az) {
-        checkPoint(pt, az, PlaneAngleRadians.normalizeBetweenZeroAndTwoPi(az));
+        checkPoint(pt, az, PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(az));
     }
 
     private static void checkPoint(final Point1S pt, final double az, final double normAz) {

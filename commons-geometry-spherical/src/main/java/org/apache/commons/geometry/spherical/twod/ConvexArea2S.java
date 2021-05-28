@@ -30,9 +30,9 @@ import org.apache.commons.geometry.core.partitioning.AbstractConvexHyperplaneBou
 import org.apache.commons.geometry.core.partitioning.Hyperplane;
 import org.apache.commons.geometry.core.partitioning.HyperplaneConvexSubset;
 import org.apache.commons.geometry.core.partitioning.Split;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.core.Precision;
 
 /** Class representing a convex area in 2D spherical space. The boundaries of this
  * area, if any, are composed of convex great circle arcs.
@@ -211,10 +211,10 @@ public final class ConvexArea2S extends AbstractConvexHyperplaneBoundedRegion<Po
      * @param vertices vertices to use to construct the area
      * @param precision precision context used to create new great circle instances
      * @return a convex area constructed using great circles between adjacent vertices
-     * @see #fromVertexLoop(Collection, DoublePrecisionContext)
+     * @see #fromVertexLoop(Collection, Precision.DoubleEquivalence)
      */
     public static ConvexArea2S fromVertices(final Collection<Point2S> vertices,
-            final DoublePrecisionContext precision) {
+            final Precision.DoubleEquivalence precision) {
         return fromVertices(vertices, false, precision);
     }
 
@@ -224,10 +224,10 @@ public final class ConvexArea2S extends AbstractConvexHyperplaneBoundedRegion<Po
      * @param vertices vertices to use to construct the area
      * @param precision precision context used to create new great circles instances
      * @return a convex area constructed using great circles between adjacent vertices
-     * @see #fromVertices(Collection, DoublePrecisionContext)
+     * @see #fromVertices(Collection, Precision.DoubleEquivalence)
      */
     public static ConvexArea2S fromVertexLoop(final Collection<Point2S> vertices,
-            final DoublePrecisionContext precision) {
+            final Precision.DoubleEquivalence precision) {
         return fromVertices(vertices, true, precision);
     }
 
@@ -238,7 +238,7 @@ public final class ConvexArea2S extends AbstractConvexHyperplaneBoundedRegion<Po
      * @return a convex area constructed using great circles between adjacent vertices
      */
     public static ConvexArea2S fromVertices(final Collection<Point2S> vertices, final boolean close,
-            final DoublePrecisionContext precision) {
+            final Precision.DoubleEquivalence precision) {
 
         if (vertices.isEmpty()) {
             return full();

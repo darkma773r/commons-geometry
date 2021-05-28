@@ -188,7 +188,7 @@ public class QuaternionRotationTest {
             Assertions.assertTrue(angle >= 0.0);
             Assertions.assertTrue(angle <= PlaneAngleRadians.PI);
 
-            double expected = PlaneAngleRadians.normalizeBetweenMinusPiAndPi(theta);
+            double expected = PlaneAngleRadians.WITHIN_MINUS_PI_AND_PI.applyAsDouble(theta);
             if (PLUS_DIAGONAL.dot(rot.getAxis()) < 0) {
                 // if the axis ended up being flipped, then negate the expected angle
                 expected *= -1;
@@ -1566,7 +1566,7 @@ public class QuaternionRotationTest {
      * @param actual
      */
     private static void assertRadiansEquals(final double expected, final double actual) {
-        final double diff = PlaneAngleRadians.normalizeBetweenMinusPiAndPi(expected - actual);
+        final double diff = PlaneAngleRadians.WITHIN_MINUS_PI_AND_PI.applyAsDouble(expected - actual);
         final String msg = "Expected " + actual + " radians to be equivalent to " + expected + " radians; difference is " + diff;
 
         Assertions.assertTrue(Math.abs(diff) < 1e-6, msg);

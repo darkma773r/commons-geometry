@@ -233,7 +233,7 @@ public final class PolarCoordinates implements Spatial {
      */
     public static double normalizeAzimuth(final double azimuth) {
         if (Double.isFinite(azimuth)) {
-            return PlaneAngleRadians.normalizeBetweenZeroAndTwoPi(azimuth);
+            return PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(azimuth);
         }
 
         return azimuth;

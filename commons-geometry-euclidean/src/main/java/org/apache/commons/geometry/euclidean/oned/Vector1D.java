@@ -20,11 +20,11 @@ import java.util.Comparator;
 import java.util.function.UnaryOperator;
 
 import org.apache.commons.geometry.core.internal.SimpleTupleFormat;
-import org.apache.commons.geometry.core.precision.DoublePrecisionContext;
 import org.apache.commons.geometry.euclidean.EuclideanVector;
 import org.apache.commons.geometry.euclidean.internal.Vectors;
 import org.apache.commons.numbers.angle.PlaneAngleRadians;
 import org.apache.commons.numbers.arrays.LinearCombination;
+import org.apache.commons.numbers.core.Precision;
 
 /** This class represents vectors and points in one-dimensional Euclidean space.
  * Instances of this class are guaranteed to be immutable.
@@ -244,7 +244,7 @@ public class Vector1D extends EuclideanVector<Vector1D> {
 
     /** {@inheritDoc} */
     @Override
-    public boolean eq(final Vector1D vec, final DoublePrecisionContext precision) {
+    public boolean eq(final Vector1D vec, final Precision.DoubleEquivalence precision) {
         return precision.eq(x, vec.x);
     }
 
