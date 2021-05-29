@@ -74,7 +74,8 @@ public final class OrientedPoints {
      * @param precision precision context used to compare floating point values
      * @return a new instance oriented toward positive infinity
      */
-    public static OrientedPoint createPositiveFacing(final Vector1D point, final Precision.DoubleEquivalence precision) {
+    public static OrientedPoint createPositiveFacing(final Vector1D point,
+            final Precision.DoubleEquivalence precision) {
         return new OrientedPoint(point, true, precision);
     }
 
@@ -83,7 +84,8 @@ public final class OrientedPoints {
      * @param precision precision context used to compare floating point values
      * @return a new instance oriented toward positive infinity
      */
-    public static OrientedPoint createPositiveFacing(final double location, final Precision.DoubleEquivalence precision) {
+    public static OrientedPoint createPositiveFacing(final double location,
+            final Precision.DoubleEquivalence precision) {
         return new OrientedPoint(Vector1D.of(location), true, precision);
     }
 
@@ -92,7 +94,8 @@ public final class OrientedPoints {
      * @param precision precision context used to compare floating point values
      * @return a new instance oriented toward negative infinity
      */
-    public static OrientedPoint createNegativeFacing(final Vector1D point, final Precision.DoubleEquivalence precision) {
+    public static OrientedPoint createNegativeFacing(final Vector1D point,
+            final Precision.DoubleEquivalence precision) {
         return new OrientedPoint(point, false, precision);
     }
 
@@ -101,7 +104,8 @@ public final class OrientedPoints {
      * @param precision precision context used to compare floating point values
      * @return a new instance oriented toward negative infinity
      */
-    public static OrientedPoint createNegativeFacing(final double location, final Precision.DoubleEquivalence precision) {
+    public static OrientedPoint createNegativeFacing(final double location,
+            final Precision.DoubleEquivalence precision) {
         return new OrientedPoint(Vector1D.of(location), false, precision);
     }
 }

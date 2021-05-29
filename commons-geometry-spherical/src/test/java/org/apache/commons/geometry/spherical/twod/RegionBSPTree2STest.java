@@ -505,7 +505,7 @@ public class RegionBSPTree2STest {
         final List<GreatArcPath> paths = tree.getBoundaryPaths();
         Assertions.assertEquals(1, paths.size());
 
-        assertPath(paths.get(0), Point2S.MINUS_J, Point2S.MINUS_K, Point2S.PLUS_I, Point2S.MINUS_J);
+        assertPath(paths.get(0), Point2S.PLUS_I, Point2S.MINUS_J,  Point2S.MINUS_K, Point2S.PLUS_I);
 
         SphericalTestUtils.checkClassify(tree, RegionLocation.INSIDE,
                 Point2S.of(1.75 * PlaneAngleRadians.PI, 0.75 * PlaneAngleRadians.PI));
@@ -539,7 +539,7 @@ public class RegionBSPTree2STest {
         final List<GreatArcPath> paths = tree.getBoundaryPaths();
         Assertions.assertEquals(1, paths.size());
 
-        assertPath(paths.get(0), Point2S.MINUS_J, Point2S.PLUS_I, Point2S.MINUS_K, Point2S.MINUS_J);
+        assertPath(paths.get(0), Point2S.PLUS_I, Point2S.MINUS_K, Point2S.MINUS_J, Point2S.PLUS_I);
 
         SphericalTestUtils.checkClassify(tree, RegionLocation.OUTSIDE,
                 Point2S.of(1.75 * PlaneAngleRadians.PI, 0.75 * PlaneAngleRadians.PI));

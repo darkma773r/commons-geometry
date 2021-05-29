@@ -311,7 +311,6 @@ public class SimpleTriangleMeshTest {
         // arrange
         final Precision.DoubleEquivalence precision1 = Precision.doubleEquivalenceOfEpsilon(1e-1);
         final Precision.DoubleEquivalence precision2 = Precision.doubleEquivalenceOfEpsilon(1e-2);
-        final Precision.DoubleEquivalence precision3 = Precision.doubleEquivalenceOfEpsilon(1e-1);
 
         final SimpleTriangleMesh mesh = SimpleTriangleMesh.from(Parallelepiped.unitCube(TEST_PRECISION), precision1);
 
@@ -326,7 +325,7 @@ public class SimpleTriangleMeshTest {
             Assertions.assertArrayEquals(mesh.getFace(i).getVertexIndices(), other.getFace(i).getVertexIndices());
         }
 
-        Assertions.assertSame(mesh, mesh.toTriangleMesh(precision3));
+        Assertions.assertSame(mesh, mesh.toTriangleMesh(precision1));
     }
 
     @Test

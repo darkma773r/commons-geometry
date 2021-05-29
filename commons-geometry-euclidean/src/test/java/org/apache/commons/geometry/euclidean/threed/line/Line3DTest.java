@@ -524,7 +524,7 @@ public class Line3DTest {
         final Line3D c = Lines3D.fromPointAndDirection(Vector3D.of(1, 2, 3), Vector3D.of(4, 5, -1), TEST_PRECISION);
         final Line3D d = Lines3D.fromPointAndDirection(Vector3D.of(1, 2, 3), Vector3D.of(4, 5, 6), Precision.doubleEquivalenceOfEpsilon(TEST_EPS + 1e-3));
 
-        final Line3D e = Lines3D.fromPointAndDirection(Vector3D.of(1, 2, 3), Vector3D.of(4, 5, 6), Precision.doubleEquivalenceOfEpsilon(TEST_EPS));
+        final Line3D e = Lines3D.fromPointAndDirection(Vector3D.of(1, 2, 3), Vector3D.of(4, 5, 6), TEST_PRECISION);
 
         final int hash = a.hashCode();
 
@@ -546,7 +546,7 @@ public class Line3DTest {
         final Line3D c = Lines3D.fromPointAndDirection(Vector3D.of(1, 2, 3), Vector3D.of(4, 5, -1), TEST_PRECISION);
         final Line3D d = Lines3D.fromPointAndDirection(Vector3D.of(1, 2, 3), Vector3D.of(4, 5, 6), Precision.doubleEquivalenceOfEpsilon(TEST_EPS + 1e-3));
 
-        final Line3D e = Lines3D.fromPointAndDirection(Vector3D.of(1, 2, 3), Vector3D.of(4, 5, 6), Precision.doubleEquivalenceOfEpsilon(TEST_EPS));
+        final Line3D e = Lines3D.fromPointAndDirection(Vector3D.of(1, 2, 3), Vector3D.of(4, 5, 6), TEST_PRECISION);
 
         // act/assert
         GeometryTestUtils.assertSimpleEqualsCases(a);

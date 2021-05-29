@@ -268,7 +268,8 @@ public final class SimpleTriangleMesh implements TriangleMesh {
      * @throws IllegalStateException if any boundary in the boundary source has infinite size and cannot
      *      be converted to triangles
      */
-    public static SimpleTriangleMesh from(final BoundarySource3D boundarySrc, final Precision.DoubleEquivalence precision) {
+    public static SimpleTriangleMesh from(final BoundarySource3D boundarySrc,
+            final Precision.DoubleEquivalence precision) {
         final Builder builder = builder(precision);
         try (Stream<Triangle3D> stream = boundarySrc.triangleStream()) {
             stream.forEach(tri -> builder.addFaceUsingVertices(
