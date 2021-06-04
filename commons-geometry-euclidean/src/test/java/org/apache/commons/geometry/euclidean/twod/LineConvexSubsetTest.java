@@ -23,7 +23,7 @@ import org.apache.commons.geometry.core.partitioning.HyperplaneLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.oned.Interval;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -245,7 +245,7 @@ public class LineConvexSubsetTest {
         final Segment bSeg = Lines.segmentFromPoints(Vector2D.of(-1, -1), Vector2D.of(1, 1), TEST_PRECISION);
 
         final Line xAxis = Lines.fromPointAndAngle(Vector2D.ZERO, 0.0, TEST_PRECISION);
-        final Line yAxis = Lines.fromPointAndAngle(Vector2D.ZERO, PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION);
+        final Line yAxis = Lines.fromPointAndAngle(Vector2D.ZERO, Angle.PI_OVER_TWO, TEST_PRECISION);
         final Line angledLine = Lines.fromPoints(Vector2D.of(1, 1), Vector2D.of(2, 0), TEST_PRECISION);
 
         // act/assert

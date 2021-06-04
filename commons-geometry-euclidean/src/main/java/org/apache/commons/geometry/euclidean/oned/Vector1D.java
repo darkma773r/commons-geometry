@@ -22,7 +22,6 @@ import java.util.function.UnaryOperator;
 import org.apache.commons.geometry.core.internal.SimpleTupleFormat;
 import org.apache.commons.geometry.euclidean.EuclideanVector;
 import org.apache.commons.geometry.euclidean.internal.Vectors;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
 import org.apache.commons.numbers.arrays.LinearCombination;
 import org.apache.commons.numbers.core.Precision;
 
@@ -230,7 +229,7 @@ public class Vector1D extends EuclideanVector<Vector1D> {
         final double sig2 = Math.signum(v.x);
 
         // the angle is 0 if the x value signs are the same and pi if not
-        return (sig1 == sig2) ? 0.0 : PlaneAngleRadians.PI;
+        return (sig1 == sig2) ? 0.0 : Math.PI;
     }
 
     /** Convenience method to apply a function to this vector. This

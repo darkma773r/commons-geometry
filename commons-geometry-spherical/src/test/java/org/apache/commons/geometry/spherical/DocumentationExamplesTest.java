@@ -29,7 +29,7 @@ import org.apache.commons.geometry.spherical.twod.GreatCircle;
 import org.apache.commons.geometry.spherical.twod.GreatCircles;
 import org.apache.commons.geometry.spherical.twod.Point2S;
 import org.apache.commons.geometry.spherical.twod.RegionBSPTree2S;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -46,8 +46,8 @@ public class DocumentationExamplesTest {
         final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-6);
 
         // create angular intervals of different sizes, one of size pi/2 and one of size 3pi/2
-        final AngularInterval a = AngularInterval.of(0, PlaneAngleRadians.PI_OVER_TWO, precision);
-        final AngularInterval b = AngularInterval.of(Point1S.PI, Point1S.of(PlaneAngleRadians.PI_OVER_TWO), precision);
+        final AngularInterval a = AngularInterval.of(0, Angle.PI_OVER_TWO, precision);
+        final AngularInterval b = AngularInterval.of(Point1S.PI, Point1S.of(Angle.PI_OVER_TWO), precision);
 
         // test some points
         a.contains(Point1S.of(0.25 * Math.PI)); // true

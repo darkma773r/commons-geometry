@@ -24,7 +24,7 @@ import org.apache.commons.geometry.euclidean.oned.Vector1D;
 import org.apache.commons.geometry.euclidean.threed.AffineTransformMatrix3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -255,7 +255,7 @@ public class LineConvexSubset3DTest {
 
         final Transform<Vector3D> transform = AffineTransformMatrix3D.identity()
                 .scale(2, 1, 1)
-                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO));
+                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, Angle.PI_OVER_TWO));
 
         // act
         final LineConvexSubset3D transformed = subset.transform(transform);

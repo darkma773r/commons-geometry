@@ -27,7 +27,6 @@ import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.bsp.AbstractBSPTree;
 import org.apache.commons.geometry.core.partitioning.bsp.AbstractRegionBSPTree;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
 import org.apache.commons.numbers.core.Precision;
 
 /** BSP tree representing regions in 2D spherical space.
@@ -35,7 +34,7 @@ import org.apache.commons.numbers.core.Precision;
 public class RegionBSPTree2S extends AbstractRegionBSPTree<Point2S, RegionBSPTree2S.RegionNode2S>
     implements BoundarySource2S {
     /** Constant containing the area of the full spherical space. */
-    private static final double FULL_SIZE = 4 * PlaneAngleRadians.PI;
+    private static final double FULL_SIZE = 4 * Math.PI;
 
     /** List of great arc path comprising the region boundary. */
     private List<GreatArcPath> boundaryPaths;

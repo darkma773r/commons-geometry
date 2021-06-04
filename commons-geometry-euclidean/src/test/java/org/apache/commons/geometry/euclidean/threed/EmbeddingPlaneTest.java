@@ -22,7 +22,7 @@ import org.apache.commons.geometry.euclidean.threed.EmbeddingPlane.SubspaceTrans
 import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
 import org.apache.commons.geometry.euclidean.twod.AffineTransformMatrix2D;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -121,7 +121,7 @@ public class EmbeddingPlaneTest {
         final EmbeddingPlane plane = Planes.fromPointAndPlaneVectors(pt, Vector3D.Unit.PLUS_Y, Vector3D.Unit.MINUS_X, TEST_PRECISION);
 
         final AffineTransformMatrix3D mat = AffineTransformMatrix3D.createRotation(pt,
-                QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO));
+                QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, Angle.PI_OVER_TWO));
 
         // act
         final EmbeddingPlane result = plane.transform(mat);
@@ -311,7 +311,7 @@ public class EmbeddingPlaneTest {
                 Vector3D.of(0, 0, 5), Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Y,
                 Vector3D.of(2, 3, 5), Vector3D.of(3, 3, 5), Vector3D.of(2, 4, 5));
 
-        checkSubspaceTransform(plane.subspaceTransform(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO)),
+        checkSubspaceTransform(plane.subspaceTransform(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, Angle.PI_OVER_TWO)),
                 Vector3D.of(1, 0, 0), Vector3D.Unit.MINUS_Z, Vector3D.Unit.PLUS_Y,
                 Vector3D.of(1, 0, 0), Vector3D.of(1, 0, -1), Vector3D.of(1, 1, 0));
     }
@@ -339,7 +339,7 @@ public class EmbeddingPlaneTest {
         EuclideanTestUtils.permuteSkipZero(-2, 2, 0.5, (a, b, c) -> {
             // create a somewhat complicate transform to try to hit all of the edge cases
             final AffineTransformMatrix3D transform = AffineTransformMatrix3D.createTranslation(Vector3D.of(a, b, c))
-                    .rotate(QuaternionRotation.fromAxisAngle(Vector3D.of(b, c, a), PlaneAngleRadians.PI * c))
+                    .rotate(QuaternionRotation.fromAxisAngle(Vector3D.of(b, c, a), Math.PI * c))
                     .scale(0.1, 4, 8);
 
             // act

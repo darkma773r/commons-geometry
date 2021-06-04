@@ -31,7 +31,7 @@ import org.apache.commons.geometry.euclidean.twod.ReverseRay;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.geometry.euclidean.twod.path.InteriorAngleLinePathConnector.Maximize;
 import org.apache.commons.geometry.euclidean.twod.path.InteriorAngleLinePathConnector.Minimize;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -121,7 +121,7 @@ public class InteriorAngleLinePathConnectorTest {
 
             final Vector2D pt = Vector2D.of(0, 2);
             final ReverseRay a = Lines.fromPointAndAngle(pt, 0.0, TEST_PRECISION).reverseRayTo(pt);
-            final Ray b = Lines.fromPointAndAngle(pt, PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION).rayFrom(pt);
+            final Ray b = Lines.fromPointAndAngle(pt, Angle.PI_OVER_TWO, TEST_PRECISION).rayFrom(pt);
 
             segments.add(a);
             segments.add(b);

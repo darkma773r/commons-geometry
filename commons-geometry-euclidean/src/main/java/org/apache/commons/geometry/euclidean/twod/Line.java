@@ -25,7 +25,7 @@ import org.apache.commons.geometry.core.partitioning.EmbeddingHyperplane;
 import org.apache.commons.geometry.core.partitioning.Hyperplane;
 import org.apache.commons.geometry.euclidean.oned.AffineTransformMatrix1D;
 import org.apache.commons.geometry.euclidean.oned.Vector1D;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.arrays.LinearCombination;
 import org.apache.commons.numbers.core.Precision;
 
@@ -87,7 +87,7 @@ public final class Line extends AbstractHyperplane<Vector2D>
      */
     public double getAngle() {
         final double angle = Math.atan2(direction.getY(), direction.getX());
-        return PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(angle);
+        return Angle.Rad.WITHIN_0_AND_2PI.applyAsDouble(angle);
     }
 
     /** Get the direction of the line.
@@ -338,7 +338,7 @@ public final class Line extends AbstractHyperplane<Vector2D>
         final double thisAngle = Math.atan2(direction.getY(), direction.getX());
         final double otherAngle = Math.atan2(other.direction.getY(), other.direction.getX());
 
-        return PlaneAngleRadians.WITHIN_MINUS_PI_AND_PI.applyAsDouble(otherAngle - thisAngle);
+        return Angle.Rad.WITHIN_MINUS_PI_AND_PI.applyAsDouble(otherAngle - thisAngle);
     }
 
     /** {@inheritDoc} */

@@ -34,7 +34,7 @@ import org.apache.commons.geometry.euclidean.twod.RegionBSPTree2D;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.geometry.euclidean.twod.path.LinePath;
 import org.apache.commons.geometry.euclidean.twod.shape.Parallelogram;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -1003,7 +1003,7 @@ public class PlanesTest {
 
         final LinePath path = LinePath.from(
                 Lines.fromPointAndAngle(intersectionPt, 0, TEST_PRECISION).reverseRayTo(intersectionPt),
-                Lines.fromPointAndAngle(intersectionPt, PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION)
+                Lines.fromPointAndAngle(intersectionPt, Angle.PI_OVER_TWO, TEST_PRECISION)
                     .rayFrom(intersectionPt));
 
         final EmbeddingPlane plane = Planes.fromPointAndPlaneVectors(Vector3D.of(0, 0, -1),
@@ -1040,7 +1040,7 @@ public class PlanesTest {
 
         final LinePath path = LinePath.from(
                 Lines.fromPointAndAngle(intersectionPt, 0, TEST_PRECISION).reverseRayTo(intersectionPt),
-                Lines.fromPointAndAngle(intersectionPt, PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION)
+                Lines.fromPointAndAngle(intersectionPt, Angle.PI_OVER_TWO, TEST_PRECISION)
                     .rayFrom(intersectionPt));
 
         final EmbeddingPlane plane = Planes.fromPointAndPlaneVectors(Vector3D.of(0, 0, 1),

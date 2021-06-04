@@ -27,7 +27,7 @@ import org.apache.commons.geometry.euclidean.threed.AffineTransformMatrix3D;
 import org.apache.commons.geometry.euclidean.threed.Bounds3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -161,7 +161,7 @@ public class EmbeddedTreeLineSubset3DTest {
         final Transform<Vector3D> transform = AffineTransformMatrix3D.identity()
                 .translate(Vector3D.of(1, 0, 0))
                 .scale(Vector3D.of(2, 1, 1))
-                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO));
+                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, Angle.PI_OVER_TWO));
 
         // act
         final EmbeddedTreeLineSubset3D result = sub.transform(transform);
@@ -191,7 +191,7 @@ public class EmbeddedTreeLineSubset3DTest {
         final Transform<Vector3D> transform = AffineTransformMatrix3D.identity()
                 .translate(Vector3D.of(1, 0, 0))
                 .scale(Vector3D.of(2, 1, 1))
-                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO));
+                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, Angle.PI_OVER_TWO));
 
         // act
         final EmbeddedTreeLineSubset3D result = sub.transform(transform);

@@ -24,7 +24,7 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.spherical.SphericalTestUtils;
 import org.apache.commons.geometry.spherical.oned.AngularInterval;
 import org.apache.commons.geometry.spherical.oned.Point1S;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -60,26 +60,26 @@ public class GreatCircleTest {
     public void testFromPoints() {
         // act/assert
         checkGreatCircle(GreatCircles.fromPoints(
-                    Point2S.of(0, PlaneAngleRadians.PI_OVER_TWO),
-                    Point2S.of(PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO),
+                    Point2S.of(0, Angle.PI_OVER_TWO),
+                    Point2S.of(Angle.PI_OVER_TWO, Angle.PI_OVER_TWO),
                     TEST_PRECISION),
                 Z, X);
 
         checkGreatCircle(GreatCircles.fromPoints(
-                Point2S.of(0, PlaneAngleRadians.PI_OVER_TWO),
-                Point2S.of(-0.1 * PlaneAngleRadians.PI, PlaneAngleRadians.PI_OVER_TWO),
+                Point2S.of(0, Angle.PI_OVER_TWO),
+                Point2S.of(-0.1 * Math.PI, Angle.PI_OVER_TWO),
                 TEST_PRECISION),
             Z.negate(), X);
 
         checkGreatCircle(GreatCircles.fromPoints(
-                Point2S.of(0, PlaneAngleRadians.PI_OVER_TWO),
-                Point2S.of(1.5 * PlaneAngleRadians.PI, PlaneAngleRadians.PI_OVER_TWO),
+                Point2S.of(0, Angle.PI_OVER_TWO),
+                Point2S.of(1.5 * Math.PI, Angle.PI_OVER_TWO),
                 TEST_PRECISION),
             Z.negate(), X);
 
         checkGreatCircle(GreatCircles.fromPoints(
                 Point2S.of(0, 0),
-                Point2S.of(0, PlaneAngleRadians.PI_OVER_TWO),
+                Point2S.of(0, Angle.PI_OVER_TWO),
                 TEST_PRECISION),
             Y, Z);
     }
@@ -87,8 +87,8 @@ public class GreatCircleTest {
     @Test
     public void testFromPoints_invalidPoints() {
         // arrange
-        final Point2S p1 = Point2S.of(0, PlaneAngleRadians.PI_OVER_TWO);
-        final Point2S p2 = Point2S.of(PlaneAngleRadians.PI, PlaneAngleRadians.PI_OVER_TWO);
+        final Point2S p1 = Point2S.of(0, Angle.PI_OVER_TWO);
+        final Point2S p2 = Point2S.of(Math.PI, Angle.PI_OVER_TWO);
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(() -> {
@@ -96,7 +96,7 @@ public class GreatCircleTest {
         }, IllegalArgumentException.class, Pattern.compile("^.*points are equal$"));
 
         GeometryTestUtils.assertThrowsWithMessage(() -> {
-            GreatCircles.fromPoints(p1, Point2S.of(1e-12, PlaneAngleRadians.PI_OVER_TWO), TEST_PRECISION);
+            GreatCircles.fromPoints(p1, Point2S.of(1e-12, Angle.PI_OVER_TWO), TEST_PRECISION);
         }, IllegalArgumentException.class, Pattern.compile("^.*points are equal$"));
 
         GeometryTestUtils.assertThrowsWithMessage(() -> {
@@ -108,8 +108,8 @@ public class GreatCircleTest {
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> GreatCircles.fromPoints(p1, Point2S.NaN, TEST_PRECISION));
         Assertions.assertThrows(IllegalArgumentException.class, () -> GreatCircles.fromPoints(Point2S.NaN, p2, TEST_PRECISION));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> GreatCircles.fromPoints(p1, Point2S.of(Double.POSITIVE_INFINITY, PlaneAngleRadians.PI_OVER_TWO), TEST_PRECISION));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> GreatCircles.fromPoints(Point2S.of(Double.POSITIVE_INFINITY, PlaneAngleRadians.PI_OVER_TWO), p2, TEST_PRECISION));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> GreatCircles.fromPoints(p1, Point2S.of(Double.POSITIVE_INFINITY, Angle.PI_OVER_TWO), TEST_PRECISION));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> GreatCircles.fromPoints(Point2S.of(Double.POSITIVE_INFINITY, Angle.PI_OVER_TWO), p2, TEST_PRECISION));
     }
 
     @Test
@@ -121,18 +121,18 @@ public class GreatCircleTest {
         // --- act/assert
 
         // on circle
-        for (double polar = -PlaneAngleRadians.PI_OVER_TWO; polar <= PlaneAngleRadians.PI_OVER_TWO; polar += 0.1) {
-            Assertions.assertEquals(0, circle.offset(Point2S.of(PlaneAngleRadians.PI_OVER_TWO, polar)), TEST_EPS);
-            Assertions.assertEquals(0, circle.offset(Point2S.of(-PlaneAngleRadians.PI_OVER_TWO, polar)), TEST_EPS);
+        for (double polar = -Angle.PI_OVER_TWO; polar <= Angle.PI_OVER_TWO; polar += 0.1) {
+            Assertions.assertEquals(0, circle.offset(Point2S.of(Angle.PI_OVER_TWO, polar)), TEST_EPS);
+            Assertions.assertEquals(0, circle.offset(Point2S.of(-Angle.PI_OVER_TWO, polar)), TEST_EPS);
         }
 
         // +1/-1
-        Assertions.assertEquals(-1, circle.offset(Point2S.of(PlaneAngleRadians.PI_OVER_TWO + 1, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
-        Assertions.assertEquals(1, circle.offset(Point2S.of(-PlaneAngleRadians.PI_OVER_TWO + 1, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
+        Assertions.assertEquals(-1, circle.offset(Point2S.of(Angle.PI_OVER_TWO + 1, Angle.PI_OVER_TWO)), TEST_EPS);
+        Assertions.assertEquals(1, circle.offset(Point2S.of(-Angle.PI_OVER_TWO + 1, Angle.PI_OVER_TWO)), TEST_EPS);
 
         // poles
-        Assertions.assertEquals(-PlaneAngleRadians.PI_OVER_TWO, circle.offset(Point2S.of(PlaneAngleRadians.PI, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, circle.offset(Point2S.of(0.0, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
+        Assertions.assertEquals(-Angle.PI_OVER_TWO, circle.offset(Point2S.of(Math.PI, Angle.PI_OVER_TWO)), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, circle.offset(Point2S.of(0.0, Angle.PI_OVER_TWO)), TEST_EPS);
     }
 
     @Test
@@ -150,19 +150,19 @@ public class GreatCircleTest {
         Assertions.assertEquals(0, circle.offset(Vector3D.of(0, 0, -1)), TEST_EPS);
 
         // +1/-1
-        Assertions.assertEquals(-0.25 * PlaneAngleRadians.PI, circle.offset(Vector3D.of(-1, 1, 0)), TEST_EPS);
-        Assertions.assertEquals(-0.25 * PlaneAngleRadians.PI, circle.offset(Vector3D.of(-1, 0, 1)), TEST_EPS);
-        Assertions.assertEquals(-0.25 * PlaneAngleRadians.PI, circle.offset(Vector3D.of(-1, -1, 0)), TEST_EPS);
-        Assertions.assertEquals(-0.25 * PlaneAngleRadians.PI, circle.offset(Vector3D.of(-1, 0, -1)), TEST_EPS);
+        Assertions.assertEquals(-0.25 * Math.PI, circle.offset(Vector3D.of(-1, 1, 0)), TEST_EPS);
+        Assertions.assertEquals(-0.25 * Math.PI, circle.offset(Vector3D.of(-1, 0, 1)), TEST_EPS);
+        Assertions.assertEquals(-0.25 * Math.PI, circle.offset(Vector3D.of(-1, -1, 0)), TEST_EPS);
+        Assertions.assertEquals(-0.25 * Math.PI, circle.offset(Vector3D.of(-1, 0, -1)), TEST_EPS);
 
-        Assertions.assertEquals(0.25 * PlaneAngleRadians.PI, circle.offset(Vector3D.of(1, 1, 0)), TEST_EPS);
-        Assertions.assertEquals(0.25 * PlaneAngleRadians.PI, circle.offset(Vector3D.of(1, 0, 1)), TEST_EPS);
-        Assertions.assertEquals(0.25 * PlaneAngleRadians.PI, circle.offset(Vector3D.of(1, -1, 0)), TEST_EPS);
-        Assertions.assertEquals(0.25 * PlaneAngleRadians.PI, circle.offset(Vector3D.of(1, 0, -1)), TEST_EPS);
+        Assertions.assertEquals(0.25 * Math.PI, circle.offset(Vector3D.of(1, 1, 0)), TEST_EPS);
+        Assertions.assertEquals(0.25 * Math.PI, circle.offset(Vector3D.of(1, 0, 1)), TEST_EPS);
+        Assertions.assertEquals(0.25 * Math.PI, circle.offset(Vector3D.of(1, -1, 0)), TEST_EPS);
+        Assertions.assertEquals(0.25 * Math.PI, circle.offset(Vector3D.of(1, 0, -1)), TEST_EPS);
 
         // poles
-        Assertions.assertEquals(-PlaneAngleRadians.PI_OVER_TWO, circle.offset(Vector3D.Unit.MINUS_X), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, circle.offset(Vector3D.Unit.PLUS_X), TEST_EPS);
+        Assertions.assertEquals(-Angle.PI_OVER_TWO, circle.offset(Vector3D.Unit.MINUS_X), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, circle.offset(Vector3D.Unit.PLUS_X), TEST_EPS);
     }
 
     @Test
@@ -174,21 +174,21 @@ public class GreatCircleTest {
         // --- act/assert
 
         // on circle
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, circle.azimuth(Point2S.from(Vector3D.of(0, 1, 0))), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, circle.azimuth(Point2S.from(Vector3D.of(0, 1, 0))), TEST_EPS);
         Assertions.assertEquals(0.0, circle.azimuth(Point2S.from(Vector3D.of(0, 0, 1))), TEST_EPS);
-        Assertions.assertEquals(1.5 * PlaneAngleRadians.PI, circle.azimuth(Point2S.from(Vector3D.of(0, -1, 0))), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI, circle.azimuth(Point2S.from(Vector3D.of(0, 0, -1))), TEST_EPS);
+        Assertions.assertEquals(1.5 * Math.PI, circle.azimuth(Point2S.from(Vector3D.of(0, -1, 0))), TEST_EPS);
+        Assertions.assertEquals(Math.PI, circle.azimuth(Point2S.from(Vector3D.of(0, 0, -1))), TEST_EPS);
 
         // +1/-1
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, circle.azimuth(Point2S.from(Vector3D.of(-1, 1, 0))), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, circle.azimuth(Point2S.from(Vector3D.of(-1, 1, 0))), TEST_EPS);
         Assertions.assertEquals(0.0, circle.azimuth(Point2S.from(Vector3D.of(-1, 0, 1))), TEST_EPS);
-        Assertions.assertEquals(1.5 * PlaneAngleRadians.PI, circle.azimuth(Point2S.from(Vector3D.of(-1, -1, 0))), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI, circle.azimuth(Point2S.from(Vector3D.of(-1, 0, -1))), TEST_EPS);
+        Assertions.assertEquals(1.5 * Math.PI, circle.azimuth(Point2S.from(Vector3D.of(-1, -1, 0))), TEST_EPS);
+        Assertions.assertEquals(Math.PI, circle.azimuth(Point2S.from(Vector3D.of(-1, 0, -1))), TEST_EPS);
 
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, circle.azimuth(Point2S.from(Vector3D.of(1, 1, 0))), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, circle.azimuth(Point2S.from(Vector3D.of(1, 1, 0))), TEST_EPS);
         Assertions.assertEquals(0.0, circle.azimuth(Point2S.from(Vector3D.of(1, 0, 1))), TEST_EPS);
-        Assertions.assertEquals(1.5 * PlaneAngleRadians.PI, circle.azimuth(Point2S.from(Vector3D.of(1, -1, 0))), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI, circle.azimuth(Point2S.from(Vector3D.of(1, 0, -1))), TEST_EPS);
+        Assertions.assertEquals(1.5 * Math.PI, circle.azimuth(Point2S.from(Vector3D.of(1, -1, 0))), TEST_EPS);
+        Assertions.assertEquals(Math.PI, circle.azimuth(Point2S.from(Vector3D.of(1, 0, -1))), TEST_EPS);
 
         // poles
         Assertions.assertEquals(0, circle.azimuth(Point2S.from(Vector3D.Unit.MINUS_X)), TEST_EPS);
@@ -204,21 +204,21 @@ public class GreatCircleTest {
         // --- act/assert
 
         // on circle
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, circle.azimuth(Vector3D.of(0, 1, 0)), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, circle.azimuth(Vector3D.of(0, 1, 0)), TEST_EPS);
         Assertions.assertEquals(0.0, circle.azimuth(Vector3D.of(0, 0, 1)), TEST_EPS);
-        Assertions.assertEquals(1.5 * PlaneAngleRadians.PI, circle.azimuth(Vector3D.of(0, -1, 0)), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI, circle.azimuth(Vector3D.of(0, 0, -1)), TEST_EPS);
+        Assertions.assertEquals(1.5 * Math.PI, circle.azimuth(Vector3D.of(0, -1, 0)), TEST_EPS);
+        Assertions.assertEquals(Math.PI, circle.azimuth(Vector3D.of(0, 0, -1)), TEST_EPS);
 
         // +1/-1
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, circle.azimuth(Vector3D.of(-1, 1, 0)), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, circle.azimuth(Vector3D.of(-1, 1, 0)), TEST_EPS);
         Assertions.assertEquals(0.0, circle.azimuth(Vector3D.of(-1, 0, 1)), TEST_EPS);
-        Assertions.assertEquals(1.5 * PlaneAngleRadians.PI, circle.azimuth(Vector3D.of(-1, -1, 0)), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI, circle.azimuth(Vector3D.of(-1, 0, -1)), TEST_EPS);
+        Assertions.assertEquals(1.5 * Math.PI, circle.azimuth(Vector3D.of(-1, -1, 0)), TEST_EPS);
+        Assertions.assertEquals(Math.PI, circle.azimuth(Vector3D.of(-1, 0, -1)), TEST_EPS);
 
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, circle.azimuth(Vector3D.of(1, 1, 0)), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, circle.azimuth(Vector3D.of(1, 1, 0)), TEST_EPS);
         Assertions.assertEquals(0.0, circle.azimuth(Vector3D.of(1, 0, 1)), TEST_EPS);
-        Assertions.assertEquals(1.5 * PlaneAngleRadians.PI, circle.azimuth(Vector3D.of(1, -1, 0)), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI, circle.azimuth(Vector3D.of(1, 0, -1)), TEST_EPS);
+        Assertions.assertEquals(1.5 * Math.PI, circle.azimuth(Vector3D.of(1, -1, 0)), TEST_EPS);
+        Assertions.assertEquals(Math.PI, circle.azimuth(Vector3D.of(1, 0, -1)), TEST_EPS);
 
         // poles
         Assertions.assertEquals(0, circle.azimuth(Vector3D.Unit.MINUS_X), TEST_EPS);
@@ -233,10 +233,10 @@ public class GreatCircleTest {
 
         // act/assert
         SphericalTestUtils.assertVectorsEqual(Vector3D.Unit.PLUS_Z, circle.vectorAt(0.0), TEST_EPS);
-        SphericalTestUtils.assertVectorsEqual(Vector3D.Unit.PLUS_Y, circle.vectorAt(PlaneAngleRadians.PI_OVER_TWO), TEST_EPS);
-        SphericalTestUtils.assertVectorsEqual(Vector3D.Unit.MINUS_Z, circle.vectorAt(PlaneAngleRadians.PI), TEST_EPS);
-        SphericalTestUtils.assertVectorsEqual(Vector3D.Unit.MINUS_Y, circle.vectorAt(-PlaneAngleRadians.PI_OVER_TWO), TEST_EPS);
-        SphericalTestUtils.assertVectorsEqual(Vector3D.Unit.PLUS_Z, circle.vectorAt(PlaneAngleRadians.TWO_PI), TEST_EPS);
+        SphericalTestUtils.assertVectorsEqual(Vector3D.Unit.PLUS_Y, circle.vectorAt(Angle.PI_OVER_TWO), TEST_EPS);
+        SphericalTestUtils.assertVectorsEqual(Vector3D.Unit.MINUS_Z, circle.vectorAt(Math.PI), TEST_EPS);
+        SphericalTestUtils.assertVectorsEqual(Vector3D.Unit.MINUS_Y, circle.vectorAt(-Angle.PI_OVER_TWO), TEST_EPS);
+        SphericalTestUtils.assertVectorsEqual(Vector3D.Unit.PLUS_Z, circle.vectorAt(Angle.TWO_PI), TEST_EPS);
     }
 
     @Test
@@ -246,19 +246,19 @@ public class GreatCircleTest {
                 Vector3D.Unit.MINUS_X, Vector3D.Unit.PLUS_Z, TEST_PRECISION);
 
         // act/assert
-        SphericalTestUtils.assertPointsEqual(Point2S.of(PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO),
-                circle.project(Point2S.of(PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
-        SphericalTestUtils.assertPointsEqual(Point2S.of(PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO),
-                circle.project(Point2S.of(PlaneAngleRadians.PI_OVER_TWO + 1, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
-        SphericalTestUtils.assertPointsEqual(Point2S.of(PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO),
-                circle.project(Point2S.of(PlaneAngleRadians.PI_OVER_TWO - 1, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
+        SphericalTestUtils.assertPointsEqual(Point2S.of(Angle.PI_OVER_TWO, Angle.PI_OVER_TWO),
+                circle.project(Point2S.of(Angle.PI_OVER_TWO, Angle.PI_OVER_TWO)), TEST_EPS);
+        SphericalTestUtils.assertPointsEqual(Point2S.of(Angle.PI_OVER_TWO, Angle.PI_OVER_TWO),
+                circle.project(Point2S.of(Angle.PI_OVER_TWO + 1, Angle.PI_OVER_TWO)), TEST_EPS);
+        SphericalTestUtils.assertPointsEqual(Point2S.of(Angle.PI_OVER_TWO, Angle.PI_OVER_TWO),
+                circle.project(Point2S.of(Angle.PI_OVER_TWO - 1, Angle.PI_OVER_TWO)), TEST_EPS);
 
-        SphericalTestUtils.assertPointsEqual(Point2S.of(-PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO),
-                circle.project(Point2S.of(-PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
-        SphericalTestUtils.assertPointsEqual(Point2S.of(-PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO),
-                circle.project(Point2S.of(-PlaneAngleRadians.PI_OVER_TWO + 1, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
-        SphericalTestUtils.assertPointsEqual(Point2S.of(-PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO),
-                circle.project(Point2S.of(-PlaneAngleRadians.PI_OVER_TWO - 1, PlaneAngleRadians.PI_OVER_TWO)), TEST_EPS);
+        SphericalTestUtils.assertPointsEqual(Point2S.of(-Angle.PI_OVER_TWO, Angle.PI_OVER_TWO),
+                circle.project(Point2S.of(-Angle.PI_OVER_TWO, Angle.PI_OVER_TWO)), TEST_EPS);
+        SphericalTestUtils.assertPointsEqual(Point2S.of(-Angle.PI_OVER_TWO, Angle.PI_OVER_TWO),
+                circle.project(Point2S.of(-Angle.PI_OVER_TWO + 1, Angle.PI_OVER_TWO)), TEST_EPS);
+        SphericalTestUtils.assertPointsEqual(Point2S.of(-Angle.PI_OVER_TWO, Angle.PI_OVER_TWO),
+                circle.project(Point2S.of(-Angle.PI_OVER_TWO - 1, Angle.PI_OVER_TWO)), TEST_EPS);
     }
 
     @Test
@@ -275,9 +275,9 @@ public class GreatCircleTest {
         SphericalTestUtils.assertPointsEqual(Point2S.of(0.0, 0.0),
                 minusXCircle.project(Point2S.from(Vector3D.Unit.PLUS_X)), TEST_EPS);
 
-        SphericalTestUtils.assertPointsEqual(Point2S.of(1.5 * PlaneAngleRadians.PI, PlaneAngleRadians.PI_OVER_TWO),
+        SphericalTestUtils.assertPointsEqual(Point2S.of(1.5 * Math.PI, Angle.PI_OVER_TWO),
                 plusZCircle.project(Point2S.from(Vector3D.Unit.PLUS_Z)), TEST_EPS);
-        SphericalTestUtils.assertPointsEqual(Point2S.of(1.5 * PlaneAngleRadians.PI, PlaneAngleRadians.PI_OVER_TWO),
+        SphericalTestUtils.assertPointsEqual(Point2S.of(1.5 * Math.PI, Angle.PI_OVER_TWO),
                 plusZCircle.project(Point2S.from(Vector3D.Unit.MINUS_Z)), TEST_EPS);
     }
 
@@ -297,11 +297,11 @@ public class GreatCircleTest {
     public void testTransform_rotateAroundPole() {
         // arrange
         final GreatCircle circle = GreatCircles.fromPoints(
-                Point2S.of(0, PlaneAngleRadians.PI_OVER_TWO),
-                Point2S.of(1, PlaneAngleRadians.PI_OVER_TWO),
+                Point2S.of(0, Angle.PI_OVER_TWO),
+                Point2S.of(1, Angle.PI_OVER_TWO),
                 TEST_PRECISION);
 
-        final Transform2S t = Transform2S.createRotation(circle.getPolePoint(), 0.25 * PlaneAngleRadians.PI);
+        final Transform2S t = Transform2S.createRotation(circle.getPolePoint(), 0.25 * Math.PI);
 
         // act
         final GreatCircle result = circle.transform(t);
@@ -315,11 +315,11 @@ public class GreatCircleTest {
     public void testTransform_rotateAroundNonPole() {
         // arrange
         final GreatCircle circle = GreatCircles.fromPoints(
-                Point2S.of(0, PlaneAngleRadians.PI_OVER_TWO),
-                Point2S.of(1, PlaneAngleRadians.PI_OVER_TWO),
+                Point2S.of(0, Angle.PI_OVER_TWO),
+                Point2S.of(1, Angle.PI_OVER_TWO),
                 TEST_PRECISION);
 
-        final Transform2S t = Transform2S.createRotation(Point2S.of(0, PlaneAngleRadians.PI_OVER_TWO), PlaneAngleRadians.PI_OVER_TWO);
+        final Transform2S t = Transform2S.createRotation(Point2S.of(0, Angle.PI_OVER_TWO), Angle.PI_OVER_TWO);
 
         // act
         final GreatCircle result = circle.transform(t);
@@ -333,12 +333,12 @@ public class GreatCircleTest {
     public void testTransform_piMinusAzimuth() {
         // arrange
         final GreatCircle circle = GreatCircles.fromPoints(
-                Point2S.of(0, PlaneAngleRadians.PI_OVER_TWO),
-                Point2S.of(1, PlaneAngleRadians.PI_OVER_TWO),
+                Point2S.of(0, Angle.PI_OVER_TWO),
+                Point2S.of(1, Angle.PI_OVER_TWO),
                 TEST_PRECISION);
 
         final Transform2S t = Transform2S.createReflection(Point2S.PLUS_J)
-                .rotate(Point2S.PLUS_K, PlaneAngleRadians.PI);
+                .rotate(Point2S.PLUS_K, Math.PI);
 
         // act
         final GreatCircle result = circle.transform(t);
@@ -389,8 +389,8 @@ public class GreatCircleTest {
         final GreatCircle circle = GreatCircles.fromPoleAndU(Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Z, TEST_PRECISION);
 
         // act/assert
-        checkArc(circle.arc(Point2S.of(1, PlaneAngleRadians.PI_OVER_TWO), Point2S.of(0, 1)),
-                Point2S.of(PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO), Point2S.of(0, 0));
+        checkArc(circle.arc(Point2S.of(1, Angle.PI_OVER_TWO), Point2S.of(0, 1)),
+                Point2S.of(Angle.PI_OVER_TWO, Angle.PI_OVER_TWO), Point2S.of(0, 0));
 
         Assertions.assertTrue(circle.arc(Point2S.PLUS_I, Point2S.PLUS_I).isFull());
     }
@@ -401,8 +401,8 @@ public class GreatCircleTest {
         final GreatCircle circle = GreatCircles.fromPoleAndU(Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Z, TEST_PRECISION);
 
         // act/assert
-        checkArc(circle.arc(Point1S.of(PlaneAngleRadians.PI), Point1S.of(1.5 * PlaneAngleRadians.PI)),
-                Point2S.of(0, PlaneAngleRadians.PI), Point2S.of(PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO));
+        checkArc(circle.arc(Point1S.of(Math.PI), Point1S.of(1.5 * Math.PI)),
+                Point2S.of(0, Math.PI), Point2S.of(Angle.PI_OVER_TWO, Angle.PI_OVER_TWO));
 
         Assertions.assertTrue(circle.arc(Point1S.of(1), Point1S.of(1)).isFull());
     }
@@ -413,8 +413,8 @@ public class GreatCircleTest {
         final GreatCircle circle = GreatCircles.fromPoleAndU(Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Z, TEST_PRECISION);
 
         // act/assert
-        checkArc(circle.arc(PlaneAngleRadians.PI, 1.5 * PlaneAngleRadians.PI),
-                Point2S.of(0, PlaneAngleRadians.PI), Point2S.of(PlaneAngleRadians.PI_OVER_TWO, PlaneAngleRadians.PI_OVER_TWO));
+        checkArc(circle.arc(Math.PI, 1.5 * Math.PI),
+                Point2S.of(0, Math.PI), Point2S.of(Angle.PI_OVER_TWO, Angle.PI_OVER_TWO));
 
         Assertions.assertTrue(circle.arc(1, 1).isFull());
     }
@@ -489,19 +489,19 @@ public class GreatCircleTest {
 
         // act/assert
         Assertions.assertEquals(0, a.angle(a), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI, a.angle(b), TEST_EPS);
+        Assertions.assertEquals(Math.PI, a.angle(b), TEST_EPS);
 
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, a.angle(c), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, c.angle(a), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, a.angle(c), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, c.angle(a), TEST_EPS);
 
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, a.angle(d), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, d.angle(a), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, a.angle(d), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, d.angle(a), TEST_EPS);
 
-        Assertions.assertEquals(0.25 * PlaneAngleRadians.PI, a.angle(e), TEST_EPS);
-        Assertions.assertEquals(0.25 * PlaneAngleRadians.PI, e.angle(a), TEST_EPS);
+        Assertions.assertEquals(0.25 * Math.PI, a.angle(e), TEST_EPS);
+        Assertions.assertEquals(0.25 * Math.PI, e.angle(a), TEST_EPS);
 
-        Assertions.assertEquals(0.75 * PlaneAngleRadians.PI, a.angle(f), TEST_EPS);
-        Assertions.assertEquals(0.75 * PlaneAngleRadians.PI, f.angle(a), TEST_EPS);
+        Assertions.assertEquals(0.75 * Math.PI, a.angle(f), TEST_EPS);
+        Assertions.assertEquals(0.75 * Math.PI, f.angle(a), TEST_EPS);
     }
 
     @Test
@@ -525,32 +525,32 @@ public class GreatCircleTest {
         Assertions.assertEquals(0, a.angle(a, Point2S.PLUS_J), TEST_EPS);
         Assertions.assertEquals(0, a.angle(a, Point2S.MINUS_J), TEST_EPS);
 
-        Assertions.assertEquals(-PlaneAngleRadians.PI, a.angle(b, Point2S.PLUS_J), TEST_EPS);
-        Assertions.assertEquals(-PlaneAngleRadians.PI, a.angle(b, Point2S.MINUS_J), TEST_EPS);
+        Assertions.assertEquals(-Math.PI, a.angle(b, Point2S.PLUS_J), TEST_EPS);
+        Assertions.assertEquals(-Math.PI, a.angle(b, Point2S.MINUS_J), TEST_EPS);
 
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, a.angle(c, Point2S.PLUS_I), TEST_EPS);
-        Assertions.assertEquals(-PlaneAngleRadians.PI_OVER_TWO, a.angle(c, Point2S.MINUS_I), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, a.angle(c, Point2S.PLUS_I), TEST_EPS);
+        Assertions.assertEquals(-Angle.PI_OVER_TWO, a.angle(c, Point2S.MINUS_I), TEST_EPS);
 
-        Assertions.assertEquals(-PlaneAngleRadians.PI_OVER_TWO, c.angle(a, Point2S.PLUS_I), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, c.angle(a, Point2S.MINUS_I), TEST_EPS);
+        Assertions.assertEquals(-Angle.PI_OVER_TWO, c.angle(a, Point2S.PLUS_I), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, c.angle(a, Point2S.MINUS_I), TEST_EPS);
 
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, a.angle(d, Point2S.PLUS_J), TEST_EPS);
-        Assertions.assertEquals(-PlaneAngleRadians.PI_OVER_TWO, a.angle(d, Point2S.MINUS_J), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, a.angle(d, Point2S.PLUS_J), TEST_EPS);
+        Assertions.assertEquals(-Angle.PI_OVER_TWO, a.angle(d, Point2S.MINUS_J), TEST_EPS);
 
-        Assertions.assertEquals(-PlaneAngleRadians.PI_OVER_TWO, d.angle(a, Point2S.PLUS_J), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI_OVER_TWO, d.angle(a, Point2S.MINUS_J), TEST_EPS);
+        Assertions.assertEquals(-Angle.PI_OVER_TWO, d.angle(a, Point2S.PLUS_J), TEST_EPS);
+        Assertions.assertEquals(Angle.PI_OVER_TWO, d.angle(a, Point2S.MINUS_J), TEST_EPS);
 
-        Assertions.assertEquals(0.25 * PlaneAngleRadians.PI, a.angle(e, Point2S.PLUS_J), TEST_EPS);
-        Assertions.assertEquals(-0.25 * PlaneAngleRadians.PI, a.angle(e, Point2S.MINUS_J), TEST_EPS);
+        Assertions.assertEquals(0.25 * Math.PI, a.angle(e, Point2S.PLUS_J), TEST_EPS);
+        Assertions.assertEquals(-0.25 * Math.PI, a.angle(e, Point2S.MINUS_J), TEST_EPS);
 
-        Assertions.assertEquals(-0.25 * PlaneAngleRadians.PI, e.angle(a, Point2S.PLUS_J), TEST_EPS);
-        Assertions.assertEquals(0.25 * PlaneAngleRadians.PI, e.angle(a, Point2S.MINUS_J), TEST_EPS);
+        Assertions.assertEquals(-0.25 * Math.PI, e.angle(a, Point2S.PLUS_J), TEST_EPS);
+        Assertions.assertEquals(0.25 * Math.PI, e.angle(a, Point2S.MINUS_J), TEST_EPS);
 
-        Assertions.assertEquals(0.75 * PlaneAngleRadians.PI, a.angle(f, Point2S.PLUS_J), TEST_EPS);
-        Assertions.assertEquals(-0.75 * PlaneAngleRadians.PI, a.angle(f, Point2S.MINUS_J), TEST_EPS);
+        Assertions.assertEquals(0.75 * Math.PI, a.angle(f, Point2S.PLUS_J), TEST_EPS);
+        Assertions.assertEquals(-0.75 * Math.PI, a.angle(f, Point2S.MINUS_J), TEST_EPS);
 
-        Assertions.assertEquals(-0.75 * PlaneAngleRadians.PI, f.angle(a, Point2S.PLUS_J), TEST_EPS);
-        Assertions.assertEquals(0.75 * PlaneAngleRadians.PI, f.angle(a, Point2S.MINUS_J), TEST_EPS);
+        Assertions.assertEquals(-0.75 * Math.PI, f.angle(a, Point2S.PLUS_J), TEST_EPS);
+        Assertions.assertEquals(0.75 * Math.PI, f.angle(a, Point2S.MINUS_J), TEST_EPS);
     }
 
     @Test
@@ -563,8 +563,8 @@ public class GreatCircleTest {
                 TEST_PRECISION);
 
         // act/assert
-        Assertions.assertEquals(-0.25 * PlaneAngleRadians.PI, a.angle(b, Point2S.PLUS_I), TEST_EPS);
-        Assertions.assertEquals(-0.25 * PlaneAngleRadians.PI, a.angle(b, Point2S.MINUS_I), TEST_EPS);
+        Assertions.assertEquals(-0.25 * Math.PI, a.angle(b, Point2S.PLUS_I), TEST_EPS);
+        Assertions.assertEquals(-0.25 * Math.PI, a.angle(b, Point2S.MINUS_I), TEST_EPS);
     }
 
     @Test
@@ -576,13 +576,13 @@ public class GreatCircleTest {
         SphericalTestUtils.assertPointsEqual(Point1S.ZERO,
                 circle.toSubspace(Point2S.from(Vector3D.Unit.MINUS_Z)), TEST_EPS);
 
-        SphericalTestUtils.assertPointsEqual(Point1S.of(0.25 * PlaneAngleRadians.PI),
+        SphericalTestUtils.assertPointsEqual(Point1S.of(0.25 * Math.PI),
                 circle.toSubspace(Point2S.from(Vector3D.of(-1, -1, -1))), TEST_EPS);
-        SphericalTestUtils.assertPointsEqual(Point1S.of(0.75 * PlaneAngleRadians.PI),
+        SphericalTestUtils.assertPointsEqual(Point1S.of(0.75 * Math.PI),
                 circle.toSubspace(Point2S.from(Vector3D.of(-1, 1, 1))), TEST_EPS);
-        SphericalTestUtils.assertPointsEqual(Point1S.of(1.25 * PlaneAngleRadians.PI),
+        SphericalTestUtils.assertPointsEqual(Point1S.of(1.25 * Math.PI),
                 circle.toSubspace(Point2S.from(Vector3D.of(1, -1, 1))), TEST_EPS);
-        SphericalTestUtils.assertPointsEqual(Point1S.of(1.75 * PlaneAngleRadians.PI),
+        SphericalTestUtils.assertPointsEqual(Point1S.of(1.75 * Math.PI),
                 circle.toSubspace(Point2S.from(Vector3D.of(1, 1, -1))), TEST_EPS);
 
         SphericalTestUtils.assertPointsEqual(Point1S.ZERO,
@@ -601,13 +601,13 @@ public class GreatCircleTest {
                 circle.toSpace(Point1S.ZERO), TEST_EPS);
 
         SphericalTestUtils.assertPointsEqual(Point2S.from(Vector3D.of(-1, 0, -1)),
-                circle.toSpace(Point1S.of(0.25 * PlaneAngleRadians.PI)), TEST_EPS);
+                circle.toSpace(Point1S.of(0.25 * Math.PI)), TEST_EPS);
         SphericalTestUtils.assertPointsEqual(Point2S.from(Vector3D.of(-1, 0, 1)),
-                circle.toSpace(Point1S.of(0.75 * PlaneAngleRadians.PI)), TEST_EPS);
+                circle.toSpace(Point1S.of(0.75 * Math.PI)), TEST_EPS);
         SphericalTestUtils.assertPointsEqual(Point2S.from(Vector3D.of(1, 0, 1)),
-                circle.toSpace(Point1S.of(1.25 * PlaneAngleRadians.PI)), TEST_EPS);
+                circle.toSpace(Point1S.of(1.25 * Math.PI)), TEST_EPS);
         SphericalTestUtils.assertPointsEqual(Point2S.from(Vector3D.of(1, 0, -1)),
-                circle.toSpace(Point1S.of(1.75 * PlaneAngleRadians.PI)), TEST_EPS);
+                circle.toSpace(Point1S.of(1.75 * Math.PI)), TEST_EPS);
     }
 
     @Test

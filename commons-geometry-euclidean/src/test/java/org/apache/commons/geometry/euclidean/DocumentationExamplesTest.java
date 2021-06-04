@@ -49,7 +49,7 @@ import org.apache.commons.geometry.euclidean.twod.Segment;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.geometry.euclidean.twod.path.LinePath;
 import org.apache.commons.geometry.euclidean.twod.shape.Parallelogram;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -351,7 +351,7 @@ public class DocumentationExamplesTest {
                 .translate(Vector3D.of(1, 2, 3));
 
         final QuaternionRotation rot = QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Z,
-                PlaneAngleRadians.PI_OVER_TWO);
+                Angle.PI_OVER_TWO);
 
         // transform the input points
         final List<Vector3D> matOutput = inputPts.stream()

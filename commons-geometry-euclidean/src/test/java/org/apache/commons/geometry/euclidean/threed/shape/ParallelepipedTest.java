@@ -28,7 +28,7 @@ import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.RegionBSPTree3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -241,7 +241,7 @@ public class ParallelepipedTest {
         // act
         final Parallelepiped p = builder
                 .setScale(1, 2, 3)
-                .setRotation(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Z, PlaneAngleRadians.PI_OVER_TWO))
+                .setRotation(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Z, Angle.PI_OVER_TWO))
                 .setPosition(Vector3D.of(1, 2, -1))
                 .build();
 

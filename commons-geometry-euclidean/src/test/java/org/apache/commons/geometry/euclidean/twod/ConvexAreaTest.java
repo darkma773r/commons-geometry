@@ -29,7 +29,7 @@ import org.apache.commons.geometry.core.partitioning.Split;
 import org.apache.commons.geometry.core.partitioning.SplitLocation;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.twod.path.LinePath;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -117,9 +117,9 @@ public class ConvexAreaTest {
         // arrange
         final ConvexArea area = ConvexArea.fromBounds(
                     Lines.fromPointAndAngle(Vector2D.ZERO, 0.0, TEST_PRECISION),
-                    Lines.fromPointAndAngle(Vector2D.of(1, 0), PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION),
-                    Lines.fromPointAndAngle(Vector2D.of(1, 1), PlaneAngleRadians.PI, TEST_PRECISION),
-                    Lines.fromPointAndAngle(Vector2D.of(0, 1), -PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION)
+                    Lines.fromPointAndAngle(Vector2D.of(1, 0), Angle.PI_OVER_TWO, TEST_PRECISION),
+                    Lines.fromPointAndAngle(Vector2D.of(1, 1), Math.PI, TEST_PRECISION),
+                    Lines.fromPointAndAngle(Vector2D.of(0, 1), -Angle.PI_OVER_TWO, TEST_PRECISION)
                 );
 
         // act
@@ -163,12 +163,12 @@ public class ConvexAreaTest {
     public void testTransform_infinite() {
         // arrange
         final AffineTransformMatrix2D mat = AffineTransformMatrix2D
-                .createRotation(Vector2D.of(0, 1), PlaneAngleRadians.PI_OVER_TWO)
+                .createRotation(Vector2D.of(0, 1), Angle.PI_OVER_TWO)
                 .scale(Vector2D.of(3, 2));
 
         final ConvexArea area = ConvexArea.fromBounds(
-                Lines.fromPointAndAngle(Vector2D.ZERO, 0.25 * PlaneAngleRadians.PI, TEST_PRECISION),
-                Lines.fromPointAndAngle(Vector2D.ZERO, -0.25 * PlaneAngleRadians.PI, TEST_PRECISION));
+                Lines.fromPointAndAngle(Vector2D.ZERO, 0.25 * Math.PI, TEST_PRECISION),
+                Lines.fromPointAndAngle(Vector2D.ZERO, -0.25 * Math.PI, TEST_PRECISION));
 
         // act
         final ConvexArea transformed = area.transform(mat);
@@ -290,7 +290,7 @@ public class ConvexAreaTest {
     public void testGetVertices_twoParallelLines() {
         // arrange
         final ConvexArea area = ConvexArea.fromBounds(
-                    Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION),
+                    Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION),
                     Lines.fromPointAndAngle(Vector2D.of(0, -1), 0.0, TEST_PRECISION)
                 );
 
@@ -302,9 +302,9 @@ public class ConvexAreaTest {
     public void testGetVertices_infiniteWithVertices() {
         // arrange
         final ConvexArea area = ConvexArea.fromBounds(
-                    Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION),
+                    Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION),
                     Lines.fromPointAndAngle(Vector2D.of(0, -1), 0.0, TEST_PRECISION),
-                    Lines.fromPointAndAngle(Vector2D.of(1, 0), PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION)
+                    Lines.fromPointAndAngle(Vector2D.of(1, 0), Angle.PI_OVER_TWO, TEST_PRECISION)
                 );
 
         // act
@@ -371,7 +371,7 @@ public class ConvexAreaTest {
         // act/assert
         Assertions.assertNull(ConvexArea.full().getBounds());
         Assertions.assertNull(ConvexArea.fromBounds(
-                Lines.fromPointAndAngle(Vector2D.ZERO, PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION)).getBounds());
+                Lines.fromPointAndAngle(Vector2D.ZERO, Angle.PI_OVER_TWO, TEST_PRECISION)).getBounds());
     }
 
     @Test
@@ -401,7 +401,7 @@ public class ConvexAreaTest {
     public void testProject_halfSpace() {
         // arrange
         final ConvexArea area = ConvexArea.fromBounds(
-                Lines.fromPointAndAngle(Vector2D.ZERO, PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION));
+                Lines.fromPointAndAngle(Vector2D.ZERO, Angle.PI_OVER_TWO, TEST_PRECISION));
 
         // act/assert
         EuclideanTestUtils.assertCoordinatesEqual(Vector2D.of(0, 1), area.project(Vector2D.of(1, 1)), TEST_EPS);
@@ -537,7 +537,7 @@ public class ConvexAreaTest {
     public void testSplit_halfSpace_split() {
         // arrange
         final ConvexArea area = ConvexArea.fromBounds(Lines.fromPoints(Vector2D.ZERO, Vector2D.Unit.PLUS_X, TEST_PRECISION));
-        final Line splitter = Lines.fromPointAndAngle(Vector2D.ZERO, 0.25 * PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line splitter = Lines.fromPointAndAngle(Vector2D.ZERO, 0.25 * Math.PI, TEST_PRECISION);
 
         // act
         final Split<ConvexArea> split = area.split(splitter);
@@ -602,7 +602,7 @@ public class ConvexAreaTest {
     public void testSplit_square_split() {
         // arrange
         final ConvexArea area = ConvexArea.fromBounds(createSquareBoundingLines(Vector2D.of(1, 1), 2, 1));
-        final Line splitter = Lines.fromPointAndAngle(Vector2D.of(2, 1), PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION);
+        final Line splitter = Lines.fromPointAndAngle(Vector2D.of(2, 1), Angle.PI_OVER_TWO, TEST_PRECISION);
 
         // act
         final Split<ConvexArea> split = area.split(splitter);
@@ -1130,8 +1130,8 @@ public class ConvexAreaTest {
     @Test
     public void testFromBounds_twoLines() {
         // arrange
-        final Line a = Lines.fromPointAndAngle(Vector2D.ZERO, PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION);
-        final Line b = Lines.fromPointAndAngle(Vector2D.ZERO, PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line a = Lines.fromPointAndAngle(Vector2D.ZERO, Angle.PI_OVER_TWO, TEST_PRECISION);
+        final Line b = Lines.fromPointAndAngle(Vector2D.ZERO, Math.PI, TEST_PRECISION);
 
         // act
         final ConvexArea area = ConvexArea.fromBounds(a, b);
@@ -1157,9 +1157,9 @@ public class ConvexAreaTest {
     @Test
     public void testFromBounds_triangle() {
         // arrange
-        final Line a = Lines.fromPointAndAngle(Vector2D.ZERO, PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION);
-        final Line b = Lines.fromPointAndAngle(Vector2D.ZERO, PlaneAngleRadians.PI, TEST_PRECISION);
-        final Line c = Lines.fromPointAndAngle(Vector2D.of(-2, 0), -0.25 * PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line a = Lines.fromPointAndAngle(Vector2D.ZERO, Angle.PI_OVER_TWO, TEST_PRECISION);
+        final Line b = Lines.fromPointAndAngle(Vector2D.ZERO, Math.PI, TEST_PRECISION);
+        final Line c = Lines.fromPointAndAngle(Vector2D.of(-2, 0), -0.25 * Math.PI, TEST_PRECISION);
 
         // act
         final ConvexArea area = ConvexArea.fromBounds(a, b, c);
@@ -1302,7 +1302,7 @@ public class ConvexAreaTest {
     public void testFromBounds_duplicateLines_differentOrientation() {
         // arrange
         final Line a = Lines.fromPointAndAngle(Vector2D.of(0, 1), 0.0, TEST_PRECISION);
-        final Line b = Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line b = Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION);
         final Line c = Lines.fromPointAndAngle(Vector2D.of(0, 1), 0.0, TEST_PRECISION);
 
         // act/assert
@@ -1314,8 +1314,8 @@ public class ConvexAreaTest {
         // act/assert
         Assertions.assertThrows(IllegalArgumentException.class, () -> ConvexArea.fromBounds(Arrays.asList(
                 Lines.fromPointAndAngle(Vector2D.ZERO, 0.0, TEST_PRECISION),
-                Lines.fromPointAndAngle(Vector2D.of(0, -1), PlaneAngleRadians.PI, TEST_PRECISION),
-                Lines.fromPointAndAngle(Vector2D.ZERO, PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION)
+                Lines.fromPointAndAngle(Vector2D.of(0, -1), Math.PI, TEST_PRECISION),
+                Lines.fromPointAndAngle(Vector2D.ZERO, Angle.PI_OVER_TWO, TEST_PRECISION)
         )));
     }
 

@@ -19,7 +19,6 @@ package org.apache.commons.geometry.spherical.twod;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.spherical.oned.AngularInterval;
 import org.apache.commons.geometry.spherical.oned.Point1S;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
 import org.apache.commons.numbers.core.Precision;
 
 /** Class containing factory methods for constructing {@link GreatCircle} and {@link GreatCircleSubset} instances.
@@ -81,7 +80,7 @@ public final class GreatCircles {
         final double dist = a.distance(b);
         if (precision.eqZero(dist)) {
             err = "equal";
-        } else if (precision.eq(dist, PlaneAngleRadians.PI)) {
+        } else if (precision.eq(dist, Math.PI)) {
             err = "antipodal";
         }
 

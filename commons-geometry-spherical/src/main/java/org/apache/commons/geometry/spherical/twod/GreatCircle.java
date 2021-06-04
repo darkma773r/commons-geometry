@@ -25,7 +25,7 @@ import org.apache.commons.geometry.core.partitioning.Hyperplane;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.spherical.oned.AngularInterval;
 import org.apache.commons.geometry.spherical.oned.Point1S;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 
 /** Class representing a great circle on the 2-sphere. A great circle is the
@@ -129,7 +129,7 @@ public final class GreatCircle extends AbstractHyperplane<Point2S>
      * @return the offset (oriented distance) of a direction
      */
     public double offset(final Vector3D vec) {
-        return pole.angle(vec) - PlaneAngleRadians.PI_OVER_TWO;
+        return pole.angle(vec) - Angle.PI_OVER_TWO;
     }
 
     /** Get the azimuth angle of a point relative to this great circle instance,
@@ -158,7 +158,7 @@ public final class GreatCircle extends AbstractHyperplane<Point2S>
 
         // adjust range
         if (az < 0) {
-            az += PlaneAngleRadians.TWO_PI;
+            az += Angle.TWO_PI;
         }
 
         return az;

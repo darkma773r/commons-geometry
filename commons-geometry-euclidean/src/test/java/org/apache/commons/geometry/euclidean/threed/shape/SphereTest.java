@@ -36,7 +36,7 @@ import org.apache.commons.geometry.euclidean.threed.line.LineConvexSubset3D;
 import org.apache.commons.geometry.euclidean.threed.line.LinecastPoint3D;
 import org.apache.commons.geometry.euclidean.threed.line.Lines3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.apache.commons.rng.UniformRandomProvider;
 import org.apache.commons.rng.simple.RandomSource;
@@ -108,7 +108,7 @@ public class SphereTest {
         final double radius = 4;
         final Sphere s = Sphere.from(center, radius, TEST_PRECISION);
 
-        EuclideanTestUtils.permute(0, PlaneAngleRadians.TWO_PI, 0.2, (azimuth, polar) -> {
+        EuclideanTestUtils.permute(0, Angle.TWO_PI, 0.2, (azimuth, polar) -> {
             // act/assert
             EuclideanTestUtils.assertRegionLocation(s, RegionLocation.OUTSIDE,
                     SphericalCoordinates.of(radius + 1, azimuth, polar)
@@ -134,7 +134,7 @@ public class SphereTest {
         final double radius = 4;
         final Sphere s = Sphere.from(center, radius, TEST_PRECISION);
 
-        EuclideanTestUtils.permute(0, PlaneAngleRadians.TWO_PI, 0.2, (azimuth, polar) -> {
+        EuclideanTestUtils.permute(0, Angle.TWO_PI, 0.2, (azimuth, polar) -> {
             // act/assert
             checkContains(s, false,
                     SphericalCoordinates.of(radius + 1, azimuth, polar)

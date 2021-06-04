@@ -21,7 +21,7 @@ import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.oned.AffineTransformMatrix1D;
 import org.apache.commons.geometry.euclidean.oned.Vector1D;
 import org.apache.commons.geometry.euclidean.twod.Line.SubspaceTransform;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -90,13 +90,13 @@ public class LineTest {
         // act/assert
         checkLine(Lines.fromPointAndAngle(Vector2D.ZERO, 0, TEST_PRECISION),
                 Vector2D.ZERO, Vector2D.Unit.PLUS_X);
-        checkLine(Lines.fromPointAndAngle(Vector2D.of(1, 1), PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION),
+        checkLine(Lines.fromPointAndAngle(Vector2D.of(1, 1), Angle.PI_OVER_TWO, TEST_PRECISION),
                 Vector2D.of(1, 0), Vector2D.Unit.PLUS_Y);
-        checkLine(Lines.fromPointAndAngle(Vector2D.of(-1, -1), PlaneAngleRadians.PI, TEST_PRECISION),
+        checkLine(Lines.fromPointAndAngle(Vector2D.of(-1, -1), Math.PI, TEST_PRECISION),
                 Vector2D.of(0, -1), Vector2D.Unit.MINUS_X);
-        checkLine(Lines.fromPointAndAngle(Vector2D.of(1, -1), -PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION),
+        checkLine(Lines.fromPointAndAngle(Vector2D.of(1, -1), -Angle.PI_OVER_TWO, TEST_PRECISION),
                 Vector2D.of(1, 0), Vector2D.Unit.MINUS_Y);
-        checkLine(Lines.fromPointAndAngle(Vector2D.of(-1, 1), PlaneAngleRadians.TWO_PI, TEST_PRECISION),
+        checkLine(Lines.fromPointAndAngle(Vector2D.of(-1, 1), Angle.TWO_PI, TEST_PRECISION),
                 Vector2D.of(0, 1), Vector2D.Unit.PLUS_X);
     }
 
@@ -105,11 +105,11 @@ public class LineTest {
         // arrange
         final Vector2D vec = Vector2D.of(1, 2);
 
-        for (double theta = -4 * PlaneAngleRadians.PI; theta < 2 * PlaneAngleRadians.PI; theta += 0.1) {
+        for (double theta = -4 * Math.PI; theta < 2 * Math.PI; theta += 0.1) {
             final Line line = Lines.fromPointAndAngle(vec, theta, TEST_PRECISION);
 
             // act/assert
-            Assertions.assertEquals(PlaneAngleRadians.WITHIN_0_AND_2PI.applyAsDouble(theta),
+            Assertions.assertEquals(Angle.Rad.WITHIN_0_AND_2PI.applyAsDouble(theta),
                     line.getAngle(), TEST_EPS);
         }
     }
@@ -121,12 +121,12 @@ public class LineTest {
 
         // act/assert
         Assertions.assertEquals(0, Lines.fromPointAndAngle(vec, 0.0, TEST_PRECISION).getAngle(), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI, Lines.fromPointAndAngle(vec, PlaneAngleRadians.PI, TEST_PRECISION).getAngle(), TEST_EPS);
-        Assertions.assertEquals(0, Lines.fromPointAndAngle(vec, PlaneAngleRadians.TWO_PI, TEST_PRECISION).getAngle(), TEST_EPS);
+        Assertions.assertEquals(Math.PI, Lines.fromPointAndAngle(vec, Math.PI, TEST_PRECISION).getAngle(), TEST_EPS);
+        Assertions.assertEquals(0, Lines.fromPointAndAngle(vec, Angle.TWO_PI, TEST_PRECISION).getAngle(), TEST_EPS);
 
-        Assertions.assertEquals(0, Lines.fromPointAndAngle(vec, -2 * PlaneAngleRadians.PI, TEST_PRECISION).getAngle(), TEST_EPS);
-        Assertions.assertEquals(PlaneAngleRadians.PI, Lines.fromPointAndAngle(vec, -3 * PlaneAngleRadians.PI, TEST_PRECISION).getAngle(), TEST_EPS);
-        Assertions.assertEquals(0, Lines.fromPointAndAngle(vec, -4 * PlaneAngleRadians.TWO_PI, TEST_PRECISION).getAngle(), TEST_EPS);
+        Assertions.assertEquals(0, Lines.fromPointAndAngle(vec, -2 * Math.PI, TEST_PRECISION).getAngle(), TEST_EPS);
+        Assertions.assertEquals(Math.PI, Lines.fromPointAndAngle(vec, -3 * Math.PI, TEST_PRECISION).getAngle(), TEST_EPS);
+        Assertions.assertEquals(0, Lines.fromPointAndAngle(vec, -4 * Angle.TWO_PI, TEST_PRECISION).getAngle(), TEST_EPS);
     }
 
     @Test
@@ -294,7 +294,7 @@ public class LineTest {
     @Test
     public void testToSpace_offsetFromOrigin() {
         // arrange
-        final double angle = PlaneAngleRadians.PI / 6;
+        final double angle = Math.PI / 6;
         final double cos = Math.cos(angle);
         final double sin = Math.sin(angle);
         final Vector2D pt = Vector2D.of(-5, 0);
@@ -384,21 +384,21 @@ public class LineTest {
     public void testAngle() {
         // arrange
         final Line a = Lines.fromPointAndAngle(Vector2D.ZERO, 0.0, TEST_PRECISION);
-        final Line b = Lines.fromPointAndAngle(Vector2D.of(1, 4), PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line b = Lines.fromPointAndAngle(Vector2D.of(1, 4), Math.PI, TEST_PRECISION);
         final Line c = Lines.fromPointAndDirection(Vector2D.of(1, 1), Vector2D.of(2, 2), TEST_PRECISION);
 
         // act/assert
         Assertions.assertEquals(0.0, a.angle(a), TEST_EPS);
-        Assertions.assertEquals(-PlaneAngleRadians.PI, a.angle(b), TEST_EPS);
-        Assertions.assertEquals(0.25 * PlaneAngleRadians.PI, a.angle(c), TEST_EPS);
+        Assertions.assertEquals(-Math.PI, a.angle(b), TEST_EPS);
+        Assertions.assertEquals(0.25 * Math.PI, a.angle(c), TEST_EPS);
 
         Assertions.assertEquals(0.0, b.angle(b), TEST_EPS);
-        Assertions.assertEquals(-PlaneAngleRadians.PI, b.angle(a), TEST_EPS);
-        Assertions.assertEquals(-0.75 * PlaneAngleRadians.PI, b.angle(c), TEST_EPS);
+        Assertions.assertEquals(-Math.PI, b.angle(a), TEST_EPS);
+        Assertions.assertEquals(-0.75 * Math.PI, b.angle(c), TEST_EPS);
 
         Assertions.assertEquals(0.0, c.angle(c), TEST_EPS);
-        Assertions.assertEquals(-0.25 * PlaneAngleRadians.PI, c.angle(a), TEST_EPS);
-        Assertions.assertEquals(0.75 * PlaneAngleRadians.PI, c.angle(b), TEST_EPS);
+        Assertions.assertEquals(-0.25 * Math.PI, c.angle(a), TEST_EPS);
+        Assertions.assertEquals(0.75 * Math.PI, c.angle(b), TEST_EPS);
     }
 
     @Test
@@ -486,7 +486,7 @@ public class LineTest {
     @Test
     public void testLineTo_pointOnLine() {
         // arrange
-        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION);
 
         // act
         final ReverseRay halfLine = line.reverseRayTo(Vector2D.of(-3, 1));
@@ -504,7 +504,7 @@ public class LineTest {
     @Test
     public void testLineTo_pointProjectedOnLine() {
         // arrange
-        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION);
 
         // act
         final ReverseRay halfLine = line.reverseRayTo(Vector2D.of(-3, 5));
@@ -522,7 +522,7 @@ public class LineTest {
     @Test
     public void testLineTo_double() {
         // arrange
-        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION);
 
         // act
         final ReverseRay halfLine = line.reverseRayTo(-1);
@@ -540,7 +540,7 @@ public class LineTest {
     @Test
     public void testRayFrom_pointOnLine() {
         // arrange
-        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION);
 
         // act
         final Ray ray = line.rayFrom(Vector2D.of(-3, 1));
@@ -558,7 +558,7 @@ public class LineTest {
     @Test
     public void testRayFrom_pointProjectedOnLine() {
         // arrange
-        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION);
 
         // act
         final Ray ray = line.rayFrom(Vector2D.of(-3, 5));
@@ -576,7 +576,7 @@ public class LineTest {
     @Test
     public void testRayFrom_double() {
         // arrange
-        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line line = Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION);
 
         // act
         final Ray ray = line.rayFrom(-1);
@@ -694,12 +694,12 @@ public class LineTest {
         // arrange
         final Line a = Lines.fromPointAndAngle(Vector2D.ZERO, 0.0, TEST_PRECISION);
         final Line b = Lines.fromPointAndAngle(Vector2D.of(4, 5), 0.0, TEST_PRECISION);
-        final Line c = Lines.fromPointAndAngle(Vector2D.of(-1, -3), 0.4 * PlaneAngleRadians.PI, TEST_PRECISION);
-        final Line d = Lines.fromPointAndAngle(Vector2D.of(1, 0), -0.4 * PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line c = Lines.fromPointAndAngle(Vector2D.of(-1, -3), 0.4 * Math.PI, TEST_PRECISION);
+        final Line d = Lines.fromPointAndAngle(Vector2D.of(1, 0), -0.4 * Math.PI, TEST_PRECISION);
 
-        final Line e = Lines.fromPointAndAngle(Vector2D.of(6, -3), PlaneAngleRadians.PI, TEST_PRECISION);
-        final Line f = Lines.fromPointAndAngle(Vector2D.of(8, 5), 0.8 * PlaneAngleRadians.PI, TEST_PRECISION);
-        final Line g = Lines.fromPointAndAngle(Vector2D.of(6, -3), -0.8 * PlaneAngleRadians.PI, TEST_PRECISION);
+        final Line e = Lines.fromPointAndAngle(Vector2D.of(6, -3), Math.PI, TEST_PRECISION);
+        final Line f = Lines.fromPointAndAngle(Vector2D.of(8, 5), 0.8 * Math.PI, TEST_PRECISION);
+        final Line g = Lines.fromPointAndAngle(Vector2D.of(6, -3), -0.8 * Math.PI, TEST_PRECISION);
 
         // act/assert
         Assertions.assertTrue(a.similarOrientation(a));
@@ -1022,8 +1022,8 @@ public class LineTest {
         final AffineTransformMatrix2D scale = AffineTransformMatrix2D.createScale(2, 3);
         final AffineTransformMatrix2D reflect = AffineTransformMatrix2D.createScale(-1, 1);
         final AffineTransformMatrix2D translate = AffineTransformMatrix2D.createTranslation(3, 4);
-        final AffineTransformMatrix2D rotate = AffineTransformMatrix2D.createRotation(PlaneAngleRadians.PI_OVER_TWO);
-        final AffineTransformMatrix2D rotateAroundPt = AffineTransformMatrix2D.createRotation(Vector2D.of(0, 1), PlaneAngleRadians.PI_OVER_TWO);
+        final AffineTransformMatrix2D rotate = AffineTransformMatrix2D.createRotation(Angle.PI_OVER_TWO);
+        final AffineTransformMatrix2D rotateAroundPt = AffineTransformMatrix2D.createRotation(Vector2D.of(0, 1), Angle.PI_OVER_TWO);
 
         final Vector2D p1 = Vector2D.of(0, 1);
         final Vector2D p2 = Vector2D.of(1, 0);
@@ -1082,7 +1082,7 @@ public class LineTest {
                 Vector2D.of(3, 0), Vector2D.Unit.PLUS_Y,
                 Vector2D.of(3, 3), Vector2D.of(3, 4));
 
-        checkSubspaceTransform(line.subspaceTransform(AffineTransformMatrix2D.createRotation(PlaneAngleRadians.PI_OVER_TWO)),
+        checkSubspaceTransform(line.subspaceTransform(AffineTransformMatrix2D.createRotation(Angle.PI_OVER_TWO)),
                 Vector2D.of(0, 1), Vector2D.Unit.MINUS_X,
                 Vector2D.of(0, 1), Vector2D.of(-1, 1));
     }

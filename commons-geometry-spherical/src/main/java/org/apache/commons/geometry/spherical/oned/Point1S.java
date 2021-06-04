@@ -24,8 +24,7 @@ import org.apache.commons.geometry.core.internal.DoubleFunction1N;
 import org.apache.commons.geometry.core.internal.SimpleTupleFormat;
 import org.apache.commons.geometry.euclidean.twod.PolarCoordinates;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
-import org.apache.commons.numbers.angle.PlaneAngle;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 
 /** This class represents a point on the 1-sphere, or in other words, an
@@ -45,7 +44,7 @@ public final class Point1S implements Point<Point1S> {
     public static final Point1S ZERO = Point1S.of(0.0);
 
     /** A point with coordinates set to {@code pi}. */
-    public static final Point1S PI = Point1S.of(PlaneAngleRadians.PI);
+    public static final Point1S PI = Point1S.of(Math.PI);
 
     // CHECKSTYLE: stop ConstantName
     /** A point with all coordinates set to NaN. */
@@ -168,7 +167,7 @@ public final class Point1S implements Point<Point1S> {
      *      cannot be normalized
      */
     public Point1S above(final Point1S base) {
-        return normalize(base.getAzimuth() + PlaneAngleRadians.PI);
+        return normalize(base.getAzimuth() + Math.PI);
     }
 
     /** Return an equivalent point with an azimuth value strictly below the given base.
@@ -180,7 +179,7 @@ public final class Point1S implements Point<Point1S> {
      *      cannot be normalized
      */
     public Point1S below(final Point1S base) {
-        return normalize(base.getAzimuth() - PlaneAngleRadians.PI);
+        return normalize(base.getAzimuth() - Math.PI);
     }
 
     /** Normalize this point around the given center point. The azimuth value of
@@ -206,7 +205,8 @@ public final class Point1S implements Point<Point1S> {
      */
     public Point1S normalize(final double center) {
         if (isFinite()) {
-            final double az = PlaneAngleRadians.normalizer(center).applyAsDouble(azimuth);
+            // TODO: fix this; behavior has changed
+            final double az = Angle.Rad.normalizer(center).applyAsDouble(azimuth);
             return new Point1S(az, normalizedAzimuth);
         }
         throw new IllegalArgumentException("Cannot normalize azimuth value: " + azimuth);
@@ -217,9 +217,9 @@ public final class Point1S implements Point<Point1S> {
      * @return the point exactly opposite this point on the circle
      */
     public Point1S antipodal() {
-        double az = normalizedAzimuth + PlaneAngleRadians.PI;
-        if (az >= PlaneAngleRadians.TWO_PI) {
-            az -= PlaneAngleRadians.TWO_PI;
+        double az = normalizedAzimuth + Math.PI;
+        if (az >= Angle.TWO_PI) {
+            az -= Angle.TWO_PI;
         }
 
         return Point1S.of(az);
@@ -312,12 +312,12 @@ public final class Point1S implements Point<Point1S> {
     }
 
     /** Create a new point instance from the given azimuth angle.
-     * @param azimuth azimuth azimuth angle in radians
+     * @param azimuth azimuth azimuth angle
      * @return point instance with the given azimuth angle
      * @see #getAzimuth()
      */
-    public static Point1S of(final PlaneAngle azimuth) {
-        return of(azimuth.toRadians());
+    public static Point1S of(final Angle azimuth) {
+        return of(azimuth.toRad().getAsDouble());
     }
 
     /** Create a new point instance from the given Euclidean 2D vector. The returned point
@@ -365,11 +365,11 @@ public final class Point1S implements Point<Point1S> {
      */
     public static double signedDistance(final Point1S p1, final Point1S p2) {
         double dist = p2.normalizedAzimuth - p1.normalizedAzimuth;
-        if (dist < -PlaneAngleRadians.PI) {
-            dist += PlaneAngleRadians.TWO_PI;
+        if (dist < -Math.PI) {
+            dist += Angle.TWO_PI;
         }
-        if (dist >= PlaneAngleRadians.PI) {
-            dist -= PlaneAngleRadians.TWO_PI;
+        if (dist >= Math.PI) {
+            dist -= Angle.TWO_PI;
         }
         return dist;
     }

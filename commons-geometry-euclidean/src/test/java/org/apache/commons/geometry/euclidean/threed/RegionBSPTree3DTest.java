@@ -37,7 +37,6 @@ import org.apache.commons.geometry.euclidean.threed.line.Lines3D;
 import org.apache.commons.geometry.euclidean.threed.mesh.TriangleMesh;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
 import org.apache.commons.geometry.euclidean.twod.path.LinePath;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -1894,8 +1893,8 @@ public class RegionBSPTree3DTest {
         planes.add(Planes.fromPointAndNormal(bottomZ, Vector3D.Unit.MINUS_Z, TEST_PRECISION));
 
         // add the side planes
-        final double vDelta = PlaneAngleRadians.PI / stacks;
-        final double hDelta = PlaneAngleRadians.PI * 2 / slices;
+        final double vDelta = Math.PI / stacks;
+        final double hDelta = Math.PI * 2 / slices;
 
         final double adjustedRadius = (radius + (radius * Math.cos(vDelta * 0.5))) / 2.0;
 

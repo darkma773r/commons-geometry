@@ -32,7 +32,7 @@ import org.apache.commons.geometry.euclidean.twod.Lines;
 import org.apache.commons.geometry.euclidean.twod.RegionBSPTree2D;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.geometry.euclidean.twod.shape.Parallelogram;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -483,7 +483,7 @@ public class EmbeddedTreePlaneSubsetTest {
         final EmbeddedTreePlaneSubset ps = new EmbeddedTreePlaneSubset(plane, area.toTree());
 
         final Transform<Vector3D> transform = AffineTransformMatrix3D.identity()
-                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, PlaneAngleRadians.PI_OVER_TWO))
+                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, Angle.PI_OVER_TWO))
                 .translate(Vector3D.of(1, 0, 0));
 
         // act

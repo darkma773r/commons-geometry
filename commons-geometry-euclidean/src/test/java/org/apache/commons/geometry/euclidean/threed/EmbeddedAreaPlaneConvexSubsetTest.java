@@ -31,7 +31,7 @@ import org.apache.commons.geometry.euclidean.twod.Lines;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.geometry.euclidean.twod.path.LinePath;
 import org.apache.commons.geometry.euclidean.twod.shape.Parallelogram;
-import org.apache.commons.numbers.angle.PlaneAngleRadians;
+import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -112,7 +112,7 @@ public class EmbeddedAreaPlaneConvexSubsetTest {
         // arrange
         final EmbeddingPlane plane = Planes.fromNormal(Vector3D.Unit.PLUS_Z, TEST_PRECISION).getEmbedding();
         final PlaneConvexSubset sp = new EmbeddedAreaPlaneConvexSubset(plane, ConvexArea.fromBounds(
-                    Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION),
+                    Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION),
                     Lines.fromPointAndAngle(Vector2D.of(0, -1), 0.0, TEST_PRECISION)
                 ));
 
@@ -128,9 +128,9 @@ public class EmbeddedAreaPlaneConvexSubsetTest {
         // arrange
         final EmbeddingPlane plane = Planes.fromPointAndPlaneVectors(Vector3D.of(0, 0, 1), Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Y, TEST_PRECISION);
         final PlaneConvexSubset sp = new EmbeddedAreaPlaneConvexSubset(plane, ConvexArea.fromBounds(
-                    Lines.fromPointAndAngle(Vector2D.of(0, 1), PlaneAngleRadians.PI, TEST_PRECISION),
+                    Lines.fromPointAndAngle(Vector2D.of(0, 1), Math.PI, TEST_PRECISION),
                     Lines.fromPointAndAngle(Vector2D.of(0, -1), 0.0, TEST_PRECISION),
-                    Lines.fromPointAndAngle(Vector2D.of(1, 0), PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION)
+                    Lines.fromPointAndAngle(Vector2D.of(1, 0), Angle.PI_OVER_TWO, TEST_PRECISION)
                 ));
 
         // act
@@ -271,7 +271,7 @@ public class EmbeddedAreaPlaneConvexSubsetTest {
     public void testTransform() {
         // arrange
         final AffineTransformMatrix3D t = AffineTransformMatrix3D.identity()
-                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, -PlaneAngleRadians.PI_OVER_TWO))
+                .rotate(QuaternionRotation.fromAxisAngle(Vector3D.Unit.PLUS_Y, -Angle.PI_OVER_TWO))
                 .scale(1, 1, 2)
                 .translate(Vector3D.of(1, 0, 0));
 
@@ -419,8 +419,8 @@ public class EmbeddedAreaPlaneConvexSubsetTest {
                 Vector3D.Unit.PLUS_X, Vector3D.Unit.PLUS_Y, TEST_PRECISION);
         final EmbeddedAreaPlaneConvexSubset ps = new EmbeddedAreaPlaneConvexSubset(plane, ConvexArea.fromBounds(
                     Lines.fromPointAndAngle(Vector2D.ZERO, 0, TEST_PRECISION),
-                    Lines.fromPointAndAngle(Vector2D.of(1, 0), PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION),
-                    Lines.fromPointAndAngle(Vector2D.of(0, 1), -PlaneAngleRadians.PI_OVER_TWO, TEST_PRECISION)
+                    Lines.fromPointAndAngle(Vector2D.of(1, 0), Angle.PI_OVER_TWO, TEST_PRECISION),
+                    Lines.fromPointAndAngle(Vector2D.of(0, 1), -Angle.PI_OVER_TWO, TEST_PRECISION)
                 ));
 
         final Plane splitter = Planes.fromPointAndNormal(Vector3D.of(0.5, 0.5, 0), Vector3D.of(-1, 1, 0), TEST_PRECISION);
