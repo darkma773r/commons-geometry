@@ -333,36 +333,6 @@ public class Point1STest {
     }
 
     @Test
-    public void testNormalize() {
-        for (double az = -Angle.TWO_PI; az < 2 * Angle.TWO_PI; az += 0.2) {
-            // arrange
-            final Point1S pt = Point1S.of(az);
-
-            final double expectedPiNorm = Angle.Rad.WITHIN_0_AND_2PI.applyAsDouble(az);
-            final double expectedZeroNorm = Angle.Rad.WITHIN_MINUS_PI_AND_PI.applyAsDouble(az);
-
-            // act
-            final Point1S piNorm = pt.normalize(Point1S.PI);
-            final Point1S zeroNorm = pt.normalize(0.0);
-
-            // assert
-            Assertions.assertEquals(expectedPiNorm, piNorm.getAzimuth(), TEST_EPS);
-            Assertions.assertEquals(pt.getNormalizedAzimuth(), piNorm.getNormalizedAzimuth(), TEST_EPS);
-
-            Assertions.assertEquals(expectedZeroNorm, zeroNorm.getAzimuth(), TEST_EPS);
-            Assertions.assertEquals(pt.getNormalizedAzimuth(), zeroNorm.getNormalizedAzimuth(), TEST_EPS);
-        }
-    }
-
-    @Test
-    public void testNormalize_nonFinite() {
-        // act/assert
-        Assertions.assertThrows(IllegalArgumentException.class, () -> Point1S.of(Double.POSITIVE_INFINITY).normalize(0.0));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> Point1S.of(Double.NEGATIVE_INFINITY).normalize(0.0));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> Point1S.of(Double.NaN).normalize(Point1S.ZERO));
-    }
-
-    @Test
     public void testAbove() {
         // arrange
         final Point1S p1 = Point1S.ZERO;
@@ -391,37 +361,6 @@ public class Point1STest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> Point1S.of(Double.POSITIVE_INFINITY).above(Point1S.ZERO));
         Assertions.assertThrows(IllegalArgumentException.class, () -> Point1S.of(Double.NEGATIVE_INFINITY).above(Point1S.ZERO));
         Assertions.assertThrows(IllegalArgumentException.class, () -> Point1S.of(Double.NaN).above(Point1S.ZERO));
-    }
-
-    @Test
-    public void testBelow() {
-        // arrange
-        final Point1S p1 = Point1S.ZERO;
-        final Point1S p2 = Point1S.of(Angle.Deg.of(90));
-        final Point1S p3 = Point1S.PI;
-        final Point1S p4 = Point1S.of(Angle.Deg.of(-90));
-        final Point1S p5 = Point1S.of(Angle.TWO_PI);
-
-        // act/assert
-        checkPoint(p1.below(p1), -Angle.TWO_PI);
-        checkPoint(p2.below(p1), -1.5 * Math.PI);
-        checkPoint(p3.below(p1), -Math.PI);
-        checkPoint(p4.below(p1), -Angle.PI_OVER_TWO);
-        checkPoint(p5.below(p1), -Angle.TWO_PI);
-
-        checkPoint(p1.below(p3), 0.0);
-        checkPoint(p2.below(p3), Angle.PI_OVER_TWO);
-        checkPoint(p3.below(p3), -Math.PI);
-        checkPoint(p4.below(p3), -Angle.PI_OVER_TWO);
-        checkPoint(p5.below(p3), 0.0);
-    }
-
-    @Test
-    public void testBelow_nonFinite() {
-        // act/assert
-        Assertions.assertThrows(IllegalArgumentException.class, () -> Point1S.of(Double.POSITIVE_INFINITY).below(Point1S.ZERO));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> Point1S.of(Double.NEGATIVE_INFINITY).below(Point1S.ZERO));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> Point1S.of(Double.NaN).below(Point1S.ZERO));
     }
 
     @Test

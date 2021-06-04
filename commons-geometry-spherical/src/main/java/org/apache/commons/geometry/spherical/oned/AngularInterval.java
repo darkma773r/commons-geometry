@@ -288,7 +288,8 @@ public class AngularInterval implements HyperplaneBoundedRegion<Point1S> {
      * @return a new instance resulting the angular region between the given min and max azimuths
      * @throws IllegalArgumentException if either azimuth is infinite or NaN
      */
-    public static AngularInterval of(final double min, final double max, final Precision.DoubleEquivalence precision) {
+    public static AngularInterval of(final double min, final double max,
+            final Precision.DoubleEquivalence precision) {
         return of(Point1S.of(min), Point1S.of(max), precision);
     }
 
@@ -303,7 +304,8 @@ public class AngularInterval implements HyperplaneBoundedRegion<Point1S> {
      * @return a new instance resulting the angular region between the given min and max points
      * @throws IllegalArgumentException if either azimuth is infinite or NaN
      */
-    public static AngularInterval of(final Point1S min, final Point1S max, final Precision.DoubleEquivalence precision) {
+    public static AngularInterval of(final Point1S min, final Point1S max,
+            final Precision.DoubleEquivalence precision) {
         return createInterval(min, max, precision, AngularInterval::new, Convex.FULL);
     }
 
@@ -336,8 +338,8 @@ public class AngularInterval implements HyperplaneBoundedRegion<Point1S> {
      * @throws IllegalArgumentException if either azimuth is infinite or NaN
      */
     private static <T extends AngularInterval> T createInterval(final Point1S min, final Point1S max,
-            final Precision.DoubleEquivalence precision, final BiFunction<? super CutAngle, ? super CutAngle, T> factory,
-            final T fullSpace) {
+            final Precision.DoubleEquivalence precision,
+            final BiFunction<? super CutAngle, ? super CutAngle, T> factory, final T fullSpace) {
 
         validateIntervalValues(min, max);
 

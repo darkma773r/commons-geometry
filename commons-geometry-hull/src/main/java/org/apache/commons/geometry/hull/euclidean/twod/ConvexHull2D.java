@@ -92,7 +92,8 @@ public final class ConvexHull2D implements ConvexHull<Vector2D> {
      * @param precision precision context used to compare floating point values
      * @return path for the convex hull defined by the given vertices
      */
-    private static LinePath buildHullPath(final Collection<Vector2D> vertices, final Precision.DoubleEquivalence precision) {
+    private static LinePath buildHullPath(final Collection<Vector2D> vertices,
+            final Precision.DoubleEquivalence precision) {
         if (vertices.size() < 2) {
             return LinePath.empty();
         }

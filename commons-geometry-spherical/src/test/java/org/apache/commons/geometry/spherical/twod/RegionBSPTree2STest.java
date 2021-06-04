@@ -505,7 +505,7 @@ public class RegionBSPTree2STest {
         final List<GreatArcPath> paths = tree.getBoundaryPaths();
         Assertions.assertEquals(1, paths.size());
 
-        assertPath(paths.get(0), Point2S.PLUS_I, Point2S.MINUS_J,  Point2S.MINUS_K, Point2S.PLUS_I);
+        assertPathLoop(paths.get(0), Point2S.PLUS_I, Point2S.MINUS_J,  Point2S.MINUS_K);
 
         SphericalTestUtils.checkClassify(tree, RegionLocation.INSIDE,
                 Point2S.of(1.75 * Math.PI, 0.75 * Math.PI));
@@ -539,7 +539,7 @@ public class RegionBSPTree2STest {
         final List<GreatArcPath> paths = tree.getBoundaryPaths();
         Assertions.assertEquals(1, paths.size());
 
-        assertPath(paths.get(0), Point2S.PLUS_I, Point2S.MINUS_K, Point2S.MINUS_J, Point2S.PLUS_I);
+        assertPathLoop(paths.get(0), Point2S.PLUS_I, Point2S.MINUS_K, Point2S.MINUS_J);
 
         SphericalTestUtils.checkClassify(tree, RegionLocation.OUTSIDE,
                 Point2S.of(1.75 * Math.PI, 0.75 * Math.PI));
@@ -1016,6 +1016,10 @@ public class RegionBSPTree2STest {
         return c1.intersection(c2);
     }
 
+    /** Assert that the given path contains {@code vertices} in the exact order given.
+     * @param path path to check
+     * @param vertices expected vertices
+     */
     private static void assertPath(final GreatArcPath path, final Point2S... vertices) {
         final List<Point2S> expected = Arrays.asList(vertices);
         final List<Point2S> actual = path.getVertices();
@@ -1029,6 +1033,51 @@ public class RegionBSPTree2STest {
             if (!expected.get(i).eq(actual.get(i), TEST_PRECISION)) {
                 Assertions.fail("Unexpected path vertex at index " + i + ". Expected path " + expected +
                         " but was " + actual);
+            }
+        }
+    }
+
+    /** Assert that the given path contains {@code vertices} in a closed loop sequence. The
+     * actual path may start at any point in the sequence.
+     * @param path path to check
+     * @param vertices expected vertex loop without repeated points
+     */
+    private static void assertPathLoop(final GreatArcPath path, final Point2S... vertices) {
+        final List<Point2S> expected = Arrays.asList(vertices);
+        final List<Point2S> actual = path.getVertices();
+
+        Assertions.assertTrue(path.isClosed());
+        Assertions.assertFalse(path.isEmpty());
+        Assertions.assertTrue(actual.get(0).eq(actual.get(actual.size() - 1), TEST_PRECISION));
+
+        final List<Point2S> actualLoopVertices = actual.subList(0, actual.size() - 1);
+
+        if (expected.size() != actualLoopVertices.size()) {
+            Assertions.fail("Unexpected path loop. Expected vertex loop " + expected +
+                    " but " + actual);
+        }
+
+        int offset = -1;
+        final Point2S start = expected.get(0);
+        for (int i = 0; i < actualLoopVertices.size(); ++i) {
+            if (actualLoopVertices.get(i).eq(start, TEST_PRECISION)) {
+                offset = i;
+                break;
+            }
+        }
+
+        if (offset < 0) {
+            Assertions.fail("Vertex loops do not share any points: expected vertex loop " + expected +
+                    " but was " + actual);
+        }
+
+        for (int i = 0; i < expected.size(); ++i) {
+            final Point2S expectedVertex = expected.get(i % expected.size());
+            final Point2S actualVertex = actualLoopVertices.get((i + offset) % actualLoopVertices.size());
+
+            if (!expectedVertex.eq(actualVertex, TEST_PRECISION)) {
+                Assertions.fail("Unexpected vertex at index " + i + ": expected " + expectedVertex +
+                        " but was " + actualVertex);
             }
         }
     }
