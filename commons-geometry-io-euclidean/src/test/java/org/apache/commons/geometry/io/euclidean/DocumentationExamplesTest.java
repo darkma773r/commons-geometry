@@ -48,7 +48,7 @@ public class DocumentationExamplesTest {
 
     @Test
     public void testIndexPageExample() throws IOException {
-        // construct a precision context to handle floating-point comparisons
+        // construct a precision instance to handle floating-point comparisons
         final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-6);
 
         // create a BSP tree representing the unit cube

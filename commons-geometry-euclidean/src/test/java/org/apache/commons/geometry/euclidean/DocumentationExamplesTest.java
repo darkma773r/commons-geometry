@@ -63,7 +63,7 @@ public class DocumentationExamplesTest {
 
     @Test
     public void testPrecisionContextExample() {
-        // create a precision context with an epsilon (aka, tolerance) value of 1e-3
+        // create a precision instance with an epsilon (aka, tolerance) value of 1e-3
         final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(1e-3);
 
         // test for equality using the eq() method
