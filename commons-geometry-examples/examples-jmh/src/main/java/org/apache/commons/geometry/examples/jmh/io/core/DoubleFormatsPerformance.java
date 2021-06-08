@@ -72,13 +72,13 @@ public class DoubleFormatsPerformance {
         }
     }
 
-    /** Run a benchmark test on a format function.
+    /** Run a benchmark test on a function accepting a double argument.
      * @param input double array
      * @param bh jmh blackhole for consuming output
      * @param fn function to call
      */
-    private static void testFunction(final DoubleInput input, final Blackhole bh,
-            final DoubleFunction<String> fn) {
+    private static <T> void runDoubleFunction(final DoubleInput input, final Blackhole bh,
+            final DoubleFunction<T> fn) {
         for (final double d : input.getInput()) {
             bh.consume(fn.apply(d));
         }
@@ -90,7 +90,7 @@ public class DoubleFormatsPerformance {
      */
     @Benchmark
     public void baseline(final DoubleInput input, final Blackhole bh) {
-        testFunction(input, bh, d -> "");
+        runDoubleFunction(input, bh, d -> "");
     }
 
     /** Benchmark testing the {@link Double#toString()} method.
@@ -99,7 +99,7 @@ public class DoubleFormatsPerformance {
      */
     @Benchmark
     public void doubleToString(final DoubleInput input, final Blackhole bh) {
-        testFunction(input, bh, Double::toString);
+        runDoubleFunction(input, bh, Double::toString);
     }
 
     /** Benchmark testing the {@link String#format(String, Object...)} method.
@@ -108,7 +108,7 @@ public class DoubleFormatsPerformance {
      */
     @Benchmark
     public void stringFormat(final DoubleInput input, final Blackhole bh) {
-        testFunction(input, bh, d -> String.format("%d", d));
+        runDoubleFunction(input, bh, d -> String.format("%d", d));
     }
 
     /** Benchmark testing the BigDecimal formatting performance.
@@ -117,7 +117,7 @@ public class DoubleFormatsPerformance {
      */
     @Benchmark
     public void bigDecimal(final DoubleInput input, final Blackhole bh) {
-        testFunction(input, bh, d -> BigDecimal.valueOf(d).toString());
+        runDoubleFunction(input, bh, d -> BigDecimal.valueOf(d).toString());
     }
 
     /** Benchmark testing the {@link DecimalFormat} class.
@@ -127,7 +127,7 @@ public class DoubleFormatsPerformance {
     @Benchmark
     public void decimalFormat(final DoubleInput input, final Blackhole bh) {
         final DecimalFormat fmt = new DecimalFormat("0.000000");
-        testFunction(input, bh, fmt::format);
+        runDoubleFunction(input, bh, fmt::format);
     }
 
     /** Benchmark testing the {@link DoubleFormats#createDefault(int)} method.
@@ -136,6 +136,6 @@ public class DoubleFormatsPerformance {
      */
     @Benchmark
     public void doubleFormatsDefault(final DoubleInput input, final Blackhole bh) {
-        testFunction(input, bh, DoubleFormats.createDefault(6));
+        runDoubleFunction(input, bh, DoubleFormats.createDefault(6));
     }
 }
