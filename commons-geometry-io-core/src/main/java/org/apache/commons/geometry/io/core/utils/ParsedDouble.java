@@ -39,6 +39,9 @@ final class ParsedDouble {
     /** Minus sign character. */
     private static final char MINUS_CHAR = '-';
 
+    /** Plus sign character. */
+    private static final char PLUS_CHAR = '+';
+
     /** Decimal separator character. */
     private static final char DECIMAL_SEP_CHAR = '.';
 
@@ -393,7 +396,7 @@ final class ParsedDouble {
                 exponentIdx = i;
             } else if (exponentIdx < 0) {
                 // this is a significand digit
-                if (ch != '0') {
+                if (ch != ZERO_CHAR) {
                     if (firstNonZeroDigitIdx < 0) {
                         firstNonZeroDigitIdx = digitCount;
                     }
@@ -439,9 +442,9 @@ final class ParsedDouble {
         final int len = seq.length();
         for (int i = start; i < len; ++i) {
             final char ch = seq.charAt(i);
-            if (ch == '-') {
+            if (ch == MINUS_CHAR) {
                 neg = !neg;
-            } else if (ch != '+') {
+            } else if (ch != PLUS_CHAR) {
                 exp = (exp * 10) + digitValue(ch);
             }
         }
@@ -485,12 +488,12 @@ final class ParsedDouble {
      * @return string representation of the result of adding 1 to the integer represented
      *      by the input substring
      */
-    private static String addOne(final String str, final int len) {
+    private static String addOne(final String digitStr, final int len) {
         final char[] resultChars = new char[len + 1];
 
         boolean carrying = true;
         for (int i = len - 1; i >= 0; --i) {
-            final char inChar = str.charAt(i);
+            final char inChar = digitStr.charAt(i);
             final char outChar = carrying ?
                     DECIMAL_DIGITS.charAt((digitValue(inChar) + 1) % DECIMAL_DIGITS.length()) :
                     inChar;

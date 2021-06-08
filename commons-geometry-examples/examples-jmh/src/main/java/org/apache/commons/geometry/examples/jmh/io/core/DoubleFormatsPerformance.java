@@ -73,6 +73,7 @@ public class DoubleFormatsPerformance {
     }
 
     /** Run a benchmark test on a function accepting a double argument.
+     * @param <T> function output type
      * @param input double array
      * @param bh jmh blackhole for consuming output
      * @param fn function to call
