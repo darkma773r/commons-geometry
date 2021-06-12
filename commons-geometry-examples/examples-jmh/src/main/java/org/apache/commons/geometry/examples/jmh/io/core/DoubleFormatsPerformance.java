@@ -17,6 +17,7 @@
 package org.apache.commons.geometry.examples.jmh.io.core;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleFunction;
@@ -55,6 +56,14 @@ public class DoubleFormatsPerformance {
         @Param({"1000", "100000"})
         private int size;
 
+        /** Minimum base 2 exponent for random input doubles. */
+        @Param("-10")
+        private int minExp;
+
+        /** Maximum base 2 exponent for random input doubles. */
+        @Param("10")
+        private int maxExp;
+
         /** Double input array. */
         private double[] input;
 
@@ -68,7 +77,8 @@ public class DoubleFormatsPerformance {
         /** Set up the instance for the benchmark. */
         @Setup(Level.Iteration)
         public void setup() {
-            input = BenchmarkUtils.randomDoubleArray(RandomSource.create(RandomSource.XO_RO_SHI_RO_128_PP), size);
+            input = BenchmarkUtils.randomDoubleArray(size, minExp, maxExp,
+                    RandomSource.create(RandomSource.XO_RO_SHI_RO_128_PP));
         }
     }
 
@@ -118,7 +128,11 @@ public class DoubleFormatsPerformance {
      */
     @Benchmark
     public void bigDecimal(final DoubleInput input, final Blackhole bh) {
-        runDoubleFunction(input, bh, d -> BigDecimal.valueOf(d).toString());
+        final DoubleFunction<String> fn = d -> BigDecimal.valueOf(d)
+                .setScale(3, RoundingMode.HALF_EVEN)
+                .stripTrailingZeros()
+                .toString();
+        runDoubleFunction(input, bh, fn);
     }
 
     /** Benchmark testing the {@link DecimalFormat} class.
@@ -127,7 +141,7 @@ public class DoubleFormatsPerformance {
      */
     @Benchmark
     public void decimalFormat(final DoubleInput input, final Blackhole bh) {
-        final DecimalFormat fmt = new DecimalFormat("0.000000");
+        final DecimalFormat fmt = new DecimalFormat("0.###");
         runDoubleFunction(input, bh, fmt::format);
     }
 
@@ -137,6 +151,15 @@ public class DoubleFormatsPerformance {
      */
     @Benchmark
     public void doubleFormatsDefault(final DoubleInput input, final Blackhole bh) {
-        runDoubleFunction(input, bh, DoubleFormats.createDefault(6));
+        runDoubleFunction(input, bh, DoubleFormats.createDefault(0, -3));
+    }
+
+    /** Benchmark testing the {@link DoubleFormats#createScentific(int)} method.
+     * @param input benchmark state input
+     * @param bh jmh blackhole for consuming output
+     */
+    @Benchmark
+    public void doubleFormatsScientific(final DoubleInput input, final Blackhole bh) {
+        runDoubleFunction(input, bh, DoubleFormats.createScientific(0, -3));
     }
 }
