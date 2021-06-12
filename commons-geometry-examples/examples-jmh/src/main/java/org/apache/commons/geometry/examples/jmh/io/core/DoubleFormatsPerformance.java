@@ -163,12 +163,21 @@ public class DoubleFormatsPerformance {
         runDoubleFunction(input, bh, DoubleFormats.createPlain(0, -3));
     }
 
-    /** Benchmark testing the {@link DoubleFormats#createScentific(int, int)} method.
+    /** Benchmark testing the {@link DoubleFormats#createScientific(int, int)} method.
      * @param input benchmark state input
      * @param bh jmh blackhole for consuming output
      */
     @Benchmark
     public void doubleFormatsScientific(final DoubleInput input, final Blackhole bh) {
         runDoubleFunction(input, bh, DoubleFormats.createScientific(0, -3));
+    }
+
+    /** Benchmark testing the {@link DoubleFormats#createEngineering(int, int)} method.
+     * @param input benchmark state input
+     * @param bh jmh blackhole for consuming output
+     */
+    @Benchmark
+    public void doubleFormatsEngineering(final DoubleInput input, final Blackhole bh) {
+        runDoubleFunction(input, bh, DoubleFormats.createEngineering(0, -3));
     }
 }
