@@ -17,7 +17,7 @@
 package org.apache.commons.geometry.euclidean.internal;
 
 import org.apache.commons.geometry.core.Vector;
-import org.apache.commons.numbers.arrays.Norms;
+import org.apache.commons.numbers.core.Norms;
 
 /** This class consists exclusively of static vector utility methods.
  */
