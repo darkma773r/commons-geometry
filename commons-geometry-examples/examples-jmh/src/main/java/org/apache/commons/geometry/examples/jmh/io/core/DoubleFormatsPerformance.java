@@ -53,7 +53,7 @@ public class DoubleFormatsPerformance {
     public static class DoubleInput {
 
         /** The number of doubles in the input array. */
-        @Param({"1000", "100000"})
+        @Param({"10000"})
         private int size;
 
         /** Minimum base 2 exponent for random input doubles. */
@@ -145,7 +145,7 @@ public class DoubleFormatsPerformance {
         runDoubleFunction(input, bh, fmt::format);
     }
 
-    /** Benchmark testing the {@link DoubleFormats#createDefault(int)} method.
+    /** Benchmark testing the {@link DoubleFormats#createDefault(int, int)} method.
      * @param input benchmark state input
      * @param bh jmh blackhole for consuming output
      */
@@ -154,7 +154,16 @@ public class DoubleFormatsPerformance {
         runDoubleFunction(input, bh, DoubleFormats.createDefault(0, -3));
     }
 
-    /** Benchmark testing the {@link DoubleFormats#createScentific(int)} method.
+    /** Benchmark testing the {@link DoubleFormats#createPlain(int, int)} method.
+     * @param input benchmark state input
+     * @param bh jmh blackhole for consuming output
+     */
+    @Benchmark
+    public void doubleFormatsPlain(final DoubleInput input, final Blackhole bh) {
+        runDoubleFunction(input, bh, DoubleFormats.createPlain(0, -3));
+    }
+
+    /** Benchmark testing the {@link DoubleFormats#createScentific(int, int)} method.
      * @param input benchmark state input
      * @param bh jmh blackhole for consuming output
      */
