@@ -57,11 +57,11 @@ public class DoubleFormatsPerformance {
         private int size;
 
         /** Minimum base 2 exponent for random input doubles. */
-        @Param("-10")
+        @Param("-20")
         private int minExp;
 
         /** Maximum base 2 exponent for random input doubles. */
-        @Param("10")
+        @Param("20")
         private int maxExp;
 
         /** Double input array. */
