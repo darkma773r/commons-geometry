@@ -705,51 +705,52 @@ class Vector1DTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> Vector1D.Unit.from(Double.POSITIVE_INFINITY));
     }
 
-    @Test
-    void testLinearCombination() {
-        // act/assert
-        checkVector(Vector1D.linearCombination(2, Vector1D.of(3)), 6);
-        checkVector(Vector1D.linearCombination(-2, Vector1D.of(3)), -6);
-    }
-
-    @Test
-    void testLinearCombination2() {
-        // act/assert
-        checkVector(Vector1D.linearCombination(
-                2, Vector1D.of(3),
-                5, Vector1D.of(7)), 41);
-        checkVector(Vector1D.linearCombination(
-                2, Vector1D.of(3),
-                -5, Vector1D.of(7)), -29);
-    }
-
-    @Test
-    void testLinearCombination3() {
-        // act/assert
-        checkVector(Vector1D.linearCombination(
-                2, Vector1D.of(3),
-                5, Vector1D.of(7),
-                11, Vector1D.of(13)), 184);
-        checkVector(Vector1D.linearCombination(
-                2, Vector1D.of(3),
-                5, Vector1D.of(7),
-                -11, Vector1D.of(13)), -102);
-    }
-
-    @Test
-    void testLinearCombination4() {
-        // act/assert
-        checkVector(Vector1D.linearCombination(
-                2, Vector1D.of(3),
-                5, Vector1D.of(7),
-                11, Vector1D.of(13),
-                17, Vector1D.of(19)), 507);
-        checkVector(Vector1D.linearCombination(
-                2, Vector1D.of(3),
-                5, Vector1D.of(7),
-                11, Vector1D.of(13),
-                -17, Vector1D.of(19)), -139);
-    }
+    // TODO: replace these tests
+//    @Test
+//    void testLinearCombination() {
+//        // act/assert
+//        checkVector(Vector1D.linearCombination(2, Vector1D.of(3)), 6);
+//        checkVector(Vector1D.linearCombination(-2, Vector1D.of(3)), -6);
+//    }
+//
+//    @Test
+//    void testLinearCombination2() {
+//        // act/assert
+//        checkVector(Vector1D.linearCombination(
+//                2, Vector1D.of(3),
+//                5, Vector1D.of(7)), 41);
+//        checkVector(Vector1D.linearCombination(
+//                2, Vector1D.of(3),
+//                -5, Vector1D.of(7)), -29);
+//    }
+//
+//    @Test
+//    void testLinearCombination3() {
+//        // act/assert
+//        checkVector(Vector1D.linearCombination(
+//                2, Vector1D.of(3),
+//                5, Vector1D.of(7),
+//                11, Vector1D.of(13)), 184);
+//        checkVector(Vector1D.linearCombination(
+//                2, Vector1D.of(3),
+//                5, Vector1D.of(7),
+//                -11, Vector1D.of(13)), -102);
+//    }
+//
+//    @Test
+//    void testSum() {
+//        // act/assert
+//        checkVector(Vector1D.linearCombination(
+//                2, Vector1D.of(3),
+//                5, Vector1D.of(7),
+//                11, Vector1D.of(13),
+//                17, Vector1D.of(19)), 507);
+//        checkVector(Vector1D.linearCombination(
+//                2, Vector1D.of(3),
+//                5, Vector1D.of(7),
+//                11, Vector1D.of(13),
+//                -17, Vector1D.of(19)), -139);
+//    }
 
     @Test
     void testUnitFactoryOptimization() {
