@@ -16,7 +16,9 @@
  */
 package org.apache.commons.geometry.euclidean.oned;
 
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
@@ -705,52 +707,47 @@ class Vector1DTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> Vector1D.Unit.from(Double.POSITIVE_INFINITY));
     }
 
-    // TODO: replace these tests
-//    @Test
-//    void testLinearCombination() {
-//        // act/assert
-//        checkVector(Vector1D.linearCombination(2, Vector1D.of(3)), 6);
-//        checkVector(Vector1D.linearCombination(-2, Vector1D.of(3)), -6);
-//    }
-//
-//    @Test
-//    void testLinearCombination2() {
-//        // act/assert
-//        checkVector(Vector1D.linearCombination(
-//                2, Vector1D.of(3),
-//                5, Vector1D.of(7)), 41);
-//        checkVector(Vector1D.linearCombination(
-//                2, Vector1D.of(3),
-//                -5, Vector1D.of(7)), -29);
-//    }
-//
-//    @Test
-//    void testLinearCombination3() {
-//        // act/assert
-//        checkVector(Vector1D.linearCombination(
-//                2, Vector1D.of(3),
-//                5, Vector1D.of(7),
-//                11, Vector1D.of(13)), 184);
-//        checkVector(Vector1D.linearCombination(
-//                2, Vector1D.of(3),
-//                5, Vector1D.of(7),
-//                -11, Vector1D.of(13)), -102);
-//    }
-//
-//    @Test
-//    void testSum() {
-//        // act/assert
-//        checkVector(Vector1D.linearCombination(
-//                2, Vector1D.of(3),
-//                5, Vector1D.of(7),
-//                11, Vector1D.of(13),
-//                17, Vector1D.of(19)), 507);
-//        checkVector(Vector1D.linearCombination(
-//                2, Vector1D.of(3),
-//                5, Vector1D.of(7),
-//                11, Vector1D.of(13),
-//                -17, Vector1D.of(19)), -139);
-//    }
+    @Test
+    void testSum_factoryMethods() {
+        // act/assert
+        checkVector(Vector1D.Sum.create().get(), 0);
+        checkVector(Vector1D.Sum.of(Vector1D.of(2)).get(), 2);
+        checkVector(Vector1D.Sum.of(
+                Vector1D.of(-2),
+                Vector1D.Unit.PLUS).get(), -1);
+    }
+
+    @Test
+    void testSum_instanceMethods() {
+        // arrange
+        final Vector1D p1 = Vector1D.of(-1);
+        final Vector1D p2 = Vector1D.of(4);
+
+        // act/assert
+        checkVector(Vector1D.Sum.create()
+                .add(p1)
+                .addScaled(0.5, p2)
+                .get(), 1);
+    }
+
+    @Test
+    void testSum_accept() {
+        // arrange
+        final Vector1D p1 = Vector1D.of(2);
+        final Vector1D p2 = Vector1D.of(-3);
+
+        final List<Vector1D.Unit> units = Arrays.asList(
+                Vector1D.Unit.MINUS);
+
+        final Vector1D.Sum s = Vector1D.Sum.create();
+
+        // act/assert
+        Arrays.asList(p1, Vector1D.ZERO, p2).forEach(s);
+        units.forEach(s);
+
+        // assert
+        checkVector(s.get(), -2);
+    }
 
     @Test
     void testUnitFactoryOptimization() {

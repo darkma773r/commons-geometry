@@ -254,7 +254,7 @@ public final class Line3D implements Embedding<Vector3D, Vector1D> {
         final double b = delta.dot(line.direction);
 
         return Vector3D.Sum.of(origin)
-                .addScaled(a - (b * cos) / n, direction)
+                .addScaled((a - (b * cos)) / n, direction)
                 .get();
     }
 

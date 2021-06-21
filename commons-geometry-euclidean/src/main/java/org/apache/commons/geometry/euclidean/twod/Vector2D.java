@@ -580,24 +580,15 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
      * @return the centroid of the point set
      */
     private static Vector2D computeCentroid(final Vector2D first, final Iterator<? extends Vector2D> more) {
-        double x = first.getX();
-        double y = first.getY();
-
+        final Sum sum = Sum.of(first);
         int count = 1;
 
-        Vector2D pt;
         while (more.hasNext()) {
-            pt = more.next();
-
-            x += pt.getX();
-            y += pt.getY();
-
+            sum.add(more.next());
             ++count;
         }
 
-        final double invCount = 1.0 / count;
-
-        return new Vector2D(invCount * x, invCount * y);
+        return sum.get().multiply(1.0 / count);
     }
 
     /**
@@ -753,65 +744,76 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
         }
     }
 
-    /** Class used to create high-accuracy sums of vectors.
-    *
-    * <p>This class is mutable and not thread-safe.
-    */
-   public static final class Sum extends EuclideanVectorSum<Vector2D> {
+    /** Class used to create high-accuracy sums of vectors. Each vector component is
+     * summed using an instance of {@link org.apache.commons.numbers.core.Sum}.
+     *
+     * <p>This class is mutable and not thread-safe.
+     * @see org.apache.commons.numbers.core.Sum
+     */
+    public static final class Sum extends EuclideanVectorSum<Vector2D> {
+        /** X component sum. */
+        private final org.apache.commons.numbers.core.Sum xsum;
+        /** Y component sum. */
+        private final org.apache.commons.numbers.core.Sum ysum;
 
-       /** X component sum. */
-       private final org.apache.commons.numbers.core.Sum xsum;
+        /** Construct a new instance with the given initial value.
+         * @param initial initial value
+         */
+        Sum(final Vector2D initial) {
+            this.xsum = org.apache.commons.numbers.core.Sum.of(initial.x);
+            this.ysum = org.apache.commons.numbers.core.Sum.of(initial.y);
+        }
 
-       /** Y component sum. */
-       private final org.apache.commons.numbers.core.Sum ysum;
+        /** {@inheritDoc} */
+        @Override
+        public Sum add(final Vector2D vec) {
+            xsum.add(vec.x);
+            ysum.add(vec.y);
+            return this;
+        }
 
-       /** Construct a new instance with the given initial value.
-        * @param initial initial value
-        */
-       Sum(final Vector2D initial) {
-           this.xsum = org.apache.commons.numbers.core.Sum.of(initial.x);
-           this.ysum = org.apache.commons.numbers.core.Sum.of(initial.y);
-       }
+        /** {@inheritDoc} */
+        @Override
+        public Sum addScaled(final double scale, final Vector2D vec) {
+            xsum.addProduct(scale, vec.x);
+            ysum.addProduct(scale, vec.y);
+            return this;
+        }
 
-       /** {@inheritDoc} */
-       @Override
-       public Sum add(final Vector2D vec) {
-           xsum.add(vec.x);
-           ysum.add(vec.y);
+        /** {@inheritDoc} */
+        @Override
+        public Vector2D get() {
+            return Vector2D.of(
+                    xsum.getAsDouble(),
+                    ysum.getAsDouble());
+        }
 
-           return this;
-       }
+        /** Create a new instance with an initial value set to the {@link Vector2D#ZERO zero vector}.
+         * @return new instance set to zero
+         */
+        public static Sum create() {
+            return new Sum(Vector2D.ZERO);
+        }
 
-       /** {@inheritDoc} */
-       @Override
-       public Sum addScaled(final double scale, final Vector2D vec) {
-           xsum.addProduct(scale, vec.x);
-           ysum.addProduct(scale, vec.y);
+        /** Construct a new instance with an initial value set to the argument.
+         * @param initial initial sum value
+         * @return new instance
+         */
+        public static Sum of(final Vector2D initial) {
+            return new Sum(initial);
+        }
 
-           return null;
-       }
-
-       /** {@inheritDoc} */
-       @Override
-       public Vector2D get() {
-           return Vector2D.of(
-                       xsum.getAsDouble(),
-                       ysum.getAsDouble());
-       }
-
-       /** Create a new instance with an initial value set to the {@link Vector2D#ZERO zero vector}.
-        * @return new instance set to zero
-        */
-       public static Sum create() {
-           return new Sum(Vector2D.ZERO);
-       }
-
-       /** Construct a new instance with an initial value set to the argument.
-        * @param initial initial sum value
-        * @return new instance
-        */
-       public static Sum of(final Vector2D initial) {
-           return new Sum(initial);
-       }
-   }
+        /** Construct a new instance from multiple values.
+         * @param first first vector
+         * @param more additional vectors
+         * @return new instance
+         */
+        public static Sum of(final Vector2D first, final Vector2D... more) {
+            final Sum s = new Sum(first);
+            for (final Vector2D v : more) {
+                s.add(v);
+            }
+            return s;
+        }
+    }
 }

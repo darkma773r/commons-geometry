@@ -417,57 +417,70 @@ public class Vector1D extends EuclideanVector<Vector1D> {
         }
     }
 
-    /** Class used to create high-accuracy sums of vectors.
+    /** Class used to create high-accuracy sums of vectors. Each vector component is
+     * summed using an instance of {@link org.apache.commons.numbers.core.Sum}.
     *
     * <p>This class is mutable and not thread-safe.
+    * @see org.apache.commons.numbers.core.Sum
     */
-   public static final class Sum extends EuclideanVectorSum<Vector1D> {
+    public static final class Sum extends EuclideanVectorSum<Vector1D> {
 
-       /** X component sum. */
-       private final org.apache.commons.numbers.core.Sum xsum;
+        /** X component sum. */
+        private final org.apache.commons.numbers.core.Sum xsum;
 
-       /** Construct a new instance with the given initial value.
-        * @param initial initial value
-        */
-       Sum(final Vector1D initial) {
-           this.xsum = org.apache.commons.numbers.core.Sum.of(initial.x);
-       }
+        /** Construct a new instance with the given initial value.
+         * @param initial initial value
+         */
+        Sum(final Vector1D initial) {
+            this.xsum = org.apache.commons.numbers.core.Sum.of(initial.x);
+        }
 
-       /** {@inheritDoc} */
-       @Override
-       public Sum add(final Vector1D vec) {
-           xsum.add(vec.x);
+        /** {@inheritDoc} */
+        @Override
+        public Sum add(final Vector1D vec) {
+            xsum.add(vec.x);
+            return this;
+        }
 
-           return this;
-       }
+        /** {@inheritDoc} */
+        @Override
+        public Sum addScaled(final double scale, final Vector1D vec) {
+            xsum.addProduct(scale, vec.x);
+            return this;
+        }
 
-       /** {@inheritDoc} */
-       @Override
-       public Sum addScaled(final double scale, final Vector1D vec) {
-           xsum.addProduct(scale, vec.x);
+        /** {@inheritDoc} */
+        @Override
+        public Vector1D get() {
+            return Vector1D.of(xsum.getAsDouble());
+        }
 
-           return null;
-       }
+        /** Create a new instance with an initial value set to the {@link Vector1D#ZERO zero vector}.
+         * @return new instance set to zero
+         */
+        public static Sum create() {
+            return new Sum(Vector1D.ZERO);
+        }
 
-       /** {@inheritDoc} */
-       @Override
-       public Vector1D get() {
-           return Vector1D.of(xsum.getAsDouble());
-       }
+        /** Construct a new instance with an initial value set to the argument.
+         * @param initial initial sum value
+         * @return new instance
+         */
+        public static Sum of(final Vector1D initial) {
+            return new Sum(initial);
+        }
 
-       /** Create a new instance with an initial value set to the {@link Vector1D#ZERO zero vector}.
-        * @return new instance set to zero
-        */
-       public static Sum create() {
-           return new Sum(Vector1D.ZERO);
-       }
-
-       /** Construct a new instance with an initial value set to the argument.
-        * @param initial initial sum value
-        * @return new instance
-        */
-       public static Sum of(final Vector1D initial) {
-           return new Sum(initial);
-       }
-   }
+        /** Construct a new instance from multiple values.
+         * @param first first vector
+         * @param more additional vectors
+         * @return new instance
+         */
+        public static Sum of(final Vector1D first, final Vector1D... more) {
+            final Sum s = new Sum(first);
+            for (final Vector1D v : more) {
+                s.add(v);
+            }
+            return s;
+        }
+    }
 }

@@ -290,7 +290,10 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
      */
     @Override
     public double dot(final Vector3D v) {
-        return Vectors.linearCombination(x, v.x, y, v.y, z, v.z);
+        return Vectors.linearCombination(
+                x, v.x,
+                y, v.y,
+                z, v.z);
     }
 
     /** {@inheritDoc}
@@ -645,26 +648,15 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
      * @return the centroid of the point set
      */
     private static Vector3D computeCentroid(final Vector3D first, final Iterator<? extends Vector3D> more) {
-        double x = first.getX();
-        double y = first.getY();
-        double z = first.getZ();
-
+        final Sum sum = Sum.of(first);
         int count = 1;
 
-        Vector3D pt;
         while (more.hasNext()) {
-            pt = more.next();
-
-            x += pt.getX();
-            y += pt.getY();
-            z += pt.getZ();
-
+            sum.add(more.next());
             ++count;
         }
 
-        final double invCount = 1.0 / count;
-
-        return new Vector3D(invCount * x, invCount * y, invCount * z);
+        return sum.get().multiply(1.0 / count);
     }
 
     /**
@@ -830,18 +822,17 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         }
     }
 
-    /** Class used to create high-accuracy sums of vectors.
+    /** Class used to create high-accuracy sums of vectors. Each vector component is
+     * summed using an instance of {@link org.apache.commons.numbers.core.Sum}.
      *
      * <p>This class is mutable and not thread-safe.
+     * @see org.apache.commons.numbers.core.Sum
      */
     public static final class Sum extends EuclideanVectorSum<Vector3D> {
-
         /** X component sum. */
         private final org.apache.commons.numbers.core.Sum xsum;
-
         /** Y component sum. */
         private final org.apache.commons.numbers.core.Sum ysum;
-
         /** Z component sum. */
         private final org.apache.commons.numbers.core.Sum zsum;
 
@@ -860,7 +851,6 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
             xsum.add(vec.x);
             ysum.add(vec.y);
             zsum.add(vec.z);
-
             return this;
         }
 
@@ -870,7 +860,6 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
             xsum.addProduct(scale, vec.x);
             ysum.addProduct(scale, vec.y);
             zsum.addProduct(scale, vec.z);
-
             return this;
         }
 
@@ -878,9 +867,9 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         @Override
         public Vector3D get() {
             return Vector3D.of(
-                        xsum.getAsDouble(),
-                        ysum.getAsDouble(),
-                        zsum.getAsDouble());
+                    xsum.getAsDouble(),
+                    ysum.getAsDouble(),
+                    zsum.getAsDouble());
         }
 
         /** Create a new instance with an initial value set to the {@link Vector3D#ZERO zero vector}.
@@ -896,6 +885,19 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
          */
         public static Sum of(final Vector3D initial) {
             return new Sum(initial);
+        }
+
+        /** Construct a new instance from multiple values.
+         * @param first first vector
+         * @param more additional vectors
+         * @return new instance
+         */
+        public static Sum of(final Vector3D first, final Vector3D... more) {
+            final Sum s = new Sum(first);
+            for (final Vector3D v : more) {
+                s.add(v);
+            }
+            return s;
         }
     }
 }
