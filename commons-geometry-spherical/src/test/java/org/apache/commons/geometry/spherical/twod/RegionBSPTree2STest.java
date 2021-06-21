@@ -41,7 +41,7 @@ class RegionBSPTree2STest {
 
     // alternative epsilon value for checking the centroids of complex
     // or very small regions
-    private static final double CENTROID_EPS = 1e-5;
+    private static final double CENTROID_EPS = 1e-6;
 
     private static final Precision.DoubleEquivalence TEST_PRECISION =
             Precision.doubleEquivalenceOfEpsilon(TEST_EPS);

@@ -871,7 +871,7 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
             ysum.addProduct(scale, vec.y);
             zsum.addProduct(scale, vec.z);
 
-            return null;
+            return this;
         }
 
         /** {@inheritDoc} */
