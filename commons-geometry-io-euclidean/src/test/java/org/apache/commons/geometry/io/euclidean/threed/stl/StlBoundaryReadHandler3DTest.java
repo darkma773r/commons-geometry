@@ -157,7 +157,7 @@ class StlBoundaryReadHandler3DTest {
             Assertions.assertNotNull(reader.readFacet());
             Assertions.assertNotNull(reader.readFacet());
 
-            Assertions.assertThrows(IOException.class, () -> reader.readFacet());
+            Assertions.assertThrows(IllegalStateException.class, () -> reader.readFacet());
         }
     }
 
@@ -168,7 +168,7 @@ class StlBoundaryReadHandler3DTest {
         final GeometryInput input = new StreamGeometryInput(in);
 
         // act/assert
-        Assertions.assertThrows(IOException.class, () -> handler.facetDefinitionReader(input));
+        Assertions.assertThrows(IllegalStateException.class, () -> handler.facetDefinitionReader(input));
     }
 
     @Test
@@ -178,7 +178,7 @@ class StlBoundaryReadHandler3DTest {
         final GeometryInput input = new StreamGeometryInput(in);
 
         // act/assert
-        Assertions.assertThrows(IOException.class, () -> handler.facetDefinitionReader(input));
+        Assertions.assertThrows(IllegalStateException.class, () -> handler.facetDefinitionReader(input));
 
         Assertions.assertEquals(1, in.getCloseCount());
     }

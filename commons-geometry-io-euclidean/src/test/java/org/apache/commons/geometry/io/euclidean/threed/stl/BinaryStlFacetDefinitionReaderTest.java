@@ -120,7 +120,7 @@ class BinaryStlFacetDefinitionReaderTest {
             // act/assert
             GeometryTestUtils.assertThrowsWithMessage(
                     () -> reader.getHeader(),
-                    IOException.class, "Failed to read STL header: data not available");
+                    IllegalStateException.class, "Failed to read STL header: data not available");
         }
     }
 
@@ -133,7 +133,7 @@ class BinaryStlFacetDefinitionReaderTest {
             // act/assert
             GeometryTestUtils.assertThrowsWithMessage(
                     () -> reader.getHeader(),
-                    IOException.class, "Failed to read STL triangle count: data not available");
+                    IllegalStateException.class, "Failed to read STL triangle count: data not available");
         }
     }
 
@@ -147,7 +147,7 @@ class BinaryStlFacetDefinitionReaderTest {
             // act/assert
             GeometryTestUtils.assertThrowsWithMessage(
                     () -> reader.readFacet(),
-                    IOException.class, "Failed to read STL triangle at index 0: data not available");
+                    IllegalStateException.class, "Failed to read STL triangle at index 0: data not available");
         }
     }
 

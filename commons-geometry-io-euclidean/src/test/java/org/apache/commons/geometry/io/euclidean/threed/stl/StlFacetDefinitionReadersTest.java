@@ -123,7 +123,7 @@ class StlFacetDefinitionReadersTest {
 
             Assertions.assertNotNull(reader.readFacet());
             Assertions.assertNotNull(reader.readFacet());
-            Assertions.assertThrows(IOException.class, () -> reader.readFacet());
+            Assertions.assertThrows(IllegalStateException.class, () -> reader.readFacet());
         }
     }
 
@@ -136,6 +136,7 @@ class StlFacetDefinitionReadersTest {
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
                 () -> StlFacetDefinitionReaders.create(in, null),
-                IOException.class, "Cannot determine STL format: attempted to read 5 bytes but found only 1 available");
+                IllegalStateException.class,
+                "Cannot determine STL format: attempted to read 5 bytes but found only 1 available");
     }
 }

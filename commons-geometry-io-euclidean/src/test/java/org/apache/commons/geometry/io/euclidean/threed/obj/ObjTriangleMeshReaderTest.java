@@ -145,7 +145,7 @@ class ObjTriangleMeshReaderTest {
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
                 () -> reader.readTriangleMesh(),
-                IOException.class, Pattern.compile("^Parsing failed.*"));
+                IllegalStateException.class, Pattern.compile("^Parsing failed.*"));
     }
 
     private static ObjTriangleMeshReader reader(final String str) {

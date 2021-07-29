@@ -16,7 +16,6 @@
  */
 package org.apache.commons.geometry.io.core;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -193,12 +192,12 @@ public class BoundaryIOManager<
      *      file extension of the input {@link GeometryInput#getFileName() file name}
      * @param precision precision context used for floating point comparisons
      * @return object containing all boundaries from the input
-     * @throws IllegalArgumentException if no {@link BoundaryReadHandler read handler}
-     *      can be found for the input format
-     * @throws IOException if an IO error occurs
+     * @throws IllegalArgumentException if mathematically invalid data is encountered or no
+     *      {@link BoundaryReadHandler read handler} can be found for the input format
+     * @throws IllegalStateException if a parsing or syntax error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
-    public B read(final GeometryInput in, final GeometryFormat fmt, final Precision.DoubleEquivalence precision)
-            throws IOException {
+    public B read(final GeometryInput in, final GeometryFormat fmt, final Precision.DoubleEquivalence precision) {
         return requireReadHandler(in, fmt).read(in, precision);
     }
 
@@ -210,20 +209,25 @@ public class BoundaryIOManager<
      *      // access stream content
      *  }
      *  </pre>
-     * <p>An {@link IOException} is thrown immediately by this method if stream creation fails. Any IO errors
-     * occurring during stream iteration are wrapped with {@link java.io.UncheckedIOException}. Other runtime
-     * exceptions may be thrown during stream iteration if mathematically invalid boundaries are encountered.</p>
+     * <p>The following exceptions may be thrown during stream iteration:
+     *  <ul>
+     *      <li>{@link IllegalArgumentException} if mathematically invalid data is encountered</li>
+     *      <li>{@link IllegalStateException} if a parsing or syntax error occurs</li>
+     *      <li>{@link java.io.UncheckedIOException UncheckedIOException} if an I/O error occurs</li>
+     *  </ul>
+     * </p>
      * @param in input to read boundaries from
      * @param fmt format of the input; if null, the format is determined implicitly from the
      *      file extension of the input {@link GeometryInput#getFileName() file name}
      * @param precision precision context used for floating point comparisons
      * @return stream providing access to all boundaries from the input
-     * @throws IllegalArgumentException if no {@link BoundaryReadHandler read handler}
-     *      can be found for the input format
-     * @throws IOException if an IO error occurs
+     * @throws IllegalArgumentException if no {@link BoundaryReadHandler read handler} can be found for
+     *      the input format
+     * @throws IllegalStateException if a parsing or syntax error occurs during stream creation
+     * @throws java.io.UncheckedIOException if an I/O error occurs during stream creation
      */
     public Stream<H> boundaries(final GeometryInput in, final GeometryFormat fmt,
-            final Precision.DoubleEquivalence precision) throws IOException {
+            final Precision.DoubleEquivalence precision) {
         return requireReadHandler(in, fmt).boundaries(in, precision);
     }
 
@@ -234,9 +238,9 @@ public class BoundaryIOManager<
      *      file extension of the output {@link GeometryOutput#getFileName()}
      * @throws IllegalArgumentException if no {@link BoundaryWriteHandler write handler} can be found
      *      for the output format
-     * @throws IOException if an IO error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
-    public void write(final B src, final GeometryOutput out, final GeometryFormat fmt) throws IOException {
+    public void write(final B src, final GeometryOutput out, final GeometryFormat fmt) {
         requireWriteHandler(out, fmt).write(src, out);
     }
 

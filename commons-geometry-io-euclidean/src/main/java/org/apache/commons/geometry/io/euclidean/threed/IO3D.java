@@ -69,7 +69,7 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#facetDefinitionReader(GeometryInput, GeometryFormat)
      */
-    public static FacetDefinitionReader facetDefinitionReader(final Path path) throws IOException {
+    public static FacetDefinitionReader facetDefinitionReader(final Path path) {
         return facetDefinitionReader(new FileGeometryInput(path), null);
     }
 
@@ -82,7 +82,7 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#facetDefinitionReader(GeometryInput, GeometryFormat)
      */
-    public static FacetDefinitionReader facetDefinitionReader(final URL url) throws IOException {
+    public static FacetDefinitionReader facetDefinitionReader(final URL url) {
         return facetDefinitionReader(new UrlGeometryInput(url), null);
     }
 
@@ -96,8 +96,7 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#facetDefinitionReader(GeometryInput, GeometryFormat)
      */
-    public static FacetDefinitionReader facetDefinitionReader(final GeometryInput in, final GeometryFormat fmt)
-            throws IOException {
+    public static FacetDefinitionReader facetDefinitionReader(final GeometryInput in, final GeometryFormat fmt) {
         return getDefaultManager().facetDefinitionReader(in, fmt);
     }
 
@@ -123,7 +122,7 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#facets(GeometryInput, GeometryFormat)
      */
-    public static Stream<FacetDefinition> facets(final Path path) throws IOException {
+    public static Stream<FacetDefinition> facets(final Path path) {
         return facets(new FileGeometryInput(path), null);
     }
 
@@ -149,7 +148,7 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#facets(GeometryInput, GeometryFormat)
      */
-    public static Stream<FacetDefinition> facets(final URL url) throws IOException {
+    public static Stream<FacetDefinition> facets(final URL url) {
         return facets(new UrlGeometryInput(url), null);
     }
 
@@ -172,8 +171,7 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#facets(GeometryInput, GeometryFormat)
      */
-    public static Stream<FacetDefinition> facets(final GeometryInput in, final GeometryFormat fmt)
-            throws IOException {
+    public static Stream<FacetDefinition> facets(final GeometryInput in, final GeometryFormat fmt) {
         return getDefaultManager().facets(in, fmt);
     }
 
@@ -201,8 +199,7 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#boundaries(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
-    public static Stream<PlaneConvexSubset> boundaries(final Path path, final Precision.DoubleEquivalence precision)
-            throws IOException {
+    public static Stream<PlaneConvexSubset> boundaries(final Path path, final Precision.DoubleEquivalence precision) {
         return boundaries(new FileGeometryInput(path), null, precision);
     }
 
@@ -230,8 +227,7 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#boundaries(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
-    public static Stream<PlaneConvexSubset> boundaries(final URL url, final Precision.DoubleEquivalence precision)
-            throws IOException {
+    public static Stream<PlaneConvexSubset> boundaries(final URL url, final Precision.DoubleEquivalence precision) {
         return boundaries(new UrlGeometryInput(url), null, precision);
     }
 
@@ -257,7 +253,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#boundaries(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
     public static Stream<PlaneConvexSubset> boundaries(final GeometryInput in, final GeometryFormat fmt,
-            final Precision.DoubleEquivalence precision) throws IOException {
+            final Precision.DoubleEquivalence precision) {
         return getDefaultManager().boundaries(in, fmt, precision);
     }
 
@@ -285,8 +281,7 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#triangles(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
-    public static Stream<Triangle3D> triangles(final Path path, final Precision.DoubleEquivalence precision)
-            throws IOException {
+    public static Stream<Triangle3D> triangles(final Path path, final Precision.DoubleEquivalence precision) {
         return triangles(new FileGeometryInput(path), null, precision);
     }
 
@@ -314,8 +309,7 @@ public final class IO3D {
      * @throws IOException if stream creation fails
      * @see BoundaryIOManager3D#triangles(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
-    public static Stream<Triangle3D> triangles(final URL url, final Precision.DoubleEquivalence precision)
-            throws IOException {
+    public static Stream<Triangle3D> triangles(final URL url, final Precision.DoubleEquivalence precision) {
         return triangles(new UrlGeometryInput(url), null, precision);
     }
 
@@ -341,7 +335,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#triangles(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
     public static Stream<Triangle3D> triangles(final GeometryInput in, final GeometryFormat fmt,
-            final Precision.DoubleEquivalence precision) throws IOException {
+            final Precision.DoubleEquivalence precision) {
         return getDefaultManager().triangles(in, fmt, precision);
     }
 
@@ -356,8 +350,7 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#read(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
-    public static BoundarySource3D read(final Path path, final Precision.DoubleEquivalence precision)
-            throws IOException {
+    public static BoundarySource3D read(final Path path, final Precision.DoubleEquivalence precision) {
         return read(new FileGeometryInput(path), null, precision);
     }
 
@@ -372,8 +365,7 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#read(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
-    public static BoundarySource3D read(final URL url, final Precision.DoubleEquivalence precision)
-            throws IOException {
+    public static BoundarySource3D read(final URL url, final Precision.DoubleEquivalence precision) {
         return read(new UrlGeometryInput(url), null, precision);
     }
 
@@ -390,7 +382,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#read(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
     public static BoundarySource3D read(final GeometryInput in, final GeometryFormat fmt,
-            final Precision.DoubleEquivalence precision) throws IOException {
+            final Precision.DoubleEquivalence precision) {
         return getDefaultManager().read(in, fmt, precision);
     }
 
@@ -405,8 +397,7 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#readTriangleMesh(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
-    public static TriangleMesh readTriangleMesh(final Path path, final Precision.DoubleEquivalence precision)
-            throws IOException {
+    public static TriangleMesh readTriangleMesh(final Path path, final Precision.DoubleEquivalence precision) {
         return readTriangleMesh(new FileGeometryInput(path), null, precision);
     }
 
@@ -421,8 +412,7 @@ public final class IO3D {
      * @throws IOException if an I/O or data format error occurs
      * @see BoundaryIOManager3D#readTriangleMesh(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
-    public static TriangleMesh readTriangleMesh(final URL url, final Precision.DoubleEquivalence precision)
-            throws IOException {
+    public static TriangleMesh readTriangleMesh(final URL url, final Precision.DoubleEquivalence precision) {
         return readTriangleMesh(new UrlGeometryInput(url), null, precision);
     }
 
@@ -439,7 +429,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#readTriangleMesh(GeometryInput, GeometryFormat, Precision.DoubleEquivalence)
      */
     public static TriangleMesh readTriangleMesh(final GeometryInput in, final GeometryFormat fmt,
-            final Precision.DoubleEquivalence precision) throws IOException {
+            final Precision.DoubleEquivalence precision) {
         return getDefaultManager().readTriangleMesh(in, fmt, precision);
     }
 
@@ -455,7 +445,7 @@ public final class IO3D {
      * @throws IOException if an I/O error occurs
      * @see BoundaryIOManager3D#write(Stream, GeometryOutput, GeometryFormat)
      */
-    public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final Path path) throws IOException {
+    public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final Path path) {
         write(boundaries, new FileGeometryOutput(path), null);
     }
 
@@ -473,7 +463,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#write(Stream, GeometryOutput, GeometryFormat)
      */
     public static void write(final Stream<? extends PlaneConvexSubset> boundaries, final GeometryOutput out,
-            final GeometryFormat fmt) throws IOException {
+            final GeometryFormat fmt) {
         getDefaultManager().write(boundaries, out, fmt);
     }
 
@@ -504,8 +494,7 @@ public final class IO3D {
      * @see org.apache.commons.geometry.io.core.BoundaryIOManager#write(
      *      org.apache.commons.geometry.core.partitioning.BoundarySource, GeometryOutput, GeometryFormat)
      */
-    public static void write(final BoundarySource3D src, final GeometryOutput out, final GeometryFormat fmt)
-            throws IOException {
+    public static void write(final BoundarySource3D src, final GeometryOutput out, final GeometryFormat fmt) {
         getDefaultManager().write(src, out, fmt);
     }
 
@@ -518,8 +507,7 @@ public final class IO3D {
      * @throws IOException if an I/O error occurs
      * @see BoundaryIOManager3D#writeFacets(Collection, GeometryOutput, GeometryFormat)
      */
-    public static void writeFacets(final Collection<? extends FacetDefinition> facets, final Path path)
-            throws IOException {
+    public static void writeFacets(final Collection<? extends FacetDefinition> facets, final Path path) {
         writeFacets(facets, new FileGeometryOutput(path), null);
     }
 
@@ -534,7 +522,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#writeFacets(Collection, GeometryOutput, GeometryFormat)
      */
     public static void writeFacets(final Collection<? extends FacetDefinition> facets, final GeometryOutput out,
-            final GeometryFormat fmt) throws IOException {
+            final GeometryFormat fmt) {
         getDefaultManager().writeFacets(facets, out, fmt);
     }
 
@@ -550,7 +538,7 @@ public final class IO3D {
      * @throws IOException if an I/O error occurs
      * @see BoundaryIOManager3D#writeFacets(Stream, GeometryOutput, GeometryFormat)
      */
-    public static void writeFacets(final Stream<? extends FacetDefinition> facets, final Path path) throws IOException {
+    public static void writeFacets(final Stream<? extends FacetDefinition> facets, final Path path) {
         writeFacets(facets, new FileGeometryOutput(path), null);
     }
 
@@ -568,7 +556,7 @@ public final class IO3D {
      * @see BoundaryIOManager3D#writeFacets(Stream, GeometryOutput, GeometryFormat)
      */
     public static void writeFacets(final Stream<? extends FacetDefinition> facets, final GeometryOutput out,
-            final GeometryFormat fmt) throws IOException {
+            final GeometryFormat fmt) {
         getDefaultManager().writeFacets(facets, out, fmt);
     }
 

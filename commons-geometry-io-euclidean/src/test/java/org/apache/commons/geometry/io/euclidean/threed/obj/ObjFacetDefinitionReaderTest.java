@@ -120,7 +120,7 @@ class ObjFacetDefinitionReaderTest {
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
                 () -> EuclideanIOTestUtils.readAll(reader),
-                IOException.class, Pattern.compile("^Parsing failed.*"));
+                IllegalStateException.class, Pattern.compile("^Parsing failed.*"));
     }
 
     private static ObjFacetDefinitionReader reader(final String str) {

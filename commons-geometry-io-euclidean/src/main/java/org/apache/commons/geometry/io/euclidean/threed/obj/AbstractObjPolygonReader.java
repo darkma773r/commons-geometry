@@ -17,10 +17,10 @@
 package org.apache.commons.geometry.io.euclidean.threed.obj;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.io.Reader;
 
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.io.core.internal.GeometryIOUtils;
 
 /** Abstract base class for types that read OBJ polygon content using
  * {@link PolygonObjParser}.
@@ -64,15 +64,16 @@ public abstract class AbstractObjPolygonReader implements Closeable {
 
     /** {@inheritDoc} */
     @Override
-    public void close() throws IOException {
-        reader.close();
+    public void close() {
+        GeometryIOUtils.closeUnchecked(reader);
     }
 
     /** Return the next face from the OBJ content or null if no face is found.
      * @return the next face from the OBJ content or null if no face is found
-     * @throws IOException if an I/O or data format error occurs
+     * @throws IllegalStateException if a parsing error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
-    protected PolygonObjParser.Face readFace() throws IOException {
+    protected PolygonObjParser.Face readFace() {
         while (parser.nextKeyword()) {
             switch (parser.getCurrentKeyword()) {
             case ObjConstants.VERTEX_KEYWORD:

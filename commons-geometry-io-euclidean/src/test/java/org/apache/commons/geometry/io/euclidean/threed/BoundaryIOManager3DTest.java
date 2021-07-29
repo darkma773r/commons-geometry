@@ -53,12 +53,12 @@ class BoundaryIOManager3DTest {
     private static final FacetDefinitionReader FACET_DEF_READER = new FacetDefinitionReader() {
 
         @Override
-        public FacetDefinition readFacet() throws IOException {
+        public FacetDefinition readFacet() {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
             // do nothing
         }
     };
@@ -418,15 +418,14 @@ class BoundaryIOManager3DTest {
 
         /** {@inheritDoc} */
         @Override
-        public BoundarySource3D read(final GeometryInput in, final Precision.DoubleEquivalence precision)
-                throws IOException {
+        public BoundarySource3D read(final GeometryInput in, final Precision.DoubleEquivalence precision) {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
         @Override
         public Stream<PlaneConvexSubset> boundaries(final GeometryInput in,
-                final Precision.DoubleEquivalence precision) throws IOException {
+                final Precision.DoubleEquivalence precision) {
             this.inArg = in;
             this.precisionArg = precision;
 
@@ -435,7 +434,7 @@ class BoundaryIOManager3DTest {
 
         /** {@inheritDoc} */
         @Override
-        public FacetDefinitionReader facetDefinitionReader(final GeometryInput in) throws IOException {
+        public FacetDefinitionReader facetDefinitionReader(final GeometryInput in) {
             this.inArg = in;
 
             return FACET_DEF_READER;
@@ -443,7 +442,7 @@ class BoundaryIOManager3DTest {
 
         /** {@inheritDoc} */
         @Override
-        public Stream<FacetDefinition> facets(final GeometryInput in) throws IOException {
+        public Stream<FacetDefinition> facets(final GeometryInput in) {
             this.inArg = in;
 
             return Stream.of(FACET);
@@ -451,8 +450,7 @@ class BoundaryIOManager3DTest {
 
         /** {@inheritDoc} */
         @Override
-        public TriangleMesh readTriangleMesh(final GeometryInput in, final Precision.DoubleEquivalence precision)
-                throws IOException {
+        public TriangleMesh readTriangleMesh(final GeometryInput in, final Precision.DoubleEquivalence precision) {
             this.inArg = in;
             this.precisionArg = precision;
 
@@ -476,30 +474,27 @@ class BoundaryIOManager3DTest {
 
         /** {@inheritDoc} */
         @Override
-        public void write(final Stream<? extends PlaneConvexSubset> boundaries, final GeometryOutput out)
-                throws IOException {
+        public void write(final Stream<? extends PlaneConvexSubset> boundaries, final GeometryOutput out) {
             this.boundariesArg = boundaries.collect(Collectors.toList());
             this.outArg = out;
         }
 
         /** {@inheritDoc} */
         @Override
-        public void write(final BoundarySource3D src, final GeometryOutput out) throws IOException {
+        public void write(final BoundarySource3D src, final GeometryOutput out) {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
         @Override
-        public void writeFacets(final Stream<? extends FacetDefinition> facets, final GeometryOutput out)
-                throws IOException {
+        public void writeFacets(final Stream<? extends FacetDefinition> facets, final GeometryOutput out) {
             this.facetsArg = facets.collect(Collectors.toList());
             this.outArg = out;
         }
 
         /** {@inheritDoc} */
         @Override
-        public void writeFacets(final Collection<? extends FacetDefinition> facets, final GeometryOutput out)
-                throws IOException {
+        public void writeFacets(final Collection<? extends FacetDefinition> facets, final GeometryOutput out) {
             this.facetsArg = facets;
             this.outArg = out;
         }

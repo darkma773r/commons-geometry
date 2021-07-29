@@ -738,8 +738,7 @@ class BoundaryIOManagerTest {
 
         /** {@inheritDoc} */
         @Override
-        public TestBoundaryList read(final GeometryInput in, final Precision.DoubleEquivalence precision)
-                throws IOException {
+        public TestBoundaryList read(final GeometryInput in, final Precision.DoubleEquivalence precision) {
             this.inArg = in;
             this.precisionArg = precision;
 
@@ -749,7 +748,7 @@ class BoundaryIOManagerTest {
         /** {@inheritDoc} */
         @Override
         public Stream<TestLineSegment> boundaries(final GeometryInput in,
-                final Precision.DoubleEquivalence precision) throws IOException {
+                final Precision.DoubleEquivalence precision) {
             this.inArg = in;
             this.precisionArg = precision;
 
@@ -777,7 +776,7 @@ class BoundaryIOManagerTest {
 
         /** {@inheritDoc} */
         @Override
-        public void write(final TestBoundaryList boundarySource, final GeometryOutput out) throws IOException {
+        public void write(final TestBoundaryList boundarySource, final GeometryOutput out) {
             this.list = boundarySource;
             this.outArg = out;
         }

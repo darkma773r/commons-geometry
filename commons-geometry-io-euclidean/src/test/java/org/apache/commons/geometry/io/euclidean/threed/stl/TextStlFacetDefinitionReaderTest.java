@@ -248,7 +248,7 @@ class TextStlFacetDefinitionReaderTest {
     private static void assertParseError(final String content) {
         GeometryTestUtils.assertThrowsWithMessage(
                 () -> EuclideanIOTestUtils.readAll(facetReader(content)),
-                IOException.class,
+                IllegalStateException.class,
                 Pattern.compile("^Parsing failed.*"));
     }
 }

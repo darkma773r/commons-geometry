@@ -18,7 +18,6 @@ package org.apache.commons.geometry.io.euclidean.threed.obj;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.UncheckedIOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
@@ -587,8 +586,6 @@ class ObjWriterTest {
         GeometryTestUtils.assertThrowsWithMessage(() -> {
             try (ObjWriter objWriter = new ObjWriter(writer)) {
                 objWriter.writeBoundaries(src);
-            } catch (final IOException exc) {
-                throw new UncheckedIOException(exc);
             }
         }, IllegalArgumentException.class, Pattern.compile("^OBJ input geometry cannot be infinite: .*"));
     }
