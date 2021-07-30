@@ -113,7 +113,7 @@ public final class GeometryIOUtils {
 
     /** Create a {@link BufferedReader} for reading from the given input. The charset used is the charset
      * defined in {@code input} or {@code defaultCharset} if null.
-     * @param in input to read from
+     * @param input input to read from
      * @param defaultCharset charset to use if no charset is defined in the input
      * @return new reader instance
      * @throws UncheckedIOException if an I/O error occurs
@@ -147,14 +147,14 @@ public final class GeometryIOUtils {
         }
     }
 
-    /** Call the given function with the argument, wrapping any {@link IOException} with
+    /** Pass the given argument to the consumer, wrapping any {@link IOException} with
      * {@link UncheckedIOException}.
      * @param <T> argument type
      * @param fn function to call
      * @param arg function argument
      * @throws UncheckedIOException if an I/O error occurs
      */
-    public static <T> void callUnchecked(final IOConsumer<T> fn, final T arg) {
+    public static <T> void acceptUnchecked(final IOConsumer<T> fn, final T arg) {
         try {
             fn.accept(arg);
         } catch (IOException exc) {
@@ -162,15 +162,15 @@ public final class GeometryIOUtils {
         }
     }
 
-    /** Call the given function with the argument, wrapping any {@link IOException} with
-     * {@link UncheckedIOException}.
+    /** Call the given function with the argument and return the {@code int} result, wrapping any
+     * {@link IOException} with {@link UncheckedIOException}.
      * @param <T> argument type
      * @param fn function to call
      * @param arg function argument
      * @return int value
      * @throws UncheckedIOException if an I/O error occurs
      */
-    public static <T> int callUncheckedToInt(final IOToIntFunction<T> fn, final T arg) {
+    public static <T> int applyAsIntUnchecked(final IOToIntFunction<T> fn, final T arg) {
         try {
             return fn.applyAsInt(arg);
         } catch (IOException exc) {

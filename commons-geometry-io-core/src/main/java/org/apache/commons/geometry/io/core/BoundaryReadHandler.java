@@ -77,7 +77,6 @@ public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B exte
      *      <li>{@link IllegalStateException} if a parsing or syntax error occurs</li>
      *      <li>{@link java.io.UncheckedIOException UncheckedIOException} if an I/O error occurs</li>
      *  </ul>
-     * </p>
      * @param in input to read from
      * @param precision precision context used for floating point comparisons
      * @return stream providing access to the boundary information from the given input

@@ -18,12 +18,14 @@ package org.apache.commons.geometry.io.core.utils;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import java.util.function.DoubleFunction;
 
+import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.io.core.test.CloseCountWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -92,6 +94,38 @@ class AbstractTextFormatWriterTest {
         }
 
         Assertions.assertEquals(1, closeCountWriter.getCloseCount());
+    }
+
+    @Test
+    void testWrite_failure() throws IOException {
+        // arrange
+        final Writer failWriter = new Writer() {
+            @Override
+            public void write(char[] cbuf, int off, int len) throws IOException {
+                throw new IOException("test");
+            }
+
+            @Override
+            public void flush() throws IOException {
+            }
+
+            @Override
+            public void close() throws IOException {
+            }
+        };
+
+        // act/assert
+        try (TestWriter writer = new TestWriter(failWriter)) {
+            GeometryTestUtils.assertThrowsWithMessage(
+                    () -> writer.write('a'),
+                    UncheckedIOException.class,
+                    "IOException: test");
+
+            GeometryTestUtils.assertThrowsWithMessage(
+                    () -> writer.write("abc"),
+                    UncheckedIOException.class,
+                    "IOException: test");
+        }
     }
 
     private static final class TestWriter extends AbstractTextFormatWriter {

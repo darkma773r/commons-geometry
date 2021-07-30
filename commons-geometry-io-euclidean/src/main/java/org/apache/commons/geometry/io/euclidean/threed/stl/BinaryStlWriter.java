@@ -103,7 +103,7 @@ public class BinaryStlWriter implements Closeable {
 
         triangleBuffer.putShort((short) attributeValue);
 
-        GeometryIOUtils.callUnchecked(out::write, triangleBuffer.array());
+        GeometryIOUtils.acceptUnchecked(out::write, triangleBuffer.array());
     }
 
     /** {@inheritDoc} */
@@ -140,13 +140,13 @@ public class BinaryStlWriter implements Closeable {
                     Math.min(headerContent.length, StlConstants.BINARY_HEADER_BYTES));
         }
 
-        GeometryIOUtils.callUnchecked(out::write, bytes);
+        GeometryIOUtils.acceptUnchecked(out::write, bytes);
 
         // write the triangle count number
         ByteBuffer countBuffer = StlUtils.byteBuffer(Integer.BYTES);
         countBuffer.putInt(triangleCount);
         countBuffer.flip();
 
-        GeometryIOUtils.callUnchecked(out::write, countBuffer.array());
+        GeometryIOUtils.acceptUnchecked(out::write, countBuffer.array());
     }
 }

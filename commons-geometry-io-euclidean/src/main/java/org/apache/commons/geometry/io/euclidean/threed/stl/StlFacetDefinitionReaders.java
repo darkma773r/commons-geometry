@@ -53,7 +53,7 @@ public final class StlFacetDefinitionReaders {
         final byte[] testBytes = StlConstants.SOLID_START_KEYWORD.getBytes(inputCharset);
         final byte[] actualBytes = new byte[testBytes.length];
 
-        final int read = GeometryIOUtils.callUncheckedToInt(in::read, actualBytes);
+        final int read = GeometryIOUtils.applyAsIntUnchecked(in::read, actualBytes);
         if (read < actualBytes.length) {
             throw GeometryIOUtils.parseError(MessageFormat.format(
                     "Cannot determine STL format: attempted to read {0} bytes but found only {1} available",
@@ -63,7 +63,7 @@ public final class StlFacetDefinitionReaders {
         // "unread" the test bytes so that the created readers can start from the
         // beginning of the content
         final PushbackInputStream pushbackInput = new PushbackInputStream(in, actualBytes.length);
-        GeometryIOUtils.callUnchecked(pushbackInput::unread, actualBytes);
+        GeometryIOUtils.acceptUnchecked(pushbackInput::unread, actualBytes);
 
         if (Arrays.equals(testBytes, actualBytes)) {
             // this is a text file

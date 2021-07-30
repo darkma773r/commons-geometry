@@ -215,7 +215,6 @@ public class BoundaryIOManager<
      *      <li>{@link IllegalStateException} if a parsing or syntax error occurs</li>
      *      <li>{@link java.io.UncheckedIOException UncheckedIOException} if an I/O error occurs</li>
      *  </ul>
-     * </p>
      * @param in input to read boundaries from
      * @param fmt format of the input; if null, the format is determined implicitly from the
      *      file extension of the input {@link GeometryInput#getFileName() file name}

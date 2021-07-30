@@ -19,6 +19,7 @@ package org.apache.commons.geometry.io.core.internal;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.util.Random;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
@@ -167,6 +168,22 @@ class CharReadBufferTest {
     }
 
     @Test
+    void testReadPeek_failure() throws IOException {
+        // arrange
+        final CharReadBuffer buf = new CharReadBuffer(failReader());
+        final String msg = "IOException: read";
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            buf.peekString(3);
+        }, UncheckedIOException.class, msg);
+
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            buf.readString(3);
+        }, UncheckedIOException.class, msg);
+    }
+
+    @Test
     void testSkip() throws IOException {
         // arrange
         final CharReadBuffer buf = new CharReadBuffer(reader("abcdefg"), 3);
@@ -201,6 +218,17 @@ class CharReadBufferTest {
         GeometryTestUtils.assertThrowsWithMessage(() -> {
             buf.skip(-1);
         }, IllegalArgumentException.class, "Character skip count cannot be negative; was -1");
+    }
+
+    @Test
+    void testSkip_failure() throws IOException {
+        // arrange
+        final CharReadBuffer buf = new CharReadBuffer(failReader());
+
+        // act/assert
+        GeometryTestUtils.assertThrowsWithMessage(() -> {
+            buf.skip(10);
+        }, UncheckedIOException.class, "IOException: skip");
     }
 
     @Test
@@ -279,6 +307,25 @@ class CharReadBufferTest {
 
     private static Reader reader(final String content) {
         return new StringReader(content);
+    }
+
+    private static Reader failReader() {
+        return new Reader() {
+
+            @Override
+            public int read(char[] cbuf, int off, int len) throws IOException {
+                throw new IOException("read");
+            }
+
+            @Override
+            public long skip(final long skip) throws IOException {
+                throw new IOException("skip");
+            }
+
+            @Override
+            public void close() throws IOException {
+            }
+        };
     }
 
     private static String repeat(final String str, final int count) {
