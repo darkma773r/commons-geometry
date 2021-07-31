@@ -43,7 +43,7 @@ public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSu
      * input stream.
      * @param in input stream to read from
      * @return facet definition reader instance
-     * @throws IllegalStateException if a parsing or syntax error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     FacetDefinitionReader facetDefinitionReader(GeometryInput in);
@@ -60,13 +60,12 @@ public interface BoundaryReadHandler3D extends BoundaryReadHandler<PlaneConvexSu
      *  }
      * </pre>
      *
-     * <p>The following exceptions may be thrown during stream iteration:
-     *  <ul>
-     *      <li>{@link IllegalArgumentException} if mathematically invalid data is encountered</li>
-     *      <li>{@link IllegalStateException} if a parsing or syntax error occurs</li>
-     *      <li>{@link java.io.UncheckedIOException UncheckedIOException} if an I/O error occurs</li>
-     *  </ul>
-     * </p>
+     * <p>The following exceptions may be thrown during stream iteration:</p>
+     * <ul>
+     *  <li>{@link IllegalArgumentException} if mathematically invalid data is encountered</li>
+     *  <li>{@link IllegalStateException} if a parsing or syntax error occurs</li>
+     *  <li>{@link java.io.UncheckedIOException UncheckedIOException} if an I/O error occurs</li>
+     * </ul>
      * @param in input stream to read from; this is <em>not</em> closed when the returned stream is closed
      * @return stream providing access to the facet information from the given input stream
      * @throws java.io.UncheckedIOException if an I/O error occurs during stream creation

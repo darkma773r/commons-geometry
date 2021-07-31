@@ -120,7 +120,7 @@ public abstract class AbstractTextBoundaryWriteHandler3D extends AbstractBoundar
      * @return a new, configured text format writer
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
-    protected TextFacetDefinitionWriter getFacetDefinitionWriter(final GeometryOutput out){
+    protected TextFacetDefinitionWriter getFacetDefinitionWriter(final GeometryOutput out) {
         final TextFacetDefinitionWriter facetWriter =
                 new TextFacetDefinitionWriter(GeometryIOUtils.createBufferedWriter(out, defaultCharset));
 

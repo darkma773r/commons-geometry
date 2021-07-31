@@ -104,8 +104,8 @@ public class PolygonObjParser extends AbstractObjParser {
         return textureCoordinateCount;
     }
 
-    /** Return true if the instance is configured to throw an {@link IOException} when OBJ keywords not commonly
-     * used with files containing only polygon data are encountered. The default value is {@code false},
+    /** Return true if the instance is configured to throw an {@link IllegalStateException} when OBJ keywords
+     * not commonly used with files containing only polygon data are encountered. The default value is {@code false},
      * meaning that no keyword validation is performed. When set to true, only the following keywords are
      * accepted:
      * <ul>
@@ -125,9 +125,9 @@ public class PolygonObjParser extends AbstractObjParser {
         return failOnNonPolygonKeywords;
     }
 
-    /** Set the flag determining if the instance should throw an {@link IOException} when encountering keywords
-     * not commonly used with OBJ files containing only polygon data. If true, only the following keywords are
-     * accepted:
+    /** Set the flag determining if the instance should throw an {@link IllegalStateException} when encountering
+     * keywords not commonly used with OBJ files containing only polygon data. If true, only the following keywords
+     * are accepted:
      * <ul>
      *  <li>{@code v}</li>
      *  <li>{@code vn}</li>

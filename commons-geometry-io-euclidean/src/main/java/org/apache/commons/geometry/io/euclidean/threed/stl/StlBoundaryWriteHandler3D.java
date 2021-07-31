@@ -195,8 +195,6 @@ public class StlBoundaryWriteHandler3D extends AbstractBoundaryWriteHandler3D {
                         tri.getPoint3(),
                         tri.getPlane().getNormal());
             }
-        } catch (IOException exc) {
-            throw GeometryIOUtils.createUnchecked(exc);
         }
     }
 

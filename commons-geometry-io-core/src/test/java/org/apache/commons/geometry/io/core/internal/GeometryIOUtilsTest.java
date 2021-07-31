@@ -22,12 +22,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -124,33 +121,6 @@ class GeometryIOUtilsTest {
     }
 
     @Test
-    void testCreateBufferedWriter_failure() throws IOException {
-        // arrange
-        final GeometryOutput output = new GeometryOutput() {
-
-            @Override
-            public String getFileName() {
-                return null;
-            }
-
-            @Override
-            public Charset getCharset() {
-                return null;
-            }
-
-            @Override
-            public OutputStream getOutputStream() throws IOException {
-                throw new IOException("getOutputStream");
-            }
-        };
-
-        // act/assert
-        GeometryTestUtils.assertThrowsWithMessage(
-                () -> GeometryIOUtils.createBufferedWriter(output, StandardCharsets.UTF_8),
-                UncheckedIOException.class, "IOException: getOutputStream");
-    }
-
-    @Test
     void testCreateBufferedReader_givenCharset() throws IOException {
         // arrange
         final byte[] bytes = "\u00fc".getBytes(StandardCharsets.UTF_8);
@@ -178,34 +148,30 @@ class GeometryIOUtilsTest {
     }
 
     @Test
-    void testCreateBufferedReader_failure() throws IOException {
+    void testGetUnchecked() {
+        // act
+        final Object result = GeometryIOUtils.getUnchecked(() -> "abc");
+
+        // assert
+        Assertions.assertSame("abc", result);
+    }
+
+    @Test
+    void testGetUnchecked_failure() {
         // arrange
-        final GeometryInput input = new GeometryInput() {
-
-            @Override
-            public String getFileName() {
-                return null;
-            }
-
-            @Override
-            public Charset getCharset() {
-                return null;
-            }
-
-            @Override
-            public InputStream getInputStream() throws IOException {
-                throw new IOException("getInputStream");
-            }
+        final IOSupplier<String> supplier = () -> {
+            throw new IOException("test");
         };
 
         // act/assert
         GeometryTestUtils.assertThrowsWithMessage(
-                () -> GeometryIOUtils.createBufferedReader(input, StandardCharsets.UTF_8),
-                UncheckedIOException.class, "IOException: getInputStream");
+                () -> GeometryIOUtils.getUnchecked(supplier),
+                UncheckedIOException.class,
+                "IOException: test");
     }
 
     @Test
-    void acceptUnchecked() {
+    void testAcceptUnchecked() {
         // arrange
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final byte[] bytes = new byte[] {0, 1};
@@ -218,7 +184,7 @@ class GeometryIOUtilsTest {
     }
 
     @Test
-    void acceptUnchecked_failure() {
+    void testAcceptUnchecked_failure() {
         // arrange
         final IOConsumer<String> consumer = str -> {
             throw new IOException(str);
@@ -232,7 +198,7 @@ class GeometryIOUtilsTest {
     }
 
     @Test
-    void applyAsIntUnchecked() {
+    void testApplyAsIntUnchecked() {
         // arrange
         final ByteArrayInputStream in = new ByteArrayInputStream(new byte[] {0, 1, 2});
         final byte[] bytes = new byte[10];
@@ -248,7 +214,7 @@ class GeometryIOUtilsTest {
     }
 
     @Test
-    void applyAsIntUnchecked_failure() {
+    void testApplyAsIntUnchecked_failure() {
         // arrange
         final IOToIntFunction<String> consumer = str -> {
             throw new IOException(str);
@@ -275,7 +241,7 @@ class GeometryIOUtilsTest {
     }
 
     @Test
-    public void testParseError_noCause() {
+    void testParseError_noCause() {
         // act
         final IllegalStateException exc = GeometryIOUtils.parseError("test");
 
@@ -285,7 +251,7 @@ class GeometryIOUtilsTest {
     }
 
     @Test
-    public void testParseError_withCause() {
+    void testParseError_withCause() {
         // arrange
         final Throwable cause = new Throwable("cause");
 

@@ -49,7 +49,7 @@ public class TextStlWriter extends AbstractTextFormatWriter {
 
     /** Write the start of an unnamed STL solid definition. This method is equivalent to calling
      * {@code stlWriter.startSolid(null);}
-     * @throws IOException if an I/O error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     public void startSolid() {
         startSolid(null);

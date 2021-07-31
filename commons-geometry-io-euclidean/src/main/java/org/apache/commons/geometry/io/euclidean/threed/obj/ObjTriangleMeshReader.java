@@ -51,7 +51,7 @@ public class ObjTriangleMeshReader extends AbstractObjPolygonReader {
      * triangle fan. All vertices present in the OBJ content are also present in the returned mesh,
      * regardless of whether or not they are used in a face.
      * @return triangle mesh containing all data from the OBJ content
-     * @throws IllegalStateException if a parsing error occurs
+     * @throws IllegalStateException if data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     public TriangleMesh readTriangleMesh() {

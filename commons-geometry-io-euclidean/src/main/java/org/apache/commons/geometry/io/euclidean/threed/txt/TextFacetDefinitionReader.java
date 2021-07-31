@@ -159,8 +159,8 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
     /** Internal method to read a facet definition starting from the current parser
      * position. Empty lines (including lines containing only comments) are discarded.
      * @return facet definition or null if the end of input is reached
-     * @throws IllegalStateException if a parsing error occurs
-     * @throws java.io.UncheckedIOException if an I/O or parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private FacetDefinition readFacetInternal() {
         final Vector3D p1 = readVector();
@@ -191,8 +191,8 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Read a vector starting from the current parser position.
      * @return vector read from the parser
-     * @throws IllegalStateException if a parsing error occurs
-     * @throws java.io.UncheckedIOException if an I/O or parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private Vector3D readVector() {
         final double x = readDouble();
@@ -206,8 +206,8 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Read a double starting from the current parser position.
      * @return double value read from the parser
-     * @throws IllegalStateException if a parsing error occurs
-     * @throws java.io.UncheckedIOException if an I/O or parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private double readDouble() {
         return parser
@@ -217,8 +217,8 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Discard lines that do not contain any data. This includes empty lines
      * and lines that only contain comments.
-     * @throws IllegalStateException if a parsing error occurs
-     * @throws java.io.UncheckedIOException if an I/O or parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private void discardNonDataLines() {
         parser.discardLineWhitespace();
@@ -234,8 +234,8 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Discard a sequence of non-data characters on the current line starting
      * from the current parser position.
-     * @throws IllegalStateException if a parsing error occurs
-     * @throws java.io.UncheckedIOException if an I/O or parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private void discardNonData() {
         parser.discard(c ->
@@ -252,8 +252,8 @@ public class TextFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Return true if the parser is positioned at the start of the comment token.
      * @return true if the parser is positioned at the start of the comment token.
-     * @throws IllegalStateException if a parsing error occurs
-     * @throws java.io.UncheckedIOException if an I/O or parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
+     * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private boolean foundComment() {
         return hasCommentToken &&

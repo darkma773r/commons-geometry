@@ -94,8 +94,7 @@ public abstract class AbstractBoundaryReadHandler3D implements BoundaryReadHandl
         }, in::getInputStream);
     }
 
-    /** Class exposing a {@link FacetDefinitionReader} as an iterator. {@link IOException}s are wrapped
-     * with {@link java.io.UncheckedIOException}.
+    /** Class exposing a {@link FacetDefinitionReader} as an iterator.
      */
     static final class FacetDefinitionReaderIterator implements Iterator<FacetDefinition> {
 

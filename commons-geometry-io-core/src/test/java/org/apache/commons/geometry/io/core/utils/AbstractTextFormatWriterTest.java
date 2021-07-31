@@ -35,7 +35,7 @@ class AbstractTextFormatWriterTest {
     private StringWriter out = new StringWriter();
 
     @Test
-    void testDefaults() throws IOException {
+    void testDefaults() {
         // act
         try (TestWriter writer = new TestWriter(out)) {
             // assert
@@ -46,7 +46,7 @@ class AbstractTextFormatWriterTest {
     }
 
     @Test
-    void testWrite_defaultConfig() throws IOException {
+    void testWrite_defaultConfig() {
         // arrange
         final double n = 20000.0 / 3.0;
         final CloseCountWriter closeCountWriter = new CloseCountWriter(out);
@@ -69,7 +69,7 @@ class AbstractTextFormatWriterTest {
     }
 
     @Test
-    void testWrite_customConfig() throws IOException {
+    void testWrite_customConfig() {
         // arrange
         final CloseCountWriter closeCountWriter = new CloseCountWriter(out);
         try (TestWriter writer = new TestWriter(closeCountWriter)) {
@@ -97,7 +97,7 @@ class AbstractTextFormatWriterTest {
     }
 
     @Test
-    void testWrite_failure() throws IOException {
+    void testWrite_failure() {
         // arrange
         final Writer failWriter = new Writer() {
             @Override
@@ -106,11 +106,11 @@ class AbstractTextFormatWriterTest {
             }
 
             @Override
-            public void flush() throws IOException {
+            public void flush() {
             }
 
             @Override
-            public void close() throws IOException {
+            public void close() {
             }
         };
 

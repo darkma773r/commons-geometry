@@ -43,13 +43,12 @@ public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B exte
     GeometryFormat getFormat();
 
     /** Return an object containing all boundaries read from {@code input} using the handler's
-     * supported data format. Runtime exceptions may be thrown if mathematically invalid boundaries are
-     * encountered. See the documentation for the specific type of boundary being created for details.
+     * supported data format.
      * @param input input to read from
      * @param precision precision context used for floating point comparisons
      * @return object containing all boundaries read from {@code input}
      * @throws IllegalArgumentException if mathematically invalid data is encountered
-     * @throws IllegalStateException if a parsing or syntax error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     B read(GeometryInput input, Precision.DoubleEquivalence precision);
@@ -74,13 +73,13 @@ public interface BoundaryReadHandler<H extends HyperplaneConvexSubset<?>, B exte
      * <p>The following exceptions may be thrown during stream iteration:
      *  <ul>
      *      <li>{@link IllegalArgumentException} if mathematically invalid data is encountered</li>
-     *      <li>{@link IllegalStateException} if a parsing or syntax error occurs</li>
+     *      <li>{@link IllegalStateException} if a data format error occurs</li>
      *      <li>{@link java.io.UncheckedIOException UncheckedIOException} if an I/O error occurs</li>
      *  </ul>
      * @param in input to read from
      * @param precision precision context used for floating point comparisons
      * @return stream providing access to the boundary information from the given input
-     * @throws IllegalStateException if a parsing or syntax error occurs during stream creation
+     * @throws IllegalStateException if a data format error occurs during stream creation
      * @throws java.io.UncheckedIOException if an I/O error occurs during stream creation
      */
     Stream<H> boundaries(GeometryInput in, Precision.DoubleEquivalence precision);

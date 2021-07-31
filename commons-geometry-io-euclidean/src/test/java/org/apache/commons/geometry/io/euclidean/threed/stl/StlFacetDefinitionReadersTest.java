@@ -75,7 +75,7 @@ class StlFacetDefinitionReadersTest {
     }
 
     @Test
-    void testCreate_nonStandardCharset_charsetGiven() throws IOException {
+    void testCreate_nonStandardCharset_charsetGiven() {
         // arrange
         final String content = "solid test\n" +
                 "facet normal 1 2 3 " +
@@ -101,7 +101,7 @@ class StlFacetDefinitionReadersTest {
     }
 
     @Test
-    void testCreate_nonStandardCharset_noCharsetGiven() throws IOException {
+    void testCreate_nonStandardCharset_noCharsetGiven() {
         // arrange
         final String content = "solid test\n" +
                 "facet normal 1 2 3 " +

@@ -249,7 +249,7 @@ class BinaryStlFacetDefinitionReaderTest {
         return result;
     }
 
-    private static byte[] getBytes(final Vector3D vec) throws IOException {
+    private static byte[] getBytes(final Vector3D vec) {
         final byte[] result = new byte[Float.BYTES * 3];
         int offset = 0;
 

@@ -88,7 +88,7 @@ class StlBoundaryReadHandler3DTest {
     }
 
     @Test
-    void testRead_usesInputCharset() throws IOException {
+    void testRead_usesInputCharset() {
         // arrange
         final String content = "solid test\n" +
                 "facet normal 1 2 3 " +
@@ -111,7 +111,7 @@ class StlBoundaryReadHandler3DTest {
     }
 
     @Test
-    void testRead_setDefaultCharset() throws IOException {
+    void testRead_setDefaultCharset() {
         // arrange
         final String content = "solid test\n" +
                 "facet normal 1 2 3 " +
@@ -137,7 +137,7 @@ class StlBoundaryReadHandler3DTest {
     }
 
     @Test
-    void testRead_incorrectCharset() throws IOException {
+    void testRead_incorrectCharset() {
         // arrange
         final String content = "solid test\n" +
                 "facet normal 1 2 3 " +
@@ -162,7 +162,7 @@ class StlBoundaryReadHandler3DTest {
     }
 
     @Test
-    void testRead_notEnoughBytes() throws IOException {
+    void testRead_notEnoughBytes() {
         // arrange
         final ByteArrayInputStream in = new ByteArrayInputStream(new byte[1]);
         final GeometryInput input = new StreamGeometryInput(in);
@@ -172,7 +172,7 @@ class StlBoundaryReadHandler3DTest {
     }
 
     @Test
-    void testRead_closesInputOnReaderCreationFailure() throws IOException {
+    void testRead_closesInputOnReaderCreationFailure() {
         // arrange
         final CloseCountInputStream in = new CloseCountInputStream(new ByteArrayInputStream(new byte[1]));
         final GeometryInput input = new StreamGeometryInput(in);
@@ -183,8 +183,7 @@ class StlBoundaryReadHandler3DTest {
         Assertions.assertEquals(1, in.getCloseCount());
     }
 
-    private static BoundarySource3D boundariesToBoundarySource(final Stream<? extends PlaneConvexSubset> boundaries)
-            throws IOException {
+    private static BoundarySource3D boundariesToBoundarySource(final Stream<? extends PlaneConvexSubset> boundaries) {
         try (Stream<? extends PlaneConvexSubset> toClose = boundaries) {
             return new BoundaryList3D(boundaries.collect(Collectors.toList()));
         }
@@ -199,7 +198,7 @@ class StlBoundaryReadHandler3DTest {
         }
     }
 
-    private static BoundarySource3D readerToBoundarySource(final FacetDefinitionReader reader) throws IOException {
+    private static BoundarySource3D readerToBoundarySource(final FacetDefinitionReader reader) {
         return facetsToBoundarySource(EuclideanIOTestUtils.readAll(reader).stream());
     }
 }

@@ -122,11 +122,8 @@ public final class GeometryIOUtils {
         final Charset charset = input.getCharset() != null ?
                 input.getCharset() :
                 defaultCharset;
-        try {
-            return new BufferedReader(new InputStreamReader(input.getInputStream(), charset));
-        } catch (IOException exc) {
-            throw createUnchecked(exc);
-        }
+
+        return new BufferedReader(new InputStreamReader(input.getInputStream(), charset));
     }
 
     /** Create a {@link BufferedWriter} for writing to the given output. The charset used is the charset
@@ -140,8 +137,20 @@ public final class GeometryIOUtils {
         final Charset charset = output.getCharset() != null ?
                 output.getCharset() :
                 defaultCharset;
+
+        return new BufferedWriter(new OutputStreamWriter(output.getOutputStream(), charset));
+    }
+
+    /** Get a value from {@code supplier}, wrapping any {@link IOException} with
+     * {@link UncheckedIOException}.
+     * @param <T> returned type
+     * @param supplier object supplying the return value
+     * @return supplied value
+     * @throws UncheckedIOException if an I/O error occurs
+     */
+    public static <T> T getUnchecked(final IOSupplier<T> supplier) {
         try {
-            return new BufferedWriter(new OutputStreamWriter(output.getOutputStream(), charset));
+            return supplier.get();
         } catch (IOException exc) {
             throw createUnchecked(exc);
         }
@@ -150,13 +159,13 @@ public final class GeometryIOUtils {
     /** Pass the given argument to the consumer, wrapping any {@link IOException} with
      * {@link UncheckedIOException}.
      * @param <T> argument type
-     * @param fn function to call
+     * @param consumer function to call
      * @param arg function argument
      * @throws UncheckedIOException if an I/O error occurs
      */
-    public static <T> void acceptUnchecked(final IOConsumer<T> fn, final T arg) {
+    public static <T> void acceptUnchecked(final IOConsumer<T> consumer, final T arg) {
         try {
-            fn.accept(arg);
+            consumer.accept(arg);
         } catch (IOException exc) {
             throw createUnchecked(exc);
         }

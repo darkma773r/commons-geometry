@@ -25,7 +25,7 @@ public interface FacetDefinitionReader extends AutoCloseable {
      * facets are available.
      * @return the next facet definition or null if no more facets
      *      are available
-     * @throws IllegalStateException if a parsing or syntax error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     FacetDefinition readFacet();

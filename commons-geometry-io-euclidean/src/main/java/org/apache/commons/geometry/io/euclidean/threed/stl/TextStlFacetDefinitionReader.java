@@ -56,7 +56,7 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Get the name of the STL solid being read or null if no name was specified.
      * @return the name of the STL solid being read or null if no name was specified
-     * @throws IllegalStateException if a parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     public String getSolidName() {
@@ -95,7 +95,7 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Internal method to read a single facet from the STL content.
      * @return next facet definition
-     * @throws IllegalStateException if a parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private FacetDefinition readFacetInternal() {
@@ -122,7 +122,7 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Ensure that an STL solid definition is in the process of being read. If not, the beginning
      * of a the definition is attempted to be read from the input.
-     * @throws IllegalStateException if a parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private void ensureSolidStarted() {
@@ -135,7 +135,7 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Begin reading an STL solid definition. The "solid" keyword is read
      * along with the name of the solid.
-     * @throws IllegalStateException if a parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private void beginSolid() {
@@ -146,7 +146,7 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
     }
 
     /** Read the next word from the content, discarding preceding whitespace.
-     * @throws IllegalStateException if a parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private void nextWord() {
@@ -157,7 +157,7 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
     /** Read the next word from the content and match it against the given keyword.
      * @param keyword keyword to match against
      * @throws IllegalStateException if the read content does not match the given keyword
-     * @throws IOException if an I/O error occurs or
+     * @throws java.io.UncheckedIOException if an I/O error occurs or
      */
     private void matchKeyword(final String keyword) {
         nextWord();
@@ -166,7 +166,7 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Read a vector from the input.
      * @return the vector read from the input
-     * @throws IllegalStateException if a parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private Vector3D readVector() {
@@ -179,7 +179,7 @@ public class TextStlFacetDefinitionReader implements FacetDefinitionReader {
 
     /** Read a double value from the input.
      * @return double value read from the input
-     * @throws IllegalStateException if a parsing error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     private double readDouble() {

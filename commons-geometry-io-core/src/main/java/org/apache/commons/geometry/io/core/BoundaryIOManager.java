@@ -38,8 +38,24 @@ import org.apache.commons.numbers.core.Precision;
  * All IO operations are delegated to registered format-specific {@link BoundaryReadHandler read handlers}
  * and {@link BoundaryWriteHandler write handlers}.
  *
- * <p>Instances of this class are thread-safe as long as the registered handler instances are
- * thread-safe.</p>
+ * <p><strong>Exceptions</strong>
+ * <p>Despite having functionality related to I/O operations, this class has been designed to <em>not</em>
+ * throw checked exceptions, in particular {@link java.io.IOException IOException}. The primary reasons for
+ * this choice are
+ * <ul>
+ *  <li>convenience,</li>
+ *  <li>compatibility with functional programming, and </li>
+ *  <li>the fact that modern Java practice is moving away from checked exceptions in general (as exemplified
+ *      by the JDK's {@link java.io.UncheckedIOException UncheckedIOException}).</li>
+ * </ul>
+ * As a result, any {@link java.io.IOException IOException} thrown internally by this or related classes
+ * is wrapped with {@link java.io.UncheckedIOException UncheckedIOException}. Other common runtime exceptions
+ * include {@link IllegalArgumentException}, which typically indicates mathematically invalid data, and
+ * {@link IllegalStateException}, which typically indicates format or parsing errors. See the method-level
+ * documentation for more details.
+ *
+ * <p><strong>Implementation note:</strong> Instances of this class are thread-safe as long as the
+ * registered handler instances are thread-safe.</p>
  * @param <H> Geometric boundary type
  * @param <B> Boundary source type
  * @param <R> Read handler type
@@ -194,7 +210,7 @@ public class BoundaryIOManager<
      * @return object containing all boundaries from the input
      * @throws IllegalArgumentException if mathematically invalid data is encountered or no
      *      {@link BoundaryReadHandler read handler} can be found for the input format
-     * @throws IllegalStateException if a parsing or syntax error occurs
+     * @throws IllegalStateException if a data format error occurs
      * @throws java.io.UncheckedIOException if an I/O error occurs
      */
     public B read(final GeometryInput in, final GeometryFormat fmt, final Precision.DoubleEquivalence precision) {
@@ -212,7 +228,7 @@ public class BoundaryIOManager<
      * <p>The following exceptions may be thrown during stream iteration:
      *  <ul>
      *      <li>{@link IllegalArgumentException} if mathematically invalid data is encountered</li>
-     *      <li>{@link IllegalStateException} if a parsing or syntax error occurs</li>
+     *      <li>{@link IllegalStateException} if a data format error occurs</li>
      *      <li>{@link java.io.UncheckedIOException UncheckedIOException} if an I/O error occurs</li>
      *  </ul>
      * @param in input to read boundaries from
@@ -222,7 +238,7 @@ public class BoundaryIOManager<
      * @return stream providing access to all boundaries from the input
      * @throws IllegalArgumentException if no {@link BoundaryReadHandler read handler} can be found for
      *      the input format
-     * @throws IllegalStateException if a parsing or syntax error occurs during stream creation
+     * @throws IllegalStateException if a data format error occurs during stream creation
      * @throws java.io.UncheckedIOException if an I/O error occurs during stream creation
      */
     public Stream<H> boundaries(final GeometryInput in, final GeometryFormat fmt,

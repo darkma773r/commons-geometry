@@ -41,10 +41,10 @@ public abstract class AbstractObjPolygonReader implements Closeable {
         this.parser = new PolygonObjParser(reader);
     }
 
-    /** Get the flag indicating whether or not an {@link IOException} will be thrown
+    /** Get the flag indicating whether or not an {@link IllegalStateException} will be thrown
      * if the OBJ content contains any keywords defining non-polygon geometric content
      * (ex: {@code curv}). If false, non-polygon data is ignored.
-     * @return flag indicating whether or not an {@link IOException} will be thrown
+     * @return flag indicating whether or not an {@link IllegalStateException} will be thrown
      *      if non-polygon content is encountered
      * @see PolygonObjParser#getFailOnNonPolygonKeywords()
      */
@@ -52,10 +52,10 @@ public abstract class AbstractObjPolygonReader implements Closeable {
         return parser.getFailOnNonPolygonKeywords();
     }
 
-    /** Set the flag indicating whether or not an {@link IOException} will be thrown
+    /** Set the flag indicating whether or not an {@link IllegalStateException} will be thrown
      * if the OBJ content contains any keywords defining non-polygon geometric content
      * (ex: {@code curv}). If set to false, non-polygon data is ignored.
-     * @param fail flag indicating whether or not an {@link IOException} will be thrown
+     * @param fail flag indicating whether or not an {@link IllegalStateException} will be thrown
      *      if non-polygon content is encountered
      */
     public void setFailOnNonPolygonKeywords(final boolean fail) {

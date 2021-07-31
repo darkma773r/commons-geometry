@@ -163,7 +163,7 @@ public class BinaryStlFacetDefinitionReader implements FacetDefinitionReader {
     /** Internal method to read a single facet from the input.
      * @return facet read from the input
      */
-    private BinaryStlFacetDefinition readFacetInternal(){
+    private BinaryStlFacetDefinition readFacetInternal() {
         if (fill(triangleBuffer) < triangleBuffer.capacity()) {
             throw dataNotAvailable("triangle at index " + trianglesRead);
         }
