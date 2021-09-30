@@ -657,6 +657,19 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         return sum.get().multiply(1.0 / count);
     }
 
+    public static Comparator<Vector3D> equivalenceComparator(final Precision.DoubleEquivalence precision) {
+        return (a, b) -> {
+            int cmp = precision.compare(a.getX(), b.getX());
+            if (cmp == 0) {
+                cmp = precision.compare(a.getY(), b.getY());
+                if (cmp == 0) {
+                    return precision.compare(a.getZ(), b.getZ());
+                }
+            }
+            return cmp;
+        };
+    }
+
     /**
      * Represents unit vectors.
      * This allows optimizations for certain operations.

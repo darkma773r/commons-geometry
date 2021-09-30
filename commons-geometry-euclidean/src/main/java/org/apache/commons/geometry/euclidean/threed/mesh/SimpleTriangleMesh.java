@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -676,7 +675,7 @@ public final class SimpleTriangleMesh implements TriangleMesh {
          */
         private Map<Vector3D, Integer> getVertexIndexMap() {
             if (vertexIndexMap == null) {
-                vertexIndexMap = new TreeMap<>(new FuzzyVectorComparator(precision));
+                vertexIndexMap = new TreeMap<>(Vector3D.equivalenceComparator(precision));
 
                 // populate the index map
                 final int size = vertices.size();
@@ -743,37 +742,6 @@ public final class SimpleTriangleMesh implements TriangleMesh {
             if (built) {
                 throw new IllegalStateException("Builder instance cannot be modified: mesh construction is complete");
             }
-        }
-    }
-
-    /** Comparator used to sort vectors using non-strict ("fuzzy") comparisons.
-     * Vectors are considered equal if their values in all coordinate dimensions
-     * are equivalent as evaluated by the precision context.
-     */
-    private static final class FuzzyVectorComparator implements Comparator<Vector3D> {
-        /** Precision context to determine floating-point equality. */
-        private final Precision.DoubleEquivalence precision;
-
-        /** Construct a new instance that uses the given precision context for
-         * floating point comparisons.
-         * @param precision precision context used for floating point comparisons
-         */
-        FuzzyVectorComparator(final Precision.DoubleEquivalence precision) {
-            this.precision = precision;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public int compare(final Vector3D a, final Vector3D b) {
-            int result = precision.compare(a.getX(), b.getX());
-            if (result == 0) {
-                result = precision.compare(a.getY(), b.getY());
-                if (result == 0) {
-                    result = precision.compare(a.getZ(), b.getZ());
-                }
-            }
-
-            return result;
         }
     }
 }
