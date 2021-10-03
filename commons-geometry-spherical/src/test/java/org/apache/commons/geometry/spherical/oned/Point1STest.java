@@ -17,6 +17,9 @@
 package org.apache.commons.geometry.spherical.oned;
 
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.euclidean.twod.PolarCoordinates;
@@ -381,6 +384,103 @@ class Point1STest {
     void testParse_failure() {
         // act/assert
         Assertions.assertThrows(IllegalArgumentException.class, () ->  Point1S.parse("abc"));
+    }
+
+    @Test
+    void testEquivalenceComparator() {
+        // arrange
+        final double eps = 1e-3;
+        final double halfEps = 0.5 * eps;
+        final double twiceEps = 2 * eps;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Point1S pi = Point1S.PI;
+
+        final double threePi = 3 * Math.PI;
+
+        // act
+        final Comparator<Point1S> cmp = Point1S.equivalenceComparator(precision);
+
+        // assert
+        Assertions.assertEquals(0, cmp.compare(pi, pi));
+        Assertions.assertEquals(0, cmp.compare(pi, Point1S.of(Math.PI + eps)));
+        Assertions.assertEquals(0, cmp.compare(pi, Point1S.of(threePi + halfEps)));
+        Assertions.assertEquals(0, cmp.compare(pi, Point1S.of(Math.PI - halfEps)));
+        Assertions.assertEquals(0, cmp.compare(pi, Point1S.of(-threePi- halfEps)));
+
+        Assertions.assertEquals(-1, cmp.compare(pi, Point1S.of(Math.PI + twiceEps)));
+        Assertions.assertEquals(-1, cmp.compare(pi, Point1S.of(threePi + twiceEps)));
+
+        Assertions.assertEquals(1, cmp.compare(pi, Point1S.of(Math.PI - twiceEps)));
+        Assertions.assertEquals(1, cmp.compare(pi, Point1S.of(threePi - twiceEps)));
+    }
+
+    @Test
+    void testEquivalenceComparator_set() {
+        // arrange
+        final double eps = 1e-3;
+        final double twiceEps = 2 * eps;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Point1S a = Point1S.PI;
+        final Point1S b = Point1S.ZERO;
+        final Point1S c = Point1S.of(Math.PI + eps);
+        final Point1S d = Point1S.of(Math.PI - eps);
+        final Point1S e = Point1S.of(Math.PI + twiceEps);
+        final Point1S f = Point1S.of(Math.PI - twiceEps);
+
+        // act
+        final TreeSet<Point1S> set = new TreeSet<>(Point1S.equivalenceComparator(precision));
+
+        // assert
+        Assertions.assertTrue(set.add(a));
+        Assertions.assertTrue(set.add(b));
+        Assertions.assertFalse(set.add(c));
+        Assertions.assertFalse(set.add(d));
+        Assertions.assertTrue(set.add(e));
+        Assertions.assertTrue(set.add(f));
+
+        Assertions.assertEquals(4, set.size());
+
+        final Iterator<Point1S> it = set.iterator();
+        Assertions.assertEquals(b, it.next());
+        Assertions.assertEquals(f, it.next());
+        Assertions.assertEquals(a, it.next());
+        Assertions.assertEquals(e, it.next());
+    }
+
+    @Test
+    void testEquivalenceComparator_map() {
+        // arrange
+        final double eps = 1e-3;
+        final double twiceEps = 2 * eps;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Point1S a = Point1S.PI;
+        final Point1S b = Point1S.ZERO;
+        final Point1S c = Point1S.of(Math.PI + eps);
+        final Point1S d = Point1S.of(Math.PI - eps);
+        final Point1S e = Point1S.of(Math.PI + twiceEps);
+        final Point1S f = Point1S.of(Math.PI - twiceEps);
+
+        // act
+        final TreeMap<Point1S, String> map = new TreeMap<>(Point1S.equivalenceComparator(precision));
+        map.put(a, "a");
+        map.put(b, "b");
+        map.put(c, "c");
+        map.put(d, "d");
+        map.put(e, "e");
+        map.put(f, "f");
+
+        // assert
+        Assertions.assertEquals(4, map.size());
+
+        Assertions.assertEquals("d", map.get(a));
+        Assertions.assertEquals("b", map.get(b));
+        Assertions.assertEquals("d", map.get(c));
+        Assertions.assertEquals("d", map.get(d));
+        Assertions.assertEquals("e", map.get(e));
+        Assertions.assertEquals("f", map.get(f));
     }
 
     private static void checkPoint(final Point1S pt, final double az) {

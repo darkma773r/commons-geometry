@@ -18,7 +18,10 @@ package org.apache.commons.geometry.euclidean.oned;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
@@ -754,6 +757,94 @@ class Vector1DTest {
         // An already normalized vector will avoid unnecessary creation.
         final Vector1D v = Vector1D.of(3).normalize();
         Assertions.assertSame(v, v.normalize());
+    }
+
+    @Test
+    void testEquivalenceComparator() {
+        // arrange
+        final double eps = 1e-3;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Vector1D zero = Vector1D.ZERO;
+
+        // act
+        final Comparator<Vector1D> cmp = Vector1D.equivalenceComparator(precision);
+
+        // assert
+        Assertions.assertEquals(0, cmp.compare(zero, zero));
+        Assertions.assertEquals(0, cmp.compare(zero, Vector1D.of(eps)));
+        Assertions.assertEquals(0, cmp.compare(zero, Vector1D.of(-eps)));
+
+        final double epsUp = Math.nextUp(eps);
+
+        Assertions.assertEquals(-1, cmp.compare(zero, Vector1D.of(epsUp)));
+        Assertions.assertEquals(1, cmp.compare(zero, Vector1D.of(-epsUp)));
+    }
+
+    @Test
+    void testEquivalenceComparator_set() {
+        // arrange
+        final double eps = 1e-3;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Vector1D a = Vector1D.ZERO;
+        final Vector1D b = Vector1D.of(1);
+        final Vector1D c = Vector1D.of(eps);
+        final Vector1D d = Vector1D.of(-1);
+        final Vector1D e = Vector1D.of(-1 + (0.5 * eps));
+        final Vector1D f = Vector1D.of(-1 - (1.1 * eps));
+
+        // act
+        final TreeSet<Vector1D> set = new TreeSet<>(Vector1D.equivalenceComparator(precision));
+
+        // assert
+        Assertions.assertTrue(set.add(a));
+        Assertions.assertTrue(set.add(b));
+        Assertions.assertFalse(set.add(c));
+        Assertions.assertTrue(set.add(d));
+        Assertions.assertFalse(set.add(e));
+        Assertions.assertTrue(set.add(f));
+
+        Assertions.assertEquals(4, set.size());
+
+        final Iterator<Vector1D> it = set.iterator();
+        Assertions.assertEquals(f, it.next());
+        Assertions.assertEquals(d, it.next());
+        Assertions.assertEquals(a, it.next());
+        Assertions.assertEquals(b, it.next());
+    }
+
+    @Test
+    void testEquivalenceComparator_map() {
+        // arrange
+        final double eps = 1e-3;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Vector1D a = Vector1D.ZERO;
+        final Vector1D b = Vector1D.of(1);
+        final Vector1D c = Vector1D.of(eps);
+        final Vector1D d = Vector1D.of(-1);
+        final Vector1D e = Vector1D.of(-1 + (0.5 * eps));
+        final Vector1D f = Vector1D.of(-1 - (1.1 * eps));
+
+        // act
+        final TreeMap<Vector1D, String> map = new TreeMap<>(Vector1D.equivalenceComparator(precision));
+        map.put(a, "a");
+        map.put(b, "b");
+        map.put(c, "c");
+        map.put(d, "d");
+        map.put(e, "e");
+        map.put(f, "f");
+
+        // assert
+        Assertions.assertEquals(4, map.size());
+
+        Assertions.assertEquals("c", map.get(a));
+        Assertions.assertEquals("b", map.get(b));
+        Assertions.assertEquals("c", map.get(c));
+        Assertions.assertEquals("e", map.get(d));
+        Assertions.assertEquals("e", map.get(e));
+        Assertions.assertEquals("f", map.get(f));
     }
 
     private void checkVector(final Vector1D v, final double x) {

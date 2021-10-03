@@ -589,6 +589,16 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
         return sum.get().multiply(1.0 / count);
     }
 
+    public static Comparator<Vector2D> equivalenceComparator(final Precision.DoubleEquivalence precision) {
+        return (a, b) -> {
+            int cmp = precision.compare(a.getX(), b.getX());
+            if (cmp == 0) {
+                return precision.compare(a.getY(), b.getY());
+            }
+            return cmp;
+        };
+    }
+
     /**
      * Represents unit vectors.
      * This allows optimizations for certain operations.

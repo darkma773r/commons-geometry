@@ -16,8 +16,10 @@
  */
 package org.apache.commons.geometry.spherical.twod;
 
-
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
@@ -26,7 +28,6 @@ import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 
 class Point2STest {
 
@@ -354,6 +355,115 @@ class Point2STest {
     void testParse_failure() {
         // act/assert
         Assertions.assertThrows(IllegalArgumentException.class, () -> Point2S.parse("abc"));
+    }
+
+    @Test
+    void testEquivalenceComparator() {
+        // arrange
+        final double eps = 1e-3;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Point2S p1 = Point2S.PLUS_I;
+
+        final Point2S pHigh = Point2S.from(Vector3D.of(0, 1, 1));
+        final Point2S pLow = Point2S.from(Vector3D.of(0, -1, -1));
+
+        final Point2S pEqHigh = p1.slerp(pHigh, eps / p1.distance(pHigh));
+        final Point2S pEqLow = p1.slerp(pLow, eps / p1.distance(pLow));
+
+        final Point2S pNotEqHigh = p1.slerp(pHigh, (1.1 * eps) / p1.distance(pHigh));
+        final Point2S pNotEqLow = p1.slerp(pLow, (1.1 * eps) / p1.distance(pLow));
+
+        // act
+        final Comparator<Point2S> cmp = Point2S.equivalenceComparator(precision);
+
+        // assert
+        Assertions.assertEquals(0, cmp.compare(p1, p1));
+        Assertions.assertEquals(0, cmp.compare(p1, pEqHigh));
+        Assertions.assertEquals(0, cmp.compare(p1, pEqLow));
+
+        Assertions.assertEquals(-1, cmp.compare(p1, pLow));
+        Assertions.assertEquals(-1, cmp.compare(p1, pNotEqLow));
+
+        Assertions.assertEquals(1, cmp.compare(p1, pHigh));
+        Assertions.assertEquals(1, cmp.compare(p1, pNotEqHigh));
+    }
+
+    @Test
+    void testEquivalenceComparator_set() {
+        // arrange
+        final double eps = 1e-3;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Point2S p1 = Point2S.PLUS_I;
+
+        final Point2S pHigh = Point2S.from(Vector3D.of(0, 1, 1));
+        final Point2S pLow = Point2S.from(Vector3D.of(0, -1, -1));
+
+        final Point2S pEqHigh = p1.slerp(pHigh, eps / p1.distance(pHigh));
+        final Point2S pEqLow = p1.slerp(pLow, eps / p1.distance(pLow));
+
+        final Point2S pNotEqHigh = p1.slerp(pHigh, (1.1 * eps) / p1.distance(pHigh));
+        final Point2S pNotEqLow = p1.slerp(pLow, (1.1 * eps) / p1.distance(pLow));
+        // act
+        final TreeSet<Point2S> set = new TreeSet<>(Point2S.equivalenceComparator(precision));
+
+        // assert
+        Assertions.assertTrue(set.add(p1));
+        Assertions.assertTrue(set.add(pHigh));
+        Assertions.assertTrue(set.add(pLow));
+        Assertions.assertFalse(set.add(pEqHigh));
+        Assertions.assertFalse(set.add(pEqLow));
+        Assertions.assertTrue(set.add(pNotEqHigh));
+        Assertions.assertTrue(set.add(pNotEqLow));
+
+        Assertions.assertEquals(5, set.size());
+
+        final Iterator<Point2S> it = set.iterator();
+        Assertions.assertEquals(pHigh, it.next());
+        Assertions.assertEquals(pNotEqHigh, it.next());
+        Assertions.assertEquals(p1, it.next());
+        Assertions.assertEquals(pNotEqLow, it.next());
+        Assertions.assertEquals(pLow, it.next());
+    }
+
+    @Test
+    void testEquivalenceComparator_map() {
+        // arrange
+        final double eps = 1e-3;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Point2S p1 = Point2S.PLUS_I;
+
+        final Point2S pHigh = Point2S.from(Vector3D.of(0, 1, 1));
+        final Point2S pLow = Point2S.from(Vector3D.of(0, -1, -1));
+
+        final Point2S pEqHigh = p1.slerp(pHigh, eps / p1.distance(pHigh));
+        final Point2S pEqLow = p1.slerp(pLow, eps / p1.distance(pLow));
+
+        final Point2S pNotEqHigh = p1.slerp(pHigh, (1.1 * eps) / p1.distance(pHigh));
+        final Point2S pNotEqLow = p1.slerp(pLow, (1.1 * eps) / p1.distance(pLow));
+
+        // act
+        final TreeMap<Point2S, String> map = new TreeMap<>(Point2S.equivalenceComparator(precision));
+        map.put(p1, "p1");
+        map.put(pHigh, "pHigh");
+        map.put(pLow, "pLow");
+        map.put(pEqHigh, "pEqHigh");
+        map.put(pEqLow, "pEqLow");
+        map.put(pNotEqHigh, "pNotEqHigh");
+        map.put(pNotEqLow, "pNotEqLow");
+
+        // assert
+        Assertions.assertEquals(5, map.size());
+
+        Assertions.assertEquals("pEqLow", map.get(p1));
+        Assertions.assertEquals("pHigh", map.get(pHigh));
+        Assertions.assertEquals("pLow", map.get(pLow));
+        Assertions.assertEquals("pEqLow", map.get(pEqHigh));
+        Assertions.assertEquals("pEqLow", map.get(pEqLow));
+        Assertions.assertEquals("pNotEqHigh", map.get(pNotEqHigh));
+        Assertions.assertEquals("pNotEqLow", map.get(pNotEqLow));
     }
 
     private static void checkPoint(final Point2S p, final double az, final double polar) {

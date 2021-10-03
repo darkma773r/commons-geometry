@@ -358,4 +358,13 @@ public final class Point1S implements Point<Point1S> {
     public static double distance(final Point1S p1, final Point1S p2) {
         return Math.abs(signedDistance(p1, p2));
     }
+
+    public static Comparator<Point1S> equivalenceComparator(final Precision.DoubleEquivalence precision) {
+        return (a, b) -> {
+            if (a.eq(b, precision)) {
+                return 0;
+            }
+            return NORMALIZED_AZIMUTH_ASCENDING_ORDER.compare(a, b);
+        };
+    }
 }

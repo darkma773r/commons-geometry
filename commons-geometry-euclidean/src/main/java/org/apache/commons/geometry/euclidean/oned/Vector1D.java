@@ -320,6 +320,10 @@ public class Vector1D extends EuclideanVector<Vector1D> {
         return SimpleTupleFormat.getDefault().parse(str, Vector1D::new);
     }
 
+    public static Comparator<Vector1D> equivalenceComparator(final Precision.DoubleEquivalence precision) {
+        return (a, b) -> precision.compare(a.getX(), b.getX());
+    }
+
     /**
      * Represent unit vectors.
      * This allows optimizations to be performed for certain operations.

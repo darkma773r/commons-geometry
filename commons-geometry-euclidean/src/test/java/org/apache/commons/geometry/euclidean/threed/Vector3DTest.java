@@ -21,7 +21,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
@@ -1366,6 +1369,102 @@ class Vector3DTest {
         // An already normalized vector will avoid unnecessary creation.
         final Vector3D v = Vector3D.of(3, 4, 5).normalize();
         Assertions.assertSame(v, v.normalize());
+    }
+
+    @Test
+    void testEquivalenceComparator() {
+        // arrange
+        final double eps = 1e-3;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Vector3D zero = Vector3D.ZERO;
+
+        // act
+        final Comparator<Vector3D> cmp = Vector3D.equivalenceComparator(precision);
+
+        // assert
+        Assertions.assertEquals(0, cmp.compare(zero, zero));
+        Assertions.assertEquals(0, cmp.compare(zero, Vector3D.of(eps, 0, 0)));
+        Assertions.assertEquals(0, cmp.compare(zero, Vector3D.of(0, eps, 0)));
+        Assertions.assertEquals(0, cmp.compare(zero, Vector3D.of(0, 0, eps)));
+        Assertions.assertEquals(0, cmp.compare(zero, Vector3D.of(eps, eps, eps)));
+        Assertions.assertEquals(0, cmp.compare(zero, Vector3D.of(-eps, -eps, -eps)));
+
+        final double epsUp = Math.nextUp(eps);
+
+        Assertions.assertEquals(-1, cmp.compare(zero, Vector3D.of(epsUp, 0, 0)));
+        Assertions.assertEquals(-1, cmp.compare(zero, Vector3D.of(0, epsUp, 0)));
+        Assertions.assertEquals(-1, cmp.compare(zero, Vector3D.of(0, 0, epsUp)));
+
+        Assertions.assertEquals(1, cmp.compare(zero, Vector3D.of(-epsUp, 0, 0)));
+        Assertions.assertEquals(1, cmp.compare(zero, Vector3D.of(0, -epsUp, 0)));
+        Assertions.assertEquals(1, cmp.compare(zero, Vector3D.of(0, 0, -epsUp)));
+    }
+
+    @Test
+    void testEquivalenceComparator_set() {
+        // arrange
+        final double eps = 1e-3;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Vector3D a = Vector3D.ZERO;
+        final Vector3D b = Vector3D.of(1, 0, 0);
+        final Vector3D c = Vector3D.of(eps, 0, -eps);
+        final Vector3D d = Vector3D.of(-1, 2, 3);
+        final Vector3D e = Vector3D.of(-1 + (0.5 * eps), 2, 3);
+        final Vector3D f = Vector3D.of(-1 - (0.5 * eps), 2, 4);
+
+        // act
+        final TreeSet<Vector3D> set = new TreeSet<>(Vector3D.equivalenceComparator(precision));
+
+        // assert
+        Assertions.assertTrue(set.add(a));
+        Assertions.assertTrue(set.add(b));
+        Assertions.assertFalse(set.add(c));
+        Assertions.assertTrue(set.add(d));
+        Assertions.assertFalse(set.add(e));
+        Assertions.assertTrue(set.add(f));
+
+        Assertions.assertEquals(4, set.size());
+
+        final Iterator<Vector3D> it = set.iterator();
+        Assertions.assertEquals(d, it.next());
+        Assertions.assertEquals(f, it.next());
+        Assertions.assertEquals(a, it.next());
+        Assertions.assertEquals(b, it.next());
+    }
+
+    @Test
+    void testEquivalenceComparator_map() {
+        // arrange
+        final double eps = 1e-3;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Vector3D a = Vector3D.ZERO;
+        final Vector3D b = Vector3D.of(1, 0, 0);
+        final Vector3D c = Vector3D.of(eps, 0, -eps);
+        final Vector3D d = Vector3D.of(-1, 2, 3);
+        final Vector3D e = Vector3D.of(-1 + (0.5 * eps), 2, 3);
+        final Vector3D f = Vector3D.of(-1 - (0.5 * eps), 2, 4);
+
+        // act
+        final TreeMap<Vector3D, String> map = new TreeMap<>(Vector3D.equivalenceComparator(precision));
+        map.put(a, "a");
+        map.put(b, "b");
+        map.put(c, "c");
+        map.put(d, "d");
+        map.put(e, "e");
+        map.put(f, "f");
+
+        // assert
+        Assertions.assertEquals(4, map.size());
+
+        Assertions.assertEquals("c", map.get(a));
+        Assertions.assertEquals("b", map.get(b));
+        Assertions.assertEquals("c", map.get(c));
+        Assertions.assertEquals("e", map.get(d));
+        Assertions.assertEquals("e", map.get(e));
+        Assertions.assertEquals("f", map.get(f));
     }
 
     private void checkVector(final Vector3D v, final double x, final double y, final double z) {
