@@ -406,7 +406,7 @@ class Point1STest {
         Assertions.assertEquals(0, cmp.compare(pi, Point1S.of(Math.PI + eps)));
         Assertions.assertEquals(0, cmp.compare(pi, Point1S.of(threePi + halfEps)));
         Assertions.assertEquals(0, cmp.compare(pi, Point1S.of(Math.PI - halfEps)));
-        Assertions.assertEquals(0, cmp.compare(pi, Point1S.of(-threePi- halfEps)));
+        Assertions.assertEquals(0, cmp.compare(pi, Point1S.of(-threePi - halfEps)));
 
         Assertions.assertEquals(-1, cmp.compare(pi, Point1S.of(Math.PI + twiceEps)));
         Assertions.assertEquals(-1, cmp.compare(pi, Point1S.of(threePi + twiceEps)));

@@ -309,7 +309,7 @@ public final class Point2S implements Point<Point2S> {
      */
     public static Comparator<Point2S> equivalenceComparator(final Precision.DoubleEquivalence precision) {
         return (a, b) -> {
-            if (a.eq(b, precision) ) {
+            if (a.eq(b, precision)) {
                 return 0;
             }
             return POLAR_AZIMUTH_ASCENDING_ORDER.compare(a, b);
