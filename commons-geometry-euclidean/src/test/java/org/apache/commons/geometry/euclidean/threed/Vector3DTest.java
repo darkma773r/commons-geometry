@@ -1402,6 +1402,24 @@ class Vector3DTest {
     }
 
     @Test
+    void testEquivalenceComparator_consistentWithEq() {
+        // arrange
+        final double eps = 1e-2;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Vector3D a = Vector3D.of(1, 1, 1);
+
+        final Comparator<Vector3D> cmp = Vector3D.equivalenceComparator(precision);
+
+        EuclideanTestUtils.permute(0.8, 1.2, eps, (x, y, z) -> {
+            Vector3D b = Vector3D.of(x, y, z);
+
+            // act/assert
+            Assertions.assertEquals(a.eq(b, precision), cmp.compare(a, b) == 0);
+        });
+    }
+
+    @Test
     void testEquivalenceComparator_nullArg() {
         // act/assert
         Assertions.assertThrows(NullPointerException.class, () -> Vector3D.equivalenceComparator(null));

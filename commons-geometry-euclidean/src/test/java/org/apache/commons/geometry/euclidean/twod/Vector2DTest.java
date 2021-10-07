@@ -1200,6 +1200,24 @@ class Vector2DTest {
     }
 
     @Test
+    void testEquivalenceComparator_consistentWithEq() {
+        // arrange
+        final double eps = 1e-2;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Vector2D a = Vector2D.of(1, 1);
+
+        final Comparator<Vector2D> cmp = Vector2D.equivalenceComparator(precision);
+
+        EuclideanTestUtils.permute(0.8, 1.2, eps, (x, y) -> {
+            Vector2D b = Vector2D.of(x, y);
+
+            // act/assert
+            Assertions.assertEquals(a.eq(b, precision), cmp.compare(a, b) == 0);
+        });
+    }
+
+    @Test
     void testEquivalenceComparator_set() {
         // arrange
         final double eps = 1e-3;

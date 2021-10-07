@@ -416,6 +416,27 @@ class Point1STest {
     }
 
     @Test
+    void testEquivalenceComparator_consistentWithEq() {
+        // arrange
+        final double eps = 1e-2;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Point1S p1 = Point1S.of(1);
+
+        final Comparator<Point1S> cmp = Point1S.equivalenceComparator(precision);
+
+        final double start = 0.8;
+        final double end = 1.2;
+
+        for (double a = start; a <= end; a += eps) {
+            Point1S p2 = Point1S.of(a);
+
+            // act/assert
+            Assertions.assertEquals(p1.eq(p2, precision), cmp.compare(p1, p2) == 0);
+        }
+    }
+
+    @Test
     void testEquivalenceComparator_set() {
         // arrange
         final double eps = 1e-3;

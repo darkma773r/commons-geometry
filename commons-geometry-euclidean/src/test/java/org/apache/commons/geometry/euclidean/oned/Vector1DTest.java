@@ -782,6 +782,24 @@ class Vector1DTest {
     }
 
     @Test
+    void testEquivalenceComparator_consistentWithEq() {
+        // arrange
+        final double eps = 1e-2;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final Vector1D a = Vector1D.of(1);
+
+        final Comparator<Vector1D> cmp = Vector1D.equivalenceComparator(precision);
+
+        for (double x = 0.8; x <= 1.2; x += eps) {
+            Vector1D b = Vector1D.of(x);
+
+            // act/assert
+            Assertions.assertEquals(a.eq(b, precision), cmp.compare(a, b) == 0);
+        }
+    }
+
+    @Test
     void testEquivalenceComparator_set() {
         // arrange
         final double eps = 1e-3;
