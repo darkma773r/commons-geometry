@@ -359,6 +359,20 @@ public final class Point1S implements Point<Point1S> {
         return Math.abs(signedDistance(p1, p2));
     }
 
+    /** Return a comparator that compares the {@code azimuth} coordinates of point instances using the
+     * {@link Precision.DoubleEquivalence#compare(double, double) compare} method of the argument. This
+     * produces a "fuzzy" comparison, where instances with equivalent, but not necessarily equal,
+     * coordinates are evaluated as equal.
+     *
+     * <p>It is important to note that, in general, the returned instance is <em>not</em> consistent with
+     * the {@link #equals(Object) equals} method, meaning that {@code compare(a, b) == 0} does not imply
+     * that {@code a.equals(b)}. However, the returned instance <em>is</em> consistent with the less strict
+     * {@link #eq(Point1S, Precision.DoubleEquivalence) eq} method such that {@code compare(a, b) == 0}
+     * does imply {@code a.eq(b, precision)}.
+     * @param precision precision instance used to compare double values
+     * @return point equivalence comparator
+     * @throws NullPointerException if {@code precision} is null
+     */
     public static Comparator<Point1S> equivalenceComparator(final Precision.DoubleEquivalence precision) {
         return (a, b) -> {
             if (a.eq(b, precision)) {

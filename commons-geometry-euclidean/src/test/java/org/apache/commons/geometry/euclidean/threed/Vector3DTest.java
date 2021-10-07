@@ -1402,6 +1402,12 @@ class Vector3DTest {
     }
 
     @Test
+    void testEquivalenceComparator_nullArg() {
+        // act/assert
+        Assertions.assertThrows(NullPointerException.class, () -> Vector3D.equivalenceComparator(null));
+    }
+
+    @Test
     void testEquivalenceComparator_set() {
         // arrange
         final double eps = 1e-3;

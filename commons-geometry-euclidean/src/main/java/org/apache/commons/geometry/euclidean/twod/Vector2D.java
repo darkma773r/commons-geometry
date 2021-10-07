@@ -589,6 +589,20 @@ public class Vector2D extends MultiDimensionalEuclideanVector<Vector2D> {
         return sum.get().multiply(1.0 / count);
     }
 
+    /** Return a comparator that compares the {@code x} and {@code y} coordinates (in that order)
+     * of vector instances using the {@link Precision.DoubleEquivalence#compare(double, double) compare} method
+     * of the argument. This produces a "fuzzy" comparison, where instances with equivalent, but not necessarily
+     * equal, coordinates are evaluated as equal.
+     *
+     * <p>It is important to note that, in general, the returned instance is <em>not</em> consistent with
+     * the {@link #equals(Object) equals} method, meaning that {@code compare(a, b) == 0} does not imply
+     * that {@code a.equals(b)}. However, the returned instance <em>is</em> consistent with the less strict
+     * {@link #eq(Vector2D, Precision.DoubleEquivalence) eq} method such that {@code compare(a, b) == 0}
+     * does imply {@code a.eq(b, precision)}.
+     * @param precision precision instance used to compare double values
+     * @return vector equivalence comparator
+     * @throws NullPointerException if {@code precision} is null
+     */
     public static Comparator<Vector2D> equivalenceComparator(final Precision.DoubleEquivalence precision) {
         return (a, b) -> {
             int cmp = precision.compare(a.getX(), b.getX());

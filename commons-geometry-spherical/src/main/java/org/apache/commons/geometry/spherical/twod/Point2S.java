@@ -293,6 +293,20 @@ public final class Point2S implements Point<Point2S> {
         return p1.vector.angle(p2.vector);
     }
 
+    /** Return a comparator that compares the {@code polar} and {@code azimuth} coordinates (in that order)
+     * of point instances using the {@link Precision.DoubleEquivalence#compare(double, double) compare} method
+     * of the argument. This produces a "fuzzy" comparison, where instances with equivalent, but not necessarily
+     * equal, coordinates are evaluated as equal.
+     *
+     * <p>It is important to note that, in general, the returned instance is <em>not</em> consistent with
+     * the {@link #equals(Object) equals} method, meaning that {@code compare(a, b) == 0} does not imply
+     * that {@code a.equals(b)}. However, the returned instance <em>is</em> consistent with the less strict
+     * {@link #eq(Point2S, Precision.DoubleEquivalence) eq} method such that {@code compare(a, b) == 0}
+     * does imply {@code a.eq(b, precision)}.
+     * @param precision precision instance used to compare double values
+     * @return point equivalence comparator
+     * @throws NullPointerException if {@code precision} is null
+     */
     public static Comparator<Point2S> equivalenceComparator(final Precision.DoubleEquivalence precision) {
         return (a, b) -> {
             if (a.eq(b, precision) ) {

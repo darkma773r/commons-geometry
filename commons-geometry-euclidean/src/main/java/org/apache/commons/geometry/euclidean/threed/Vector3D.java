@@ -19,6 +19,7 @@ package org.apache.commons.geometry.euclidean.threed;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 import org.apache.commons.geometry.core.internal.DoubleFunction3N;
@@ -657,7 +658,22 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         return sum.get().multiply(1.0 / count);
     }
 
+    /** Return a comparator that compares the {@code x}, {@code y}, and {@code z} coordinates (in that order)
+     * of vector instances using the {@link Precision.DoubleEquivalence#compare(double, double) compare} method
+     * of the argument. This produces a "fuzzy" comparison, where instances with equivalent, but not necessarily
+     * equal, coordinates are evaluated as equal.
+     *
+     * <p>It is important to note that, in general, the returned instance is <em>not</em> consistent with
+     * the {@link #equals(Object) equals} method, meaning that {@code compare(a, b) == 0} does not imply
+     * that {@code a.equals(b)}. However, the returned instance <em>is</em> consistent with the less strict
+     * {@link #eq(Vector3D, Precision.DoubleEquivalence) eq} method such that {@code compare(a, b) == 0}
+     * does imply {@code a.eq(b, precision)}.
+     * @param precision precision instance used to compare double values
+     * @return vector equivalence comparator
+     * @throws NullPointerException if {@code precision} is null
+     */
     public static Comparator<Vector3D> equivalenceComparator(final Precision.DoubleEquivalence precision) {
+        Objects.requireNonNull(precision);
         return (a, b) -> {
             int cmp = precision.compare(a.getX(), b.getX());
             if (cmp == 0) {
