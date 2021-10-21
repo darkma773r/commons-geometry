@@ -25,12 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.geometry.core.Transform;
+import org.apache.commons.geometry.euclidean.EuclideanCollections;
 import org.apache.commons.geometry.euclidean.internal.EuclideanUtils;
 import org.apache.commons.geometry.euclidean.threed.BoundarySource3D;
 import org.apache.commons.geometry.euclidean.threed.Bounds3D;
@@ -675,7 +675,7 @@ public final class SimpleTriangleMesh implements TriangleMesh {
          */
         private Map<Vector3D, Integer> getVertexIndexMap() {
             if (vertexIndexMap == null) {
-                vertexIndexMap = new TreeMap<>(Vector3D.equivalenceComparator(precision));
+                vertexIndexMap = EuclideanCollections.equivalenceMap3D(precision);
 
                 // populate the index map
                 final int size = vertices.size();

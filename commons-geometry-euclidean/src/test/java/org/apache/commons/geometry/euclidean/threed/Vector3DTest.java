@@ -1420,6 +1420,25 @@ class Vector3DTest {
     }
 
     @Test
+    void testEquivalenceComparator_sortCollection() {
+        // arrange
+        final double eps = 1e-1;
+        final Precision.DoubleEquivalence precision = Precision.doubleEquivalenceOfEpsilon(eps);
+
+        final int cnt = 1000;
+
+        final List<Vector3D> list = new ArrayList<>(cnt);
+
+        for (int i = 0; i < cnt; ++i) {
+            final double v = Math.random();
+            list.add(Vector3D.of(v, v, v));
+        }
+
+        // act
+        list.sort(Vector3D.equivalenceComparator(precision));
+    }
+
+    @Test
     void testEquivalenceComparator_nullArg() {
         // act/assert
         Assertions.assertThrows(NullPointerException.class, () -> Vector3D.equivalenceComparator(null));

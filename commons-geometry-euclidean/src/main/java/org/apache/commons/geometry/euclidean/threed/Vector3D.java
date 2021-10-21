@@ -412,7 +412,7 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
         return 643 * (164 * Double.hashCode(x) + 3 * Double.hashCode(y) + Double.hashCode(z));
     }
 
-    /**d
+    /**
      * Test for the equality of two vector instances.
      * <p>
      * If all coordinates of two vectors are exactly the same, and none are
@@ -660,14 +660,27 @@ public class Vector3D extends MultiDimensionalEuclideanVector<Vector3D> {
 
     /** Return a comparator that compares the {@code x}, {@code y}, and {@code z} coordinates (in that order)
      * of vector instances using the {@link Precision.DoubleEquivalence#compare(double, double) compare} method
-     * of the argument. This produces a "fuzzy" comparison, where instances with equivalent, but not necessarily
-     * equal, coordinates are evaluated as equal.
+     * of the argument.
      *
-     * <p>It is important to note that, in general, the returned instance is <em>not</em> consistent with
-     * the {@link #equals(Object) equals} method, meaning that {@code compare(a, b) == 0} does not imply
-     * that {@code a.equals(b)}. However, the returned instance <em>is</em> consistent with the less strict
-     * {@link #eq(Vector3D, Precision.DoubleEquivalence) eq} method such that {@code compare(a, b) == 0}
-     * does imply {@code a.eq(b, precision)}.
+     * <p>Users should note that due to the "fuzzy" nature of the comparison, the returned instance may not
+     * behave quite as expected for a comparator. In particular, callers should assume the following regarding
+     * the returned instance:
+     * <ul>
+     *  <li><strong>Not consistent with {@link #equals(Object) equals}</strong> - For a comparator to be "consistent with equals"
+     *  means that {@code compare(a, b) == 0} implies
+     *  that {@code a.equals(b)}. In general, this is not the case for the comparators returned by this
+     *  method since non-equal floating point values may be considered equivalent by the argument and
+     *  hence produce a comparison of {@code 0}. However, the returned comparators <em>are</em> consistent with
+     *  the less strict {@link #eq(Vector3D, Precision.DoubleEquivalence) eq} method, such that
+     *  {@code compare(a, b) == 0} does imply {@code a.eq(b, precision)}.</li>
+     *  <li><strong>Not transitive</strong> - Transitivity in a comparator implies that if {@code compare(a, b) == 0}
+     *  and {@code compare(b, c) == 0}, then {@code compare(a, c) == 0}. However, this cannot be guaranteed
+     *  for comparators produced here. For example, consider that {@code a} contains the coordinate {@code 1},
+     *  {@code b} the coordinate {@code 1.075} and {@code c} the coordinate {@code 1.15}. If all other coordinates
+     *  are equal and the precision argument contains an epsilon of {@code 0.1}, then {@code compare(a, b) == 0} and
+     *  {@code compare(b, c) == 0} but {@code compare(a, c) < 0} since the difference between {@code a}
+     *  and {@code c} is greater than the epsilon.</li>
+     * </ul>
      * @param precision precision instance used to compare double values
      * @return vector equivalence comparator
      * @throws NullPointerException if {@code precision} is null
