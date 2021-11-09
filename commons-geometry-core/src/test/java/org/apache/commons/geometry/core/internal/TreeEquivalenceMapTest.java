@@ -16,64 +16,139 @@
  */
 package org.apache.commons.geometry.core.internal;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.commons.numbers.core.Precision;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class TreeEquivalenceMapTest {
+class TreeEquivalenceMapTest {
 
-    private static final double EPS = 1e-3;
+    private static final double EPS = 1e-1;
 
     private static final Precision.DoubleEquivalence PRECISION =
             Precision.doubleEquivalenceOfEpsilon(EPS);
 
     @Test
-    public void testGetStoredKey_returnsCorrectKeyForInsertionOrder() {
+    void testGetStoredKey_emptyMap() {
         // arrange
-        final Random rand = new Random(1L);
-        final double min = 0;
-        final double max = 1;
-        final double[] arr = createShuffledArray(min, max, EPS * 0.3, rand);
-
-        // act/assert
-        for (double test = min; test <= max; test += EPS * 0.2) {
-            checkGetStoredKey(arr, test);
-        }
-    }
-
-    private static void checkGetStoredKey(final double[] arr, final double test) {
         final TreeEquivalenceMap<Double, Integer> map =
                 new TreeEquivalenceMap<>((a, b) -> PRECISION.compare(a, b));
-        for (int i = 0; i < arr.length; ++i) {
-            map.put(arr[i], i);
-        }
 
-        final double key = map.getStoredKey(test);
-        final int value = -1;
-
-        map.put(key, value);
-
-        Assertions.assertEquals(value, map.get(test), () -> "Invalid value for map value for " + test);
+        // act
+        Assertions.assertNull(map.getStoredKey(1.0));
     }
 
-    private static double[] createShuffledArray(final double start, final double end, final double delta,
-            final Random rand) {
-        final List<Double> list = new ArrayList<>();
-        for (double val = start; val <= end; val += delta) {
-            list.add(val);
-        }
-        Collections.shuffle(list, rand);
+    @Test
+    void testGetStoredKey_populated() {
+        // arrange
+        final TreeEquivalenceMap<Double, Integer> map =
+                new TreeEquivalenceMap<>((a, b) -> PRECISION.compare(a, b));
 
-        final double[] arr = new double[list.size()];
-        for (int i = 0; i < arr.length; ++i) {
-            arr[i] = list.get(i);
+        map.put(0.0, 1);
+        map.put(1.0, 2);
+
+        // act
+        Assertions.assertNull(map.getStoredKey(-0.11));
+        Assertions.assertEquals(0.0, map.getStoredKey(-0.09));
+        Assertions.assertEquals(0.0, map.getStoredKey(0.0));
+        Assertions.assertEquals(0.0, map.getStoredKey(0.09));
+        Assertions.assertNull(map.getStoredKey(0.11));
+
+        Assertions.assertNull(map.getStoredKey(0.89));
+        Assertions.assertEquals(1.0, map.getStoredKey(0.91));
+        Assertions.assertEquals(1.0, map.getStoredKey(1.0));
+        Assertions.assertEquals(1.0, map.getStoredKey(1.09));
+        Assertions.assertNull(map.getStoredKey(1.11));
+    }
+
+    @Test
+    void testPutGet() {
+        // arrange
+        final TreeEquivalenceMap<Double, Integer> map =
+                new TreeEquivalenceMap<>((a, b) -> PRECISION.compare(a, b));
+
+        for (double x = -5.0; x < -0.5; x += 0.7) {
+            map.put(x, -1);
         }
 
-        return arr;
+        map.put(0.0, 1);
+        map.put(1.0, 2);
+
+        for (double x = 1.6; x < 10.0; x += 0.7) {
+            map.put(x, -1);
+        }
+
+        // act
+        Assertions.assertNull(map.get(-0.11));
+        Assertions.assertEquals(1, map.get(-0.09));
+        Assertions.assertEquals(1, map.get(0.0));
+        Assertions.assertEquals(1, map.get(0.09));
+        Assertions.assertNull(map.get(0.11));
+
+        Assertions.assertNull(map.get(0.89));
+        Assertions.assertEquals(2, map.get(0.91));
+        Assertions.assertEquals(2, map.get(1.0));
+        Assertions.assertEquals(2, map.get(1.09));
+        Assertions.assertNull(map.get(1.11));
+    }
+
+    @Test
+    void testContainsKey() {
+        // arrange
+        final TreeEquivalenceMap<Double, Integer> map =
+                new TreeEquivalenceMap<>((a, b) -> PRECISION.compare(a, b));
+
+        map.put(0.0, 1);
+        map.put(1.0, 2);
+
+        // act
+        Assertions.assertFalse(map.containsKey(-0.11));
+        Assertions.assertTrue(map.containsKey(-0.09));
+        Assertions.assertTrue(map.containsKey(0.0));
+        Assertions.assertTrue(map.containsKey(0.09));
+        Assertions.assertFalse(map.containsKey(0.11));
+
+        Assertions.assertFalse(map.containsKey(0.89));
+        Assertions.assertTrue(map.containsKey(0.91));
+        Assertions.assertTrue(map.containsKey(1.0));
+        Assertions.assertTrue(map.containsKey(1.09));
+        Assertions.assertFalse(map.containsKey(1.11));
+    }
+
+    @Test
+    void testInsertionOrder() {
+        // arrange
+        final TreeEquivalenceMap<Double, Integer> map =
+                new TreeEquivalenceMap<>((a, b) -> PRECISION.compare(a, b));
+
+        final double x = 1.0;
+        final double y = 1.075;
+        final double z = 1.15;
+
+        // act/assert
+        map.put(x, 0);
+        map.put(y, 1);
+        map.put(z, 2);
+
+        Assertions.assertEquals(2, map.size());
+        Assertions.assertEquals(1, map.get(x));
+        Assertions.assertEquals(1, map.get(y));
+        Assertions.assertEquals(2, map.get(z));
+
+        Assertions.assertEquals(1, map.remove(x));
+        Assertions.assertEquals(2, map.remove(y));
+        Assertions.assertNull(map.remove(z));
+
+        map.put(y, 1);
+        map.put(x, 0);
+        map.put(z, 2);
+
+        Assertions.assertEquals(1, map.size());
+        Assertions.assertEquals(2, map.get(x));
+        Assertions.assertEquals(2, map.get(y));
+        Assertions.assertEquals(2, map.get(z));
+
+        Assertions.assertEquals(2, map.remove(x));
+        Assertions.assertNull(map.remove(y));
+        Assertions.assertNull(map.remove(z));
     }
 }

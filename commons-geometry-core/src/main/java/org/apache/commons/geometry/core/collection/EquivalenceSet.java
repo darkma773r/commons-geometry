@@ -38,12 +38,12 @@ import java.util.Set;
  * and {@code z} are considered equal does <em>not</em> imply that {@code x} and {@code z}
  * will be considered equal. For example, consider the values {@code x = 1}, {@code y = 1.075},
  * and {@code z = 1.15} and a comparison method using an epsilon value of {@code 0.1}.
- * Using this method, {@code x} and {@code y} are equivalent, {@code y} and {@code z} are
- * equivalent but {@code x} and {@code z} are not since their difference exceeds the epsilon.
- * If these values are inserted into the set, the set state depends on the order of insertion.
- * Inserting the values in the order {@code x, y, z} results in two entries: {@code x, z}.
- * However, inserting in the order {@code y, x, z} results in only one entry ({@code y})
- * because both {@code x} and {@code z} are considered equal to {@code y}.
+ * Using this method, {@code x} and {@code y} are equivalent and {@code y} and {@code z} are
+ * equivalent,  but {@code x} and {@code z} are not equivalent since their difference exceeds
+ * the epsilon. If these values are inserted into the set, the set state depends on the order
+ * of insertion. Inserting the values in the order {@code x, y, z} results in two entries:
+ * {@code x, z}. However, inserting in the order {@code y, x, z} results in only one entry
+ * ({@code y}) because both {@code x} and {@code z} are considered equal to {@code y}.
  *
  * @param <T> Value type
  */
