@@ -57,5 +57,5 @@ public interface EquivalenceMap<K, V> extends Map<K, V> {
      * @return stored key value considered equivalent to the argument or null
      *      if not found
      */
-    K getStoredKey(K k);
+    K resolveKey(K k);
 }

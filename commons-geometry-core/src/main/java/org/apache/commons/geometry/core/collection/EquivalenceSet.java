@@ -55,5 +55,5 @@ public interface EquivalenceSet<T> extends Set<T> {
      * @return stored value considered equivalent to the argument or null if
      *      not found
      */
-    T getStored(T t);
+    T resolve(T t);
 }

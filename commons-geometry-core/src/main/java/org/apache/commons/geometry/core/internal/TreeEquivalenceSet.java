@@ -41,7 +41,7 @@ public class TreeEquivalenceSet<T> extends TreeSet<T>
 
     /** {@inheritDoc} */
     @Override
-    public T getStored(final T t) {
+    public T resolve(final T t) {
         T val = floor(t);
         if (val != null && comparator().compare(val, t) == 0) {
             return val;

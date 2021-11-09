@@ -42,7 +42,7 @@ public class TreeEquivalenceMap<K, V> extends TreeMap<K, V>
 
     /** {@inheritDoc} */
     @Override
-    public K getStoredKey(final K k) {
+    public K resolveKey(final K k) {
         K floor = floorKey(k);
         if (floor != null && comparator().compare(floor, k) == 0) {
             return floor;

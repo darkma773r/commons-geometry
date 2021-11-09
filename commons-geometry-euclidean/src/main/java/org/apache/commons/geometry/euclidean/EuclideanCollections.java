@@ -28,40 +28,65 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.numbers.core.Precision;
 
+/** Utility class containing methods related to collections of Euclidean
+ * geometry objects.
+ */
 public final class EuclideanCollections {
 
-    /** Utility class; no instantiation. */
+    /** No instantiation. */
     private EuclideanCollections() { }
 
-    public static <T> EquivalenceMap<Vector1D, T> equivalenceMap1D(final Precision.DoubleEquivalence precision) {
+    /** Construct an {@link EquivalenceSet} for storing {@link Vector1D} objects. Vectors are considered
+     * equal if their components are equivalent as evaluated by {@code precision}.
+     * @param precision object used to determine floating point equality
+     * @return an equivalence set using the given precision context to determine object equality
+     * @see Vector1D#eq(Vector1D, org.apache.commons.numbers.core.Precision.DoubleEquivalence)
+     */
+    public static EquivalenceSet<Vector1D> equivalenceSet1D(final Precision.DoubleEquivalence precision) {
+        return new TreeEquivalenceSet<>(equivalenceComparator1D(precision));
+    }
+
+    /** Construct an {@link EquivalenceMap} that uses {@link Vector1D} objects as keys and the given
+     * precision context for determining equality. Vectors are considered equal if their components
+     * are equivalent as evaluated by {@code precision}.
+     * @param <V> Map value type
+     * @param precision object used to determine floating point equality
+     * @return an equivalence map using the given precision context to determine object equality
+     * @see Vector1D#eq(Vector1D, org.apache.commons.numbers.core.Precision.DoubleEquivalence)
+     */
+    public static <V> EquivalenceMap<Vector1D, V> equivalenceMap1D(final Precision.DoubleEquivalence precision) {
         return new TreeEquivalenceMap<>(equivalenceComparator1D(precision));
     }
 
-    public static <T> EquivalenceSet<Vector1D> equivalenceSet1D(final Precision.DoubleEquivalence precision) {
-        return new TreeEquivalenceSet<>(equivalenceComparator1D(precision));
+    public static EquivalenceSet<Vector2D> equivalenceSet2D(final Precision.DoubleEquivalence precision) {
+        return new TreeEquivalenceSet<>(equivalenceComparator2D(precision));
     }
 
     public static <T> EquivalenceMap<Vector2D, T> equivalenceMap2D(final Precision.DoubleEquivalence precision) {
         return new TreeEquivalenceMap<>(equivalenceComparator2D(precision));
     }
 
-    public static <T> EquivalenceSet<Vector2D> equivalenceSet2D(final Precision.DoubleEquivalence precision) {
-        return new TreeEquivalenceSet<>(equivalenceComparator2D(precision));
+    public static EquivalenceSet<Vector3D> equivalenceSet3D(final Precision.DoubleEquivalence precision) {
+        return new TreeEquivalenceSet<>(equivalenceComparator3D(precision));
     }
 
     public static <T> EquivalenceMap<Vector3D, T> equivalenceMap3D(final Precision.DoubleEquivalence precision) {
         return new TreeEquivalenceMap<>(equivalenceComparator3D(precision));
     }
 
-    public static <T> EquivalenceSet<Vector3D> equivalenceSet3D(final Precision.DoubleEquivalence precision) {
-        return new TreeEquivalenceSet<>(equivalenceComparator3D(precision));
-    }
-
+    /** Create an equivalence comparator for {@link Vector1D} objects using the given precision context.
+     * @param precision object used to determine floating point equality
+     * @return a comparator that sorts using floating point equivalence
+     */
     private static Comparator<Vector1D> equivalenceComparator1D(final Precision.DoubleEquivalence precision) {
         Objects.requireNonNull(precision);
         return (a, b) -> precision.compare(a.getX(), b.getX());
     }
 
+    /** Create an equivalence comparator for {@link Vector2D} objects using the given precision context.
+     * @param precision object used to determine floating point equality
+     * @return a comparator that sorts using floating point equivalence
+     */
     private static Comparator<Vector2D> equivalenceComparator2D(final Precision.DoubleEquivalence precision) {
         Objects.requireNonNull(precision);
         return (a, b) -> {
@@ -73,6 +98,10 @@ public final class EuclideanCollections {
         };
     }
 
+    /** Create an equivalence comparator for {@link Vector3D} objects using the given precision context.
+     * @param precision object used to determine floating point equality
+     * @return a comparator that sorts using floating point equivalence
+     */
     private static Comparator<Vector3D> equivalenceComparator3D(final Precision.DoubleEquivalence precision) {
         Objects.requireNonNull(precision);
         return (a, b) -> {

@@ -27,17 +27,17 @@ class TreeEquivalenceSetTest {
             Precision.doubleEquivalenceOfEpsilon(EPS);
 
     @Test
-    void testGetStored_emptySet() {
+    void testResolve_emptySet() {
         // arrange
         final TreeEquivalenceSet<Double> set =
                 new TreeEquivalenceSet<>((a, b) -> PRECISION.compare(a, b));
 
         // act
-        Assertions.assertNull(set.getStored(1.0));
+        Assertions.assertNull(set.resolve(1.0));
     }
 
     @Test
-    void testGetStored_populated() {
+    void testResolve_populated() {
         // arrange
         final TreeEquivalenceSet<Double> set =
                 new TreeEquivalenceSet<>((a, b) -> PRECISION.compare(a, b));
@@ -54,17 +54,17 @@ class TreeEquivalenceSetTest {
         }
 
         // act
-        Assertions.assertNull(set.getStored(-0.11));
-        Assertions.assertEquals(0.0, set.getStored(-0.09));
-        Assertions.assertEquals(0.0, set.getStored(0.0));
-        Assertions.assertEquals(0.0, set.getStored(0.09));
-        Assertions.assertNull(set.getStored(0.11));
+        Assertions.assertNull(set.resolve(-0.11));
+        Assertions.assertEquals(0.0, set.resolve(-0.09));
+        Assertions.assertEquals(0.0, set.resolve(0.0));
+        Assertions.assertEquals(0.0, set.resolve(0.09));
+        Assertions.assertNull(set.resolve(0.11));
 
-        Assertions.assertNull(set.getStored(0.89));
-        Assertions.assertEquals(1, set.getStored(0.91));
-        Assertions.assertEquals(1, set.getStored(1.0));
-        Assertions.assertEquals(1, set.getStored(1.09));
-        Assertions.assertNull(set.getStored(1.11));
+        Assertions.assertNull(set.resolve(0.89));
+        Assertions.assertEquals(1, set.resolve(0.91));
+        Assertions.assertEquals(1, set.resolve(1.0));
+        Assertions.assertEquals(1, set.resolve(1.09));
+        Assertions.assertNull(set.resolve(1.11));
     }
 
     @Test
@@ -106,9 +106,9 @@ class TreeEquivalenceSetTest {
         set.add(z);
 
         Assertions.assertEquals(2, set.size());
-        Assertions.assertEquals(x, set.getStored(x));
-        Assertions.assertEquals(x, set.getStored(y));
-        Assertions.assertEquals(z, set.getStored(z));
+        Assertions.assertEquals(x, set.resolve(x));
+        Assertions.assertEquals(x, set.resolve(y));
+        Assertions.assertEquals(z, set.resolve(z));
 
         Assertions.assertTrue(set.remove(x));
         Assertions.assertTrue(set.remove(y));
@@ -119,9 +119,9 @@ class TreeEquivalenceSetTest {
         set.add(z);
 
         Assertions.assertEquals(1, set.size());
-        Assertions.assertEquals(y, set.getStored(x));
-        Assertions.assertEquals(y, set.getStored(y));
-        Assertions.assertEquals(y, set.getStored(z));
+        Assertions.assertEquals(y, set.resolve(x));
+        Assertions.assertEquals(y, set.resolve(y));
+        Assertions.assertEquals(y, set.resolve(z));
 
         Assertions.assertTrue(set.remove(x));
         Assertions.assertFalse(set.remove(y));

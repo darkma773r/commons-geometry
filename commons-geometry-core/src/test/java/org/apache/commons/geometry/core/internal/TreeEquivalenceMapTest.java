@@ -28,17 +28,17 @@ class TreeEquivalenceMapTest {
             Precision.doubleEquivalenceOfEpsilon(EPS);
 
     @Test
-    void testGetStoredKey_emptyMap() {
+    void testResolveKey_emptyMap() {
         // arrange
         final TreeEquivalenceMap<Double, Integer> map =
                 new TreeEquivalenceMap<>((a, b) -> PRECISION.compare(a, b));
 
         // act
-        Assertions.assertNull(map.getStoredKey(1.0));
+        Assertions.assertNull(map.resolveKey(1.0));
     }
 
     @Test
-    void testGetStoredKey_populated() {
+    void testResolveKey_populated() {
         // arrange
         final TreeEquivalenceMap<Double, Integer> map =
                 new TreeEquivalenceMap<>((a, b) -> PRECISION.compare(a, b));
@@ -47,17 +47,17 @@ class TreeEquivalenceMapTest {
         map.put(1.0, 2);
 
         // act
-        Assertions.assertNull(map.getStoredKey(-0.11));
-        Assertions.assertEquals(0.0, map.getStoredKey(-0.09));
-        Assertions.assertEquals(0.0, map.getStoredKey(0.0));
-        Assertions.assertEquals(0.0, map.getStoredKey(0.09));
-        Assertions.assertNull(map.getStoredKey(0.11));
+        Assertions.assertNull(map.resolveKey(-0.11));
+        Assertions.assertEquals(0.0, map.resolveKey(-0.09));
+        Assertions.assertEquals(0.0, map.resolveKey(0.0));
+        Assertions.assertEquals(0.0, map.resolveKey(0.09));
+        Assertions.assertNull(map.resolveKey(0.11));
 
-        Assertions.assertNull(map.getStoredKey(0.89));
-        Assertions.assertEquals(1.0, map.getStoredKey(0.91));
-        Assertions.assertEquals(1.0, map.getStoredKey(1.0));
-        Assertions.assertEquals(1.0, map.getStoredKey(1.09));
-        Assertions.assertNull(map.getStoredKey(1.11));
+        Assertions.assertNull(map.resolveKey(0.89));
+        Assertions.assertEquals(1.0, map.resolveKey(0.91));
+        Assertions.assertEquals(1.0, map.resolveKey(1.0));
+        Assertions.assertEquals(1.0, map.resolveKey(1.09));
+        Assertions.assertNull(map.resolveKey(1.11));
     }
 
     @Test
