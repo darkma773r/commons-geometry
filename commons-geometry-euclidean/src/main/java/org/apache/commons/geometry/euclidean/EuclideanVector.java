@@ -62,18 +62,18 @@ public abstract class EuclideanVector<V extends EuclideanVector<V>>
      */
     public abstract V lerp(V v, double t);
 
-    /** Return true if the current instance and given vector are considered equal as evaluated by the
+    /** Return true if the current instance and given vector are considered equivalent as evaluated by the
      * given precision context.
      *
-     * <p>Equality is determined by comparing each pair of components in turn from the two
-     * vectors. If all components evaluate as equal, then the vectors are considered equal. If any are
-     * not equal, then the vectors are not considered equal. Note that this approach means that the
-     * calculated distance between two "equal" vectors may be as much as <code>&radic;(n * eps<sup>2</sup>)</code>,
-     * where {@code n} is the number of components in the vector and {@code eps} is the maximum epsilon
-     * value allowed by the precision context.
-     * @param v vector to check for equality
-     * @param precision precision context used to determine floating point equality
-     * @return true if the current instance is considered equal to the given vector when using
+     * <p>Equivalency is determined by comparing each pair of components in turn from the two
+     * vectors. If all components evaluate as equivalent, then the vectors are considered equivalent. If any are
+     * not equivalent, then the vectors are not considered equivalent. Note that this approach means that the
+     * calculated distance between two "equivalent" vectors may be as much as
+     * <code>&radic;(n * eps<sup>2</sup>)</code>, where {@code n} is the number of components in the vector and
+     * {@code eps} is the maximum epsilon value allowed by the precision context.
+     * @param v vector to check for equivalency
+     * @param precision precision context used to determine floating point equivalency
+     * @return true if the current instance is considered equivalent to the given vector when using
      *      the given precision context; otherwise false
      */
     public abstract boolean eq(V v, Precision.DoubleEquivalence precision);
