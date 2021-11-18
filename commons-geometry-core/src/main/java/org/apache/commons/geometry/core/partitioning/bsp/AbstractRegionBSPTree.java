@@ -773,13 +773,13 @@ public abstract class AbstractRegionBSPTree<
         /** {@inheritDoc} */
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder(50);
             sb.append(this.getClass().getSimpleName())
                 .append("[cut= ")
                 .append(getCut())
                 .append(", location= ")
                 .append(getLocation())
-                .append("]");
+                .append(']');
 
             return sb.toString();
         }

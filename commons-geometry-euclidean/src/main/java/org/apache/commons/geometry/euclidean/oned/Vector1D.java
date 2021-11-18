@@ -430,20 +430,20 @@ public class Vector1D extends EuclideanVector<Vector1D> {
          * @param initial initial value
          */
         Sum(final Vector1D initial) {
-            this.xsum = org.apache.commons.numbers.core.Sum.of(initial.x);
+            this.xsum = org.apache.commons.numbers.core.Sum.of(initial.getX());
         }
 
         /** {@inheritDoc} */
         @Override
         public Sum add(final Vector1D vec) {
-            xsum.add(vec.x);
+            xsum.add(vec.getX());
             return this;
         }
 
         /** {@inheritDoc} */
         @Override
         public Sum addScaled(final double scale, final Vector1D vec) {
-            xsum.addProduct(scale, vec.x);
+            xsum.addProduct(scale, vec.getX());
             return this;
         }
 

@@ -34,7 +34,7 @@ import org.apache.commons.numbers.core.Precision;
  */
 public final class Interval implements HyperplaneBoundedRegion<Vector1D> {
     /** Interval instance representing the entire real number line. */
-    private static final Interval FULL = new Interval(null, null);
+    private static final Interval FULL_INTERVAL = new Interval(null, null);
 
     /** {@link OrientedPoint} instance representing the min boundary of the interval,
      * or null if no min boundary exists. If present, this instance will be negative-facing.
@@ -375,7 +375,7 @@ public final class Interval implements HyperplaneBoundedRegion<Vector1D> {
                 null;
 
         if (minBoundary == null && maxBoundary == null) {
-            return FULL;
+            return FULL_INTERVAL;
         }
 
         return new Interval(minBoundary, maxBoundary);
@@ -415,7 +415,7 @@ public final class Interval implements HyperplaneBoundedRegion<Vector1D> {
 
         if (!hasA && !hasB) {
             // both boundaries null; return the full space
-            return FULL;
+            return FULL_INTERVAL;
         }
 
         // determine the ordering of the hyperplanes; we know that at least one is non-null
@@ -467,7 +467,7 @@ public final class Interval implements HyperplaneBoundedRegion<Vector1D> {
      * @see #isFull()
      */
     public static Interval full() {
-        return FULL;
+        return FULL_INTERVAL;
     }
 
     /** Validate that the orientations and positions of the arguments may be used to create an interval.

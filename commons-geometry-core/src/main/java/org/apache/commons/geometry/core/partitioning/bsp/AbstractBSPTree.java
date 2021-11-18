@@ -843,19 +843,19 @@ public abstract class AbstractBSPTree<P extends Point<P>, N extends AbstractBSPT
         /** The depth of this node in the tree. This will be zero for the root node and
          * {@link AbstractBSPTree#UNKNOWN_VALUE} when the value needs to be computed.
          */
-        private int depth = UNKNOWN_VALUE;
+        private int nodeDepth = UNKNOWN_VALUE;
 
         /** The total number of nodes in the subtree rooted at this node. This will be
          * set to {@link AbstractBSPTree#UNKNOWN_VALUE} when the value needs
          * to be computed.
          */
-        private int count = UNKNOWN_VALUE;
+        private int subtreeCount = UNKNOWN_VALUE;
 
         /** The height of the subtree rooted at this node. This will
          * be set to {@link AbstractBSPTree#UNKNOWN_VALUE} when the value needs
          * to be computed.
          */
-        private int height = UNKNOWN_VALUE;
+        private int subtreeHeight = UNKNOWN_VALUE;
 
         /** Simple constructor.
          * @param tree the tree instance that owns this node
@@ -874,14 +874,14 @@ public abstract class AbstractBSPTree<P extends Point<P>, N extends AbstractBSPT
         @Override
         public int depth() {
             // Calculate our depth based on our parent's depth, if possible.
-            if (depth == UNKNOWN_VALUE &&
+            if (nodeDepth == UNKNOWN_VALUE &&
                 parent != null) {
                 final int parentDepth = parent.depth();
                 if (parentDepth != UNKNOWN_VALUE) {
-                    depth = parentDepth + 1;
+                    nodeDepth = parentDepth + 1;
                 }
             }
-            return depth;
+            return nodeDepth;
         }
 
         /** {@inheritDoc} */
@@ -889,15 +889,15 @@ public abstract class AbstractBSPTree<P extends Point<P>, N extends AbstractBSPT
         public int height() {
             checkValid();
 
-            if (height == UNKNOWN_VALUE) {
+            if (subtreeHeight == UNKNOWN_VALUE) {
                 if (isLeaf()) {
-                    height = 0;
+                    subtreeHeight = 0;
                 } else {
-                    height = Math.max(getMinus().height(), getPlus().height()) + 1;
+                    subtreeHeight = Math.max(getMinus().height(), getPlus().height()) + 1;
                 }
             }
 
-            return height;
+            return subtreeHeight;
         }
 
         /** {@inheritDoc} */
@@ -905,15 +905,15 @@ public abstract class AbstractBSPTree<P extends Point<P>, N extends AbstractBSPT
         public int count() {
             checkValid();
 
-            if (count == UNKNOWN_VALUE) {
-                count = 1;
+            if (subtreeCount == UNKNOWN_VALUE) {
+                subtreeCount = 1;
 
                 if (!isLeaf()) {
-                    count += minus.count() + plus.count();
+                    subtreeCount += minus.count() + plus.count();
                 }
             }
 
-            return count;
+            return subtreeCount;
         }
 
         /** {@inheritDoc} */
@@ -1022,17 +1022,17 @@ public abstract class AbstractBSPTree<P extends Point<P>, N extends AbstractBSPT
 
             // get the child depth now if we know it offhand, otherwise set it to the unknown value
             // and have the child pull it when needed
-            final int childDepth = (depth != UNKNOWN_VALUE) ? depth + 1 : UNKNOWN_VALUE;
+            final int childDepth = (nodeDepth != UNKNOWN_VALUE) ? nodeDepth + 1 : UNKNOWN_VALUE;
 
             if (newMinus != null) {
                 minusNode.parent = self;
-                minusNode.depth = childDepth;
+                minusNode.nodeDepth = childDepth;
             }
             this.minus = newMinus;
 
             if (newPlus != null) {
                 plusNode.parent = self;
-                plusNode.depth = childDepth;
+                plusNode.nodeDepth = childDepth;
             }
             this.plus = newPlus;
         }
@@ -1044,7 +1044,7 @@ public abstract class AbstractBSPTree<P extends Point<P>, N extends AbstractBSPT
          */
         protected void makeRoot() {
             parent = null;
-            depth = 0;
+            nodeDepth = 0;
         }
 
         /** Check if cached node properties are valid, meaning that no structural updates have
@@ -1071,8 +1071,8 @@ public abstract class AbstractBSPTree<P extends Point<P>, N extends AbstractBSPT
          * and prepare them for recalculation.
          */
         protected void nodeInvalidated() {
-            count = UNKNOWN_VALUE;
-            height = UNKNOWN_VALUE;
+            subtreeCount = UNKNOWN_VALUE;
+            subtreeHeight = UNKNOWN_VALUE;
         }
 
         /** Get a reference to the current instance, cast to type N.
