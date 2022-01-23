@@ -196,10 +196,14 @@ public class AngularInterval implements HyperplaneBoundedRegion<Point1S> {
      */
     public boolean wrapsZero() {
         if (!isFull()) {
-            final double minNormAz = minBoundary.getPoint().getNormalizedAzimuth();
-            final double maxNormAz = maxBoundary.getPoint().getNormalizedAzimuth();
+            final Point1S minPt = minBoundary.getPoint();
+            final Point1S maxPt = maxBoundary.getPoint();
 
-            return maxNormAz < minNormAz;
+            final double minNormAz = minPt.getNormalizedAzimuth();
+            final double maxNormAz = maxPt.getNormalizedAzimuth();
+
+            return maxNormAz < minNormAz &&
+                    !minPt.eqZero(minBoundary.getPrecision());
         }
         return false;
     }

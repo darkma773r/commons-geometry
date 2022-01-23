@@ -144,58 +144,6 @@ public final class CutAngle extends AbstractHyperplane<Point1S> {
     /** {@inheritDoc} */
     @Override
     public HyperplaneLocation classify(final Point1S pt) {
-//        final Precision.DoubleEquivalence precision = getPrecision();
-//
-//        // get an offset relative to the base point
-//        final double signedDist = this.point.signedDistance(pt);
-//
-//        final int cmp = precision.compare(signedDist, 0d);
-//
-//        System.out.println("base= " + point.getNormalizedAzimuth() + ", az= " + pt.getNormalizedAzimuth() + ", signedDist= " + signedDist);
-//        System.out.println("cmp= " + cmp);
-//        System.out.println();
-//
-//        if (cmp == 0) {
-//            return HyperplaneLocation.ON;
-//        } else if (cmp < 0 && precision.lte(Math.abs(signedDist), this.point.getNormalizedAzimuth())) {
-//            return positiveFacing ?
-//                    HyperplaneLocation.MINUS :
-//                    HyperplaneLocation.PLUS;
-//        } else if (positiveFacing) {
-//            return HyperplaneLocation.PLUS;
-//        }
-//
-//        return HyperplaneLocation.MINUS;
-
-//        final Precision.DoubleEquivalence precision = getPrecision();
-//
-//        if (this.point.eq(pt, precision)) {
-//            return HyperplaneLocation.ON;
-//        }
-//
-//        if (Point1S.ZERO.eq(this.point, precision)) {
-//            // TODO
-//        }
-//
-//        final Point1S compPt = Point1S.ZERO.eq(pt, precision) ?
-//                Point1S.ZERO :
-//                pt;
-//
-//        final double offsetValue = offset(compPt);
-//        final double cmp = precision.signum(offsetValue);
-//
-//        System.out.println("base= " + point.getNormalizedAzimuth() + ", az= " + pt.getNormalizedAzimuth() + ", offsetValue= " + offsetValue);
-//        System.out.println("cmp= " + cmp);
-//        System.out.println();
-//
-//        if (cmp > 0) {
-//            return HyperplaneLocation.PLUS;
-//        } else if (cmp < 0) {
-//            return HyperplaneLocation.MINUS;
-//        }
-//
-//        return HyperplaneLocation.ON;
-
         int cmp = classifyPositiveFacing(pt);
         if (!positiveFacing) {
             cmp = -cmp;
@@ -209,58 +157,31 @@ public final class CutAngle extends AbstractHyperplane<Point1S> {
         return HyperplaneLocation.ON;
     }
 
-//    private int classifyPositiveFacing(final Point1S pt) {
-//        final Precision.DoubleEquivalence precision = getPrecision();
-//
-//        final double az = pt.getNormalizedAzimuth();
-//        final double base = this.point.getNormalizedAzimuth();
-//
-//        final int cmp = precision.compare(az, base);
-//
-//        System.out.println("pt= " + pt.getNormalizedAzimuth() + ", adj= " + az);
-//        System.out.println("base= " + point.getNormalizedAzimuth() + ", adj= " + base);
-//        System.out.println("diff= " + (az - base));
-//        System.out.println("cmp= " + cmp);
-//        System.out.println();
-//
-//        if (cmp < 0 && !precision.eq(az + Angle.TWO_PI, base)) {
-//            return isEquivalentToZeroPi(base) ?
-//                    -1 :
-//                    +1;
-//        } else if (cmp > 0 && !precision.eq(az - Angle.TWO_PI, base)) {
-//            return isEquivalentToZeroPi(base) ?
-//                    +1 :
-//                    -1;
-//        }
-//
-//        return 0;
-//    }
-
+    /** Classify the given point assuming a positive-facing cut.
+     * @param pt point to classify
+     * @return int value indicating the classification region of {@code pt}
+     */
     private int classifyPositiveFacing(final Point1S pt) {
         final Precision.DoubleEquivalence precision = getPrecision();
 
         final double az = pt.getNormalizedAzimuth();
         final double base = this.point.getNormalizedAzimuth();
 
-        final boolean azIsZero = Point1S.ZERO.eq(pt, precision); //isEquivalentToZeroPi(az);
-        final boolean baseIsZero = Point1S.ZERO.eq(this.point, precision); //isEquivalentToZeroPi(base);
+        final int cmp = precision.compare(az, base);
 
-        if (baseIsZero) {
-            return azIsZero ?
-                    0 :
-                    +1;
-        }
-        return azIsZero ?
-                -1 :
-                precision.compare(az, base);
-    }
+        if (cmp != 0) {
+            final boolean azIsZero = pt.eqZero(precision);
+            final boolean baseIsZero = this.point.eqZero(precision);
 
-    private boolean isEquivalentToZeroPi(final double az) {
-        double adjusted = az;
-        if (adjusted > Math.PI) {
-            adjusted -= Angle.TWO_PI;
+            if (baseIsZero) {
+                return azIsZero ?
+                        0 :
+                        +1;
+            } else if (azIsZero) {
+                return -1;
+            }
         }
-        return getPrecision().eqZero(adjusted);
+        return cmp;
     }
 
     /** {@inheritDoc} */

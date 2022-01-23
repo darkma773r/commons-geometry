@@ -210,6 +210,14 @@ public final class Point1S implements Point<Point1S> {
         return precision.eqZero(dist);
     }
 
+    // TODO
+    public boolean eqZero(final Precision.DoubleEquivalence precision) {
+        final double cmp = normalizedAzimuth > Math.PI ?
+                Angle.TWO_PI :
+                0d;
+        return precision.eq(normalizedAzimuth, cmp);
+    }
+
     /**
      * Get a hashCode for the point. Points normally must have exactly the
      * same azimuth angles in order to have the same hash code. Points
