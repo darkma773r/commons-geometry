@@ -220,10 +220,10 @@ public final class Point1S implements Point<Point1S> {
      * @see #eq(Point1S, org.apache.commons.numbers.core.Precision.DoubleEquivalence)
      */
     public boolean eqZero(final Precision.DoubleEquivalence precision) {
-        final double cmp = normalizedAzimuth > Math.PI ?
+        final double closest = normalizedAzimuth > Math.PI ?
                 Angle.TWO_PI :
                 0d;
-        return precision.eq(normalizedAzimuth, cmp);
+        return precision.eq(normalizedAzimuth, closest);
     }
 
     /**

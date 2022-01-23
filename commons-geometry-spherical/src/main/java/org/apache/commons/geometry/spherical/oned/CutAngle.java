@@ -42,7 +42,7 @@ import org.apache.commons.numbers.core.Precision;
  * class to address this issue is to (1) define a second, implicit cut point at \(0\pi\) and
  * (2) define the domain of hyperplane points (for partitioning purposes) to be the
  * range \([0, 2\pi)\). Each hyperplane then splits the space into the intervals
- * \([0, x]\) and \([x, 2pi)\), where \(x\) is the location of the hyperplane.
+ * \([0, x]\) and \([x, 2\pi)\), where \(x\) is the location of the hyperplane.
  * One way to visualize this is to picture the circle as a cake that has already been
  * cut at \(0\pi\). Each hyperplane then specifies the location of the second
  * cut of the cake, with the plus and minus sides being the pieces thus cut.
@@ -60,13 +60,14 @@ import org.apache.commons.numbers.core.Precision;
  * evaluated by the instance's {@link #getPrecision() precision context}. Note that points are considered
  * equivalent to \(0\pi\) if their normalized azimuths are close to either \(0\pi\) or \(2\pi\).
  * <ul>
- *  <li>\(H \approx P\) - \(P\) is classified as {@link HyperplaneLocation#ON ON}.</li>
- *  <li>\(H \approx 0\) and \(P \approx 0\)- \(P\) is classified as {@link HyperplaneLocation#ON ON}.</li>
- *  <li>\(H \approx 0\) and \(P \neq 0\)- \(P\) is classified as {@link HyperplaneLocation#PLUS PLUS}
+ *  <li>\(H \approx P\) \(\implies\) \(P\) is classified as {@link HyperplaneLocation#ON ON}.</li>
+ *  <li>\(H \approx 0\) and \(P \approx 0\) \(\implies\) \(P\) is classified as
+ *      {@link HyperplaneLocation#ON ON}.</li>
+ *  <li>\(H \approx 0\) and \(P \neq 0\) \(\implies\) \(P\) is classified as {@link HyperplaneLocation#PLUS PLUS}
  *      if the cut is positive facing and {@link HyperplaneLocation#MINUS MINUS} if negative facing.</li>
- *  <li>\(H \neq 0\) and \(P \approx 0\)- \(P\)is classified as {@link HyperplaneLocation#MINUS MINUS}
+ *  <li>\(H \neq 0\) and \(P \approx 0\) \(\implies\) \(P\) is classified as {@link HyperplaneLocation#MINUS MINUS}
  *      if the cut is positive facing and {@link HyperplaneLocation#PLUS PLUS} if negative facing.</li>
- *  <li>\(H \neq 0\) and \(P \neq 0\)- The normalized azimuths of \(H\) and \(P\) are compared and the
+ *  <li>\(H \neq 0\) and \(P \neq 0\) \(\implies\) The normalized azimuths of \(H\) and \(P\) are compared and the
  *      standard rules applied. If \(P \gt H\), then \(P\) is classified as {@link HyperplaneLocation#PLUS PLUS}
  *      if the cut is positive facing and {@link HyperplaneLocation#MINUS MINUS} if negative facing. If
  *      \(P \lt H\), then \(P\) is classified as {@link HyperplaneLocation#MINUS MINUS} if the cut is
