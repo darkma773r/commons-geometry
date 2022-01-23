@@ -27,7 +27,6 @@ import org.apache.commons.geometry.core.partitioning.Hyperplane;
 import org.apache.commons.geometry.core.partitioning.HyperplaneConvexSubset;
 import org.apache.commons.geometry.core.partitioning.HyperplaneLocation;
 import org.apache.commons.geometry.core.partitioning.Split;
-import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
 
 /** Class representing an oriented point in 1-dimensional spherical space,
