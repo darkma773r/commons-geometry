@@ -60,15 +60,6 @@ class AngularIntervalTest {
         final double aboveTwoPi = Angle.TWO_PI + 5e-11;
 
         // act/assert
-        AngularInterval a = AngularInterval.of(pi, belowZero, TEST_PRECISION);
-
-        System.out.println(a);
-        System.out.println(a.getMinBoundary());
-        System.out.println(a.getMaxBoundary());
-        System.out.println(a.classify(Point1S.of(a.getMidPoint().getAzimuth() + Math.PI)));
-
-        checkClassify(a, RegionLocation.OUTSIDE, Point1S.of(a.getMidPoint().getAzimuth() + Math.PI));
-
         checkInterval(AngularInterval.of(belowZero, pi, TEST_PRECISION), belowZero, pi);
         checkInterval(AngularInterval.of(aboveZero, pi, TEST_PRECISION), aboveZero, pi);
 
