@@ -27,8 +27,7 @@ import org.apache.commons.geometry.euclidean.twod.path.LinePath;
 import org.apache.commons.geometry.hull.ConvexHull;
 import org.apache.commons.numbers.core.Precision;
 
-/**
- * This class represents a convex hull in two-dimensional Euclidean space.
+/** Class representing a convex hull in 2D Euclidean space.
  */
 public final class ConvexHull2D implements ConvexHull<Vector2D> {
 
@@ -43,15 +42,9 @@ public final class ConvexHull2D implements ConvexHull<Vector2D> {
      *      the given vertices are in order, unique, and define a convex hull.
      * @param precision precision context used to compare floating point numbers
      */
-    ConvexHull2D(final Collection<Vector2D> vertices, final Precision.DoubleEquivalence precision) {
+    ConvexHull2D(final Collection<? extends Vector2D> vertices, final Precision.DoubleEquivalence precision) {
         this.vertices = Collections.unmodifiableList(new ArrayList<>(vertices));
         this.path = buildHullPath(vertices, precision);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public List<Vector2D> getVertices() {
-        return vertices;
     }
 
     /** Get a path defining the convex hull. The path will contain
@@ -69,8 +62,20 @@ public final class ConvexHull2D implements ConvexHull<Vector2D> {
 
     /** {@inheritDoc} */
     @Override
+    public List<Vector2D> getVertices() {
+        return vertices;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean hasSize() {
+        return path.isClosed();
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public ConvexArea getRegion() {
-        return path.isClosed() ?
+        return hasSize() ?
                 ConvexArea.convexPolygonFromPath(path) :
                 null;
     }
@@ -92,7 +97,7 @@ public final class ConvexHull2D implements ConvexHull<Vector2D> {
      * @param precision precision context used to compare floating point values
      * @return path for the convex hull defined by the given vertices
      */
-    private static LinePath buildHullPath(final Collection<Vector2D> vertices,
+    private static LinePath buildHullPath(final Collection<? extends Vector2D> vertices,
             final Precision.DoubleEquivalence precision) {
         if (vertices.size() < 2) {
             return LinePath.empty();

@@ -60,7 +60,7 @@ public class MonotoneChain extends AbstractConvexHullGenerator2D {
 
     /** {@inheritDoc} */
     @Override
-    public Collection<Vector2D> findHullVertices(final Collection<Vector2D> points) {
+    public Collection<Vector2D> findHullVertices(final Collection<? extends Vector2D> points) {
 
         final List<Vector2D> pointsSortedByXAxis = new ArrayList<>(points);
 

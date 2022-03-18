@@ -67,8 +67,8 @@ abstract class AbstractConvexHullGenerator2D implements ConvexHullGenerator2D {
 
     /** {@inheritDoc} */
     @Override
-    public ConvexHull2D generate(final Collection<Vector2D> points) {
-        Collection<Vector2D> hullVertices;
+    public ConvexHull2D generate(final Collection<? extends Vector2D> points) {
+        Collection<? extends Vector2D> hullVertices;
         if (points.size() < 2) {
             hullVertices = points;
         } else {
@@ -87,13 +87,13 @@ abstract class AbstractConvexHullGenerator2D implements ConvexHullGenerator2D {
      * @param points the set of input points
      * @return the convex hull vertices in CCW winding
      */
-    protected abstract Collection<Vector2D> findHullVertices(Collection<Vector2D> points);
+    protected abstract Collection<Vector2D> findHullVertices(Collection<? extends Vector2D> points);
 
     /** Return true if the given vertices define a convex hull.
      * @param vertices the hull vertices
      * @return {@code true} if the vertices form a convex hull, {@code false} otherwise
      */
-    private boolean isConvex(final Collection<Vector2D> vertices) {
+    private boolean isConvex(final Collection<? extends Vector2D> vertices) {
         final int size = vertices.size();
 
         if (size < 3) {
@@ -101,7 +101,7 @@ abstract class AbstractConvexHullGenerator2D implements ConvexHullGenerator2D {
             return true;
         }
 
-        final Iterator<Vector2D> it = vertices.iterator();
+        final Iterator<? extends Vector2D> it = vertices.iterator();
 
         Vector2D p1 = it.next();
         Vector2D p2 = it.next();

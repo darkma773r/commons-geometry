@@ -14,28 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.hull;
+package org.apache.commons.geometry.hull.euclidean.threed;
 
-import java.util.Collection;
+import org.apache.commons.numbers.core.Precision;
 
-import org.apache.commons.geometry.core.Point;
+class Quickhull3DTest extends ConvexHullGenerator3DTestBase {
 
-/**
- * Interface for convex hull generators.
- *
- * @param <P> Type of the {@link Point}
- *
- * @see <a href="http://en.wikipedia.org/wiki/Convex_hull">Convex Hull (Wikipedia)</a>
- * @see <a href="http://mathworld.wolfram.com/ConvexHull.html">Convex Hull (MathWorld)</a>
- */
-public interface ConvexHullGenerator<P extends Point<P>> {
-    /**
-     * Build a convex hull from the set of input points.
-     *
-     * @param points the set of input points
-     * @return the convex hull
-     * @throws IllegalStateException if generator fails to generate a convex hull for
-     *      the given set of input points
-     */
-    ConvexHull<P> generate(Collection<? extends P> points);
+    /** {@inheritDoc} */
+    @Override
+    protected ConvexHullGenerator3D createGenerator(final Precision.DoubleEquivalence precision) {
+        return new Quickhull3D(precision);
+    }
 }

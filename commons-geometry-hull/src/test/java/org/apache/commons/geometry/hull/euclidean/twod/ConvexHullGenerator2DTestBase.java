@@ -34,9 +34,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Abstract base test class for 2D convex hull generators.
+ * Abstract base test class for Euclidean 2D convex hull generators.
  */
-public abstract class ConvexHullGenerator2DAbstractTest {
+public abstract class ConvexHullGenerator2DTestBase {
 
     protected static final double TEST_EPS = 1e-10;
 

@@ -14,28 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.geometry.hull;
+package org.apache.commons.geometry.hull.euclidean.threed;
 
 import java.util.Collection;
 
-import org.apache.commons.geometry.core.Point;
+import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.hull.ConvexHullGenerator;
 
-/**
- * Interface for convex hull generators.
- *
- * @param <P> Type of the {@link Point}
- *
- * @see <a href="http://en.wikipedia.org/wiki/Convex_hull">Convex Hull (Wikipedia)</a>
- * @see <a href="http://mathworld.wolfram.com/ConvexHull.html">Convex Hull (MathWorld)</a>
+/** Interface for convex hull generators in 3D Euclidean space.
  */
-public interface ConvexHullGenerator<P extends Point<P>> {
-    /**
-     * Build a convex hull from the set of input points.
-     *
-     * @param points the set of input points
-     * @return the convex hull
-     * @throws IllegalStateException if generator fails to generate a convex hull for
-     *      the given set of input points
-     */
-    ConvexHull<P> generate(Collection<? extends P> points);
+public interface ConvexHullGenerator3D extends ConvexHullGenerator<Vector3D> {
+
+    /** {@inheritDoc} */
+    @Override
+    ConvexHull3D generate(Collection<? extends Vector3D> points);
 }
