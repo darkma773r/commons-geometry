@@ -20,12 +20,14 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -118,7 +120,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     /** {@inheritDoc} */
     @Override
     public V put(final P key, final V value) {
-        GeometryInternalUtils.validatePointMapKey(key);
+        GeometryInternalUtils.requireFinite(key);
 
         Entry<P, V> entry = findEntryByPoint(key);
         if (entry != null) {
@@ -175,6 +177,20 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         secondaryRoot = null;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public Iterable<Map.Entry<P, V>> closestEntriesFirst(final P pt) {
+        GeometryInternalUtils.requireFinite(pt);
+        return () -> new ClosestFirstIterator<>(this, pt);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Iterable<Map.Entry<P, V>> farthestEntriesFirst(final P pt) {
+        GeometryInternalUtils.requireFinite(pt);
+        return () -> new FarthestFirstIterator<>(this, pt);
+    }
+
     /** Return true if the given points are equivalent using the precision
      * configured for the map.
      * @param a first point
@@ -182,6 +198,15 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
      * @return true if the given points are equivalent
      */
     protected abstract boolean pointsEq(P a, P b);
+
+    /** Compare the two points using a standard ordering for the space. This is used
+     * to break ties and provide a consistent ordering when iterating entries by
+     * distance.
+     * @param a first point
+     * @param b second point
+     * @return integer comparison result
+     */
+    protected abstract int comparePoints(P a, P b);
 
     /** Get the configured precision for the instance.
      * @return precision object
@@ -353,6 +378,13 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
             // pull an entry list from the parent map; this will make
             // this node a leaf initially
             this.entries = map.createEntryList();
+        }
+
+        /** Get the parent node or null if one does not exist.
+         * @return parent node or null if one does not exist.
+         */
+        public BucketNode<P, V> getParent() {
+            return parent;
         }
 
         /**
@@ -651,7 +683,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         protected abstract int getSearchLocation(P pt);
 
-        /** Get an int encoding the insert location of {@code pt} relative to the
+        /** Get an integer encoding the insert location of {@code pt} relative to the
          * node split. The return value must be strict and only include the single
          * location where {@code pt} should be inserted.
          * @param pt point to determine the insert location of
@@ -666,6 +698,24 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          * @return true if the child node a {@code childIdx} matches the location
          */
         protected abstract boolean testChildLocation(int childIdx, int loc);
+
+        /** Get the minimum distance from {@code pt} to the region for the child
+         * node at the specified index. A value of {@code 0} should be returned in cases
+         * where the query point is contained in the child.
+         * @param pt query point
+         * @param childIdx index of the child in question
+         * @return minimum distance from {@code pt} to the node region
+         */
+        protected abstract double getMinDistanceForChild(P pt, int childIdx);
+
+        /** Get the maximum distance from {@code pt} to the region for the child
+         * child node at the specified index. A value of {@code Double#POSITIVE_INFINITY}
+         * should be returned if there is no maximum.
+         * @param pt query point
+         * @param childIdx index of the child in question
+         * @return maximum distance from {@code pt} to the node region
+         */
+        protected abstract double getMaxDistanceForChild(P pt, int childIdx);
 
         /** Make this node a leaf node, using the given list of entries.
          * @param leafEntries list of map entries to use for the node
@@ -1029,6 +1079,265 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         private void updateExpectedVersion() {
             expectedVersion = map.version;
+        }
+    }
+
+    private static abstract class AbstractDistanceOrderIterator<P extends Point<P>, V>
+        implements Iterator<Map.Entry<P, V>> {
+
+        /** Owning map. */
+        private final AbstractBucketPointMap<P, V> map;
+
+        /** The expected modification version of the map. */
+        private final int expectedVersion;
+
+        /** Distance order query point. */
+        private final P queryPt;
+
+        /** Queue of nodes remaining to be visited. */
+        private final PriorityQueue<DistancedValue<BucketNode<P, V>>> nodes;
+
+        /** Queue of entries waiting to be returned. */
+        private final PriorityQueue<DistancedValue<Entry<P, V>>> entries;
+
+        /** The next entry to be returned from the iterator. */
+        private Entry<P, V> nextEntry;
+
+        /** Construct a new instance for the given map.
+         * @param map owning map
+         * @param queryPt query point used to determine distance
+         * @param rootDistance distance value to use for the root nodes
+         * @param nodeComparator node comparator
+         * @param entryComparator entry comparator
+         */
+        AbstractDistanceOrderIterator(
+                final AbstractBucketPointMap<P, V> map,
+                final P queryPt,
+                final double rootDistance,
+                final Comparator<DistancedValue<BucketNode<P, V>>> nodeComparator,
+                final Comparator<DistancedValue<Entry<P, V>>> entryComparator) {
+
+            this.map = map;
+            this.expectedVersion = map.version;
+
+            this.queryPt = queryPt;
+
+            this.nodes = new PriorityQueue<>(nodeComparator);
+            this.entries = new PriorityQueue<>(entryComparator);
+
+            this.nodes.add(DistancedValue.of(map.root, rootDistance));
+            if (map.secondaryRoot != null) {
+                this.nodes.add(DistancedValue.of(map.secondaryRoot, rootDistance));
+            }
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public boolean hasNext() {
+            return nextEntry != null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Entry<P, V> next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            checkVersion();
+
+            final Entry<P, V> result = nextEntry;
+            queueNextEntry();
+
+            return result;
+        }
+
+        /** Queue the next entry to be returned from the iterator. This must be
+         * called after initialization to prepare the first return value.
+         */
+        void queueNextEntry() {
+            while (requiresTreeTraversal()) {
+                final BucketNode<P, V> node = nodes.remove().getValue();
+                if (node.isLeaf()) {
+                    // add the entries to the entries queue
+                    queueLeafEntries(node);
+                } else {
+                    // queue the child nodes
+                    queueChildren(node);
+                }
+            }
+
+            nextEntry = entries.isEmpty() ?
+                    null :
+                    entries.remove().getValue();
+        }
+
+
+        /** Return true if the given entry is ready to be returned based on the values in the
+         * next queue node.
+         * @param nextEntry next entry in the queue
+         * @param nextNode next node in the queue
+         * @return
+         */
+        abstract boolean canReturnEntry(
+                DistancedValue<Entry<P, V>> nextEntry,
+                DistancedValue<BucketNode<P, V>> nextNode);
+
+        /** Get the distance value to use for the specified child node.
+         * @param parent parent node
+         * @param childIdx child node index
+         * @param queryPt query point used to determine distance
+         * @return distance value for the specified child node
+         */
+        abstract double getDistanceForNode(BucketNode<P, V> parent, int childIdx, P queryPt);
+
+        /** Add all entries in the given leaf node to the entries queue.
+         * @param node leaf node
+         */
+        private void queueLeafEntries(final BucketNode<P, V> node) {
+            for (final Entry<P, V> entry : node.entries) {
+                entries.add(DistancedValue.of(entry, entry.getKey().distance(queryPt)));
+            }
+        }
+
+        /** Queue all children in the given internal node.
+         * @param node internal node
+         */
+        private void queueChildren(final BucketNode<P, V> node) {
+            final int childCount = node.children.size();
+            for (int i = 0; i < childCount; ++i) {
+                final BucketNode<P, V> child = node.children.get(i);
+                if (child != null) {
+                    nodes.add(DistancedValue.of(child, getDistanceForNode(node, i, queryPt)));
+                }
+            }
+        }
+
+        /** Return true if the tree needs to be traversed more in order to determine the next
+         * entry to return.
+         * @return true if the tree needs to be traversed more to determine the next entry to
+         *      return
+         */
+        private boolean requiresTreeTraversal() {
+            return !nodes.isEmpty() &&
+                    (entries.isEmpty() || !canReturnEntry(entries.peek(), nodes.peek()));
+        }
+
+        /** Throw a {@link ConcurrentModificationException} if the map version does
+         * not match the expected version.
+         */
+        private void checkVersion() {
+            if (map.version != expectedVersion) {
+                throw new ConcurrentModificationException();
+            }
+        }
+    }
+
+    /** Iterator that returns map entries in order of increasing distance from a specified point.
+     * @param <P> Point type
+     * @param <V> Value type
+     */
+    private static final class ClosestFirstIterator<P extends Point<P>, V>
+        extends AbstractDistanceOrderIterator<P, V> {
+
+        /** Construct a new iterator instance for the given map and query point.
+         * @param map map to iterator over
+         * @param queryPt query point
+         */
+        ClosestFirstIterator(final AbstractBucketPointMap<P, V> map, final P queryPt) {
+            super(map,
+                    queryPt,
+                    0d,
+                    DistancedValue.ascendingDistance(),
+                    entryComparator(map::comparePoints));
+
+            queueNextEntry();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected boolean canReturnEntry(
+                final DistancedValue<Entry<P, V>> nextEntry,
+                final DistancedValue<BucketNode<P, V>> nextNode) {
+            return nextEntry.getDistance() < nextNode.getDistance();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getDistanceForNode(
+                final BucketNode<P, V> parent,
+                final int childIdx,
+                final P queryPt) {
+            return parent.getMinDistanceForChild(queryPt, childIdx);
+        }
+
+        /** Return the comparator used to compare map entries.
+         * @param <P> Point type
+         * @param <V> Value type
+         * @param pointCmp point comparison method; used to disambiguate the ordering when entries
+         *      have the same distance
+         * @return comparator used to compare map entries
+         */
+        private static <P extends Point<P>, V> Comparator<DistancedValue<Entry<P, V>>> entryComparator(
+                final Comparator<P> pointCmp) {
+
+            final Comparator<DistancedValue<Entry<P, V>>> cmp = DistancedValue.ascendingDistance();
+            return cmp.thenComparing(
+                    (a, b) -> pointCmp.compare(a.getValue().getKey(), b.getValue().getKey()));
+        }
+    }
+
+    /** Iterator that returns map entries in order of decreasing distance from a specified point.
+     * @param <P> Point type
+     * @param <V> Value type
+     */
+    private static final class FarthestFirstIterator<P extends Point<P>, V>
+        extends AbstractDistanceOrderIterator<P, V> {
+
+        /** Construct a new iterator instance for the given map and query point.
+         * @param map map to iterator over
+         * @param queryPt query point
+         */
+        FarthestFirstIterator(final AbstractBucketPointMap<P, V> map, final P queryPt) {
+            super(map,
+                    queryPt,
+                    Double.MAX_VALUE,
+                    DistancedValue.descendingDistance(),
+                    entryComparator(map::comparePoints));
+
+            queueNextEntry();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected boolean canReturnEntry(
+                final DistancedValue<Entry<P, V>> nextEntry,
+                final DistancedValue<BucketNode<P, V>> nextNode) {
+            return nextEntry.getDistance() > nextNode.getDistance();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getDistanceForNode(
+                final BucketNode<P, V> parent,
+                final int childIdx,
+                final P queryPt) {
+            return parent.getMaxDistanceForChild(queryPt, childIdx);
+        }
+
+        /** Return the comparator used to compare map entries.
+         * @param <P> Point type
+         * @param <V> Value type
+         * @param pointCmp point comparison method; used to disambiguate the ordering when entries
+         *      have the same distance
+         * @return comparator used to compare map entries
+         */
+        private static <P extends Point<P>, V> Comparator<DistancedValue<Entry<P, V>>> entryComparator(
+                final Comparator<P> pointCmp) {
+
+            final Comparator<DistancedValue<Entry<P, V>>> cmp = DistancedValue.descendingDistance();
+            return cmp.thenComparing(
+                    (a, b) -> pointCmp.compare(b.getValue().getKey(), a.getValue().getKey()));
         }
     }
 }

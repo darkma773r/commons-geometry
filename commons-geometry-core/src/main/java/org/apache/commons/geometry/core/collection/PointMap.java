@@ -38,4 +38,22 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      *      exists
      */
     Map.Entry<P, V> getEntry(P pt);
+
+    /** Return an {@link Iterable} providing access to map entries in ascending order
+     * of distance from {@code pt}. No ordering is guaranteed for entries that are
+     * exactly the same distance from {@code pt}.
+     * @param pt query point
+     * @return iterable providing access to map entries in ascending order of
+     *      distance from {@code pt}
+     */
+    Iterable<Map.Entry<P, V>> closestEntriesFirst(P pt);
+
+    /** Return an {@link Iterable} providing access to map entries in descending order
+     * of distance from {@code pt}. No ordering is guaranteed for entries that are
+     * exactly the same distance from {@code pt}.
+     * @param pt query point
+     * @return iterable providing access to map entries in descending order of
+     *      distance from {@code pt}
+     */
+    Iterable<Map.Entry<P, V>> farthestEntriesFirst(P pt);
 }

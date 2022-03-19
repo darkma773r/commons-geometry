@@ -65,6 +65,20 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
 
     /** {@inheritDoc} */
     @Override
+    public Iterable<P> closestFirst(final P pt) {
+        final Iterable<Map.Entry<P, Object>> mapIterable = map.closestEntriesFirst(pt);
+        return () -> new EntryIteratorWrapper<>(mapIterable.iterator());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Iterable<P> farthestFirst(final P pt) {
+        final Iterable<Map.Entry<P, Object>> mapIterable = map.farthestEntriesFirst(pt);
+        return () -> new EntryIteratorWrapper<>(mapIterable.iterator());
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public int size() {
         return map.size();
     }
@@ -92,5 +106,34 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
     @Override
     public void clear() {
         map.clear();
+    }
+
+    /** Iterator that converts from a map entry iterator to a key iteration.
+     * @param <P> Point type
+     */
+    private static final class EntryIteratorWrapper<P extends Point<P>>
+        implements Iterator<P> {
+
+        /** Underlying entry iterator. */
+        private final Iterator<Map.Entry<P, Object>> entryIterator;
+
+        /** Construct a new instance wrapping the given entry iterator.
+         * @param entryIterator map entry iterator
+         */
+        EntryIteratorWrapper(final Iterator<Map.Entry<P, Object>> entryIterator) {
+            this.entryIterator = entryIterator;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public boolean hasNext() {
+            return entryIterator.hasNext();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public P next() {
+            return entryIterator.next().getKey();
+        }
     }
 }

@@ -26,7 +26,7 @@ import org.apache.commons.numbers.core.Precision;
  */
 public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D, V> {
 
-    static final int MAX_ENTRY_COUNT = 16;
+    static final int MAX_ENTRY_COUNT = 2;//16;
 
     static final int NODE_CHILD_COUNT = 2;
 
@@ -43,7 +43,14 @@ public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D,
         return getPrecision().eq(a.getX(), b.getX());
     }
 
-    private static final class TestNode1D<V> extends AbstractBucketPointMap.BucketNode<TestPoint1D, V> {
+    /** {@inheritDoc} */
+    @Override
+    protected int comparePoints(final TestPoint1D a, final TestPoint1D b) {
+        return Double.compare(a.getX(), b.getX());
+    }
+
+    private static final class TestNode1D<V>
+        extends AbstractBucketPointMap.BucketNode<TestPoint1D, V> {
 
         /** Negative half-space flag. */
         private static final int NEG = 1 << 1;
@@ -93,6 +100,33 @@ public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D,
         protected boolean testChildLocation(final int childIdx, final int loc) {
             final int childLoc = CHILD_LOCATIONS[childIdx];
             return (childLoc & loc) == childLoc;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getMinDistanceForChild(final TestPoint1D pt, final int childIdx) {
+            final double offset = pt.getX() - split;
+            if (offset > 0) {
+                return childIdx == 1 ? 0d : offset;
+            }
+            return childIdx == 0 ? 0d : Math.abs(offset);
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getMaxDistanceForChild(final TestPoint1D pt, final int childIdx) {
+            final TestNode1D<V> parent = (TestNode1D<V>) getParent();
+            if (parent != null &&
+                ((childIdx == 0 && parent.split < split) ||
+                (childIdx == 1 && parent.split > split))) {
+
+                final double parentDist = Math.abs(pt.getX() - parent.split);
+                final double dist = Math.abs(pt.getX() - split);
+
+                return Math.max(parentDist, dist);
+            }
+
+            return Double.MAX_VALUE;
         }
     }
 }

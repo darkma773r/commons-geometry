@@ -75,7 +75,7 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
     /** {@inheritDoc} */
     @Override
     public V put(final P key, final V value) {
-        GeometryInternalUtils.validatePointMapKey(key);
+        GeometryInternalUtils.requireFinite(key);
         return putInternal(key, value);
     }
 

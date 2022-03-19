@@ -148,5 +148,17 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
         protected V putInternal(final TestPoint1D key, final V value) {
             return getMap().put(key, value);
         }
+
+        /** {@inheritDoc} */
+        @Override
+        public Iterable<Entry<TestPoint1D, V>> closestEntriesFirst(TestPoint1D pt) {
+            throw new UnsupportedOperationException();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Iterable<Entry<TestPoint1D, V>> farthestEntriesFirst(TestPoint1D pt) {
+            throw new UnsupportedOperationException();
+        }
     }
 }
