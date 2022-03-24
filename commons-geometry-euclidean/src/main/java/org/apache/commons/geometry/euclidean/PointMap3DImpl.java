@@ -89,6 +89,12 @@ final class PointMap3DImpl<V>
         return a.eq(b, getPrecision());
     }
 
+    /** {@inheritDoc} */
+    @Override
+    protected int comparePoints(final Vector3D a, final Vector3D b) {
+        return Vector3D.COORDINATE_ASCENDING_ORDER.compare(a, b);
+    }
+
     /** Tree node class for {@link PointMap3DImpl}.
      * @param <V> Map value type
      */
@@ -170,6 +176,18 @@ final class PointMap3DImpl<V>
             super.makeLeaf(leafEntries);
 
             split = null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getMinDistanceForChild(final Vector3D pt, final int childIdx) {
+            throw new UnsupportedOperationException();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getMaxDistanceForChild(final Vector3D pt, final int childIdx) {
+            throw new UnsupportedOperationException();
         }
     }
 }

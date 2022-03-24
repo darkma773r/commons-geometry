@@ -609,46 +609,6 @@ public abstract class PointMapTestBase<P extends Point<P>>
     }
 
     @Test
-    void testClosestEntriesFirst_small() {
-        // arrange
-        final PointMap<P, Integer> map = getMap(PRECISION);
-
-        int cnt = 5;
-        final List<P> pts = getTestPoints(cnt, EPS, new Random(6L));
-        insertPoints(pts, map);
-
-        for (int i = 0; i < cnt; ++i) {
-            final P queryPt = getTestPointsAtDistance(pts.get(i), 2 * EPS).get(0);
-
-            // act/ assert
-            assertIterableOrder(
-                    pts,
-                    (a, b) -> Double.compare(a.distance(queryPt), b.distance(queryPt)),
-                    map.closestEntriesFirst(queryPt));
-        }
-    }
-
-    @Test
-    void testClosestEntriesFirst_large() {
-        // arrange
-        final PointMap<P, Integer> map = getMap(PRECISION);
-
-        int cnt = 1000;
-        final List<P> pts = getTestPoints(cnt, EPS, new Random(5L));
-        insertPoints(pts, map);
-
-        for (int i = 0; i < cnt; ++i) {
-            final P queryPt = getTestPointsAtDistance(pts.get(i), 2 * EPS).get(0);
-
-            // act/ assert
-            assertIterableOrder(
-                    pts,
-                    (a, b) -> Double.compare(a.distance(queryPt), b.distance(queryPt)),
-                    map.closestEntriesFirst(queryPt));
-        }
-    }
-
-    @Test
     void testClosestEntriesFirst_empty() {
         // arrange
         final PointMap<P, Integer> map = getMap(PRECISION);
@@ -663,6 +623,50 @@ public abstract class PointMapTestBase<P extends Point<P>>
 
         // assert
         Assertions.assertEquals(0, ordered.size());
+    }
+
+    @Test
+    void testClosestEntriesFirst_small() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        int maxCnt = 5;
+        for (int cnt = 1; cnt <= maxCnt; ++cnt) {
+            final List<P> pts = getTestPoints(cnt, EPS, new Random(cnt));
+
+            map.clear();
+            insertPoints(pts, map);
+
+            // act/ assert
+            for (int i = 0; i < cnt; ++i) {
+                for (final P refPt : getTestPointsAtDistance(pts.get(i), 2 * EPS)) {
+                    assertIterableOrder(
+                            pts,
+                            (a, b) -> Double.compare(a.distance(refPt), b.distance(refPt)),
+                            map.closestEntriesFirst(refPt));
+                }
+            }
+        }
+    }
+
+    @Test
+    void testClosestEntriesFirst_large() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        int cnt = 1000;
+        final List<P> pts = getTestPoints(cnt, EPS, new Random(5L));
+        insertPoints(pts, map);
+
+        // act/ assert
+        for (int i = 0; i < cnt; ++i) {
+            for (final P refPt : getTestPointsAtDistance(pts.get(i), 2 * EPS)) {
+                assertIterableOrder(
+                        pts,
+                        (a, b) -> Double.compare(a.distance(refPt), b.distance(refPt)),
+                        map.closestEntriesFirst(refPt));
+            }
+        }
     }
 
     @Test
@@ -703,47 +707,6 @@ public abstract class PointMapTestBase<P extends Point<P>>
         Assertions.assertThrows(ConcurrentModificationException.class, () -> it.next());
     }
 
-
-    @Test
-    void testFarthestEntriesFirst_small() {
-        // arrange
-        final PointMap<P, Integer> map = getMap(PRECISION);
-
-        int cnt = 5;
-        final List<P> pts = getTestPoints(cnt, EPS, new Random(9L));
-        insertPoints(pts, map);
-
-        for (int i = 0; i < cnt; ++i) {
-            final P queryPt = getTestPointsAtDistance(pts.get(i), 2.1 * EPS).get(0);
-
-            // act/ assert
-            assertIterableOrder(
-                    pts,
-                    (a, b) -> Double.compare(b.distance(queryPt), a.distance(queryPt)),
-                    map.farthestEntriesFirst(queryPt));
-        }
-    }
-
-    @Test
-    void testFarthestEntriesFirst_large() {
-        // arrange
-        final PointMap<P, Integer> map = getMap(PRECISION);
-
-        int cnt = 1000;
-        final List<P> pts = getTestPoints(cnt, EPS, new Random(6L));
-        insertPoints(pts, map);
-
-        for (int i = 0; i < cnt; ++i) {
-            final P queryPt = getTestPointsAtDistance(pts.get(i), 2.1 * EPS).get(0);
-
-            // act/ assert
-            assertIterableOrder(
-                    pts,
-                    (a, b) -> Double.compare(b.distance(queryPt), a.distance(queryPt)),
-                    map.farthestEntriesFirst(queryPt));
-        }
-    }
-
     @Test
     void testFarthestEntriesFirst_empty() {
         // arrange
@@ -759,6 +722,50 @@ public abstract class PointMapTestBase<P extends Point<P>>
 
         // assert
         Assertions.assertEquals(0, ordered.size());
+    }
+
+    @Test
+    void testFarthestEntriesFirst_small() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        int maxCnt = 5;
+        for (int cnt = 1; cnt <= maxCnt; ++cnt) {
+            final List<P> pts = getTestPoints(cnt, EPS, new Random(cnt));
+
+            map.clear();
+            insertPoints(pts, map);
+
+            // act/ assert
+            for (int i = 0; i < cnt; ++i) {
+                for (final P refPt : getTestPointsAtDistance(pts.get(i), 2.1 * EPS)) {
+                    assertIterableOrder(
+                            pts,
+                            (a, b) -> Double.compare(b.distance(refPt), a.distance(refPt)),
+                            map.farthestEntriesFirst(refPt));
+                }
+            }
+        }
+    }
+
+    @Test
+    void testFarthestEntriesFirst_large() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        int cnt = 1000;
+        final List<P> pts = getTestPoints(cnt, EPS, new Random(6L));
+        insertPoints(pts, map);
+
+        // act/ assert
+        for (int i = 0; i < cnt; ++i) {
+            for (final P refPt : getTestPointsAtDistance(pts.get(i), 2.1 * EPS)) {
+                assertIterableOrder(
+                        pts,
+                        (a, b) -> Double.compare(b.distance(refPt), a.distance(refPt)),
+                        map.farthestEntriesFirst(refPt));
+            }
+        }
     }
 
     @Test

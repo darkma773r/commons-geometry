@@ -701,8 +701,8 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
         /** Get the minimum distance from {@code pt} to the region for the child
          * node at the specified index. A value of {@code 0} should be returned in cases
-         * where the query point is contained in the child.
-         * @param pt query point
+         * where the reference point is contained in the child.
+         * @param pt reference point
          * @param childIdx index of the child in question
          * @return minimum distance from {@code pt} to the node region
          */
@@ -711,7 +711,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         /** Get the maximum distance from {@code pt} to the region for the child
          * child node at the specified index. A value of {@code Double#POSITIVE_INFINITY}
          * should be returned if there is no maximum.
-         * @param pt query point
+         * @param pt reference point
          * @param childIdx index of the child in question
          * @return maximum distance from {@code pt} to the node region
          */
@@ -1082,7 +1082,12 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         }
     }
 
-    private static abstract class AbstractDistanceOrderIterator<P extends Point<P>, V>
+    /** Abstract base class for iterators that returned entries in order of distance relative
+     * to a reference point.
+     * @param <P> Point type
+     * @param <V> Value type
+     */
+    private abstract static class AbstractDistanceOrderIterator<P extends Point<P>, V>
         implements Iterator<Map.Entry<P, V>> {
 
         /** Owning map. */
@@ -1091,8 +1096,8 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         /** The expected modification version of the map. */
         private final int expectedVersion;
 
-        /** Distance order query point. */
-        private final P queryPt;
+        /** Distance order reference point. */
+        private final P refPt;
 
         /** Queue of nodes remaining to be visited. */
         private final PriorityQueue<DistancedValue<BucketNode<P, V>>> nodes;
@@ -1105,14 +1110,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
         /** Construct a new instance for the given map.
          * @param map owning map
-         * @param queryPt query point used to determine distance
+         * @param refPt reference point used to determine distance
          * @param rootDistance distance value to use for the root nodes
          * @param nodeComparator node comparator
          * @param entryComparator entry comparator
          */
         AbstractDistanceOrderIterator(
                 final AbstractBucketPointMap<P, V> map,
-                final P queryPt,
+                final P refPt,
                 final double rootDistance,
                 final Comparator<DistancedValue<BucketNode<P, V>>> nodeComparator,
                 final Comparator<DistancedValue<Entry<P, V>>> entryComparator) {
@@ -1120,7 +1125,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
             this.map = map;
             this.expectedVersion = map.version;
 
-            this.queryPt = queryPt;
+            this.refPt = refPt;
 
             this.nodes = new PriorityQueue<>(nodeComparator);
             this.entries = new PriorityQueue<>(entryComparator);
@@ -1157,13 +1162,15 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         void queueNextEntry() {
             while (requiresTreeTraversal()) {
-                final BucketNode<P, V> node = nodes.remove().getValue();
+                final DistancedValue<BucketNode<P, V>> nodeEntry = nodes.remove();
+                final BucketNode<P, V> node = nodeEntry.getValue();
+
                 if (node.isLeaf()) {
                     // add the entries to the entries queue
                     queueLeafEntries(node);
                 } else {
                     // queue the child nodes
-                    queueChildren(node);
+                    queueChildren(node, nodeEntry.getDistance());
                 }
             }
 
@@ -1172,43 +1179,45 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     entries.remove().getValue();
         }
 
-
         /** Return true if the given entry is ready to be returned based on the values in the
          * next queue node.
-         * @param nextEntry next entry in the queue
+         * @param entry next entry in the queue
          * @param nextNode next node in the queue
-         * @return
+         * @return true if the given entry can be returned from the iterator
          */
         abstract boolean canReturnEntry(
-                DistancedValue<Entry<P, V>> nextEntry,
+                DistancedValue<Entry<P, V>> entry,
                 DistancedValue<BucketNode<P, V>> nextNode);
 
         /** Get the distance value to use for the specified child node.
          * @param parent parent node
+         * @param parentDist parent distance
          * @param childIdx child node index
-         * @param queryPt query point used to determine distance
+         * @param pt reference point used to determine distance
          * @return distance value for the specified child node
          */
-        abstract double getDistanceForNode(BucketNode<P, V> parent, int childIdx, P queryPt);
+        abstract double getDistanceForChild(BucketNode<P, V> parent, double parentDist, int childIdx, P pt);
 
         /** Add all entries in the given leaf node to the entries queue.
          * @param node leaf node
          */
         private void queueLeafEntries(final BucketNode<P, V> node) {
             for (final Entry<P, V> entry : node.entries) {
-                entries.add(DistancedValue.of(entry, entry.getKey().distance(queryPt)));
+                final double dist = entry.getKey().distance(refPt);
+                entries.add(DistancedValue.of(entry, dist));
             }
         }
 
         /** Queue all children in the given internal node.
          * @param node internal node
+         * @param dist node distance
          */
-        private void queueChildren(final BucketNode<P, V> node) {
+        private void queueChildren(final BucketNode<P, V> node, final double dist) {
             final int childCount = node.children.size();
             for (int i = 0; i < childCount; ++i) {
                 final BucketNode<P, V> child = node.children.get(i);
                 if (child != null) {
-                    nodes.add(DistancedValue.of(child, getDistanceForNode(node, i, queryPt)));
+                    nodes.add(DistancedValue.of(child, getDistanceForChild(node, dist, i, refPt)));
                 }
             }
         }
@@ -1240,13 +1249,13 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     private static final class ClosestFirstIterator<P extends Point<P>, V>
         extends AbstractDistanceOrderIterator<P, V> {
 
-        /** Construct a new iterator instance for the given map and query point.
+        /** Construct a new iterator instance for the given map and reference point.
          * @param map map to iterator over
-         * @param queryPt query point
+         * @param refPt reference point
          */
-        ClosestFirstIterator(final AbstractBucketPointMap<P, V> map, final P queryPt) {
+        ClosestFirstIterator(final AbstractBucketPointMap<P, V> map, final P refPt) {
             super(map,
-                    queryPt,
+                    refPt,
                     0d,
                     DistancedValue.ascendingDistance(),
                     entryComparator(map::comparePoints));
@@ -1264,11 +1273,12 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
         /** {@inheritDoc} */
         @Override
-        protected double getDistanceForNode(
+        protected double getDistanceForChild(
                 final BucketNode<P, V> parent,
+                final double parentDist,
                 final int childIdx,
-                final P queryPt) {
-            return parent.getMinDistanceForChild(queryPt, childIdx);
+                final P refPt) {
+            return parent.getMinDistanceForChild(refPt, childIdx);
         }
 
         /** Return the comparator used to compare map entries.
@@ -1294,14 +1304,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     private static final class FarthestFirstIterator<P extends Point<P>, V>
         extends AbstractDistanceOrderIterator<P, V> {
 
-        /** Construct a new iterator instance for the given map and query point.
+        /** Construct a new iterator instance for the given map and reference point.
          * @param map map to iterator over
-         * @param queryPt query point
+         * @param refPt reference point
          */
-        FarthestFirstIterator(final AbstractBucketPointMap<P, V> map, final P queryPt) {
+        FarthestFirstIterator(final AbstractBucketPointMap<P, V> map, final P refPt) {
             super(map,
-                    queryPt,
-                    Double.MAX_VALUE,
+                    refPt,
+                    Double.POSITIVE_INFINITY,
                     DistancedValue.descendingDistance(),
                     entryComparator(map::comparePoints));
 
@@ -1318,11 +1328,16 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
         /** {@inheritDoc} */
         @Override
-        protected double getDistanceForNode(
+        protected double getDistanceForChild(
                 final BucketNode<P, V> parent,
+                final double parentDist,
                 final int childIdx,
-                final P queryPt) {
-            return parent.getMaxDistanceForChild(queryPt, childIdx);
+                final P refPt) {
+            final double childDist = parent.getMaxDistanceForChild(refPt, childIdx);
+
+            // return the minimum of distance from the parent and the child since the child
+            // cannot contain anything that is not also in the parent
+            return Math.min(parentDist, childDist);
         }
 
         /** Return the comparator used to compare map entries.

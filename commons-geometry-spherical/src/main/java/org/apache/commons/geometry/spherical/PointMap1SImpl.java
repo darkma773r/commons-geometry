@@ -20,10 +20,13 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.geometry.core.internal.AbstractPointMap1D;
+import org.apache.commons.geometry.core.internal.DistancedValue;
+import org.apache.commons.geometry.core.internal.GeometryInternalUtils;
 import org.apache.commons.geometry.spherical.oned.Point1S;
 import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
@@ -98,6 +101,20 @@ final class PointMap1SImpl<V>
     @Override
     public Set<Entry<Point1S, V>> entrySet() {
         return new EntrySet();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Iterable<Entry<Point1S, V>> closestEntriesFirst(final Point1S pt) {
+        GeometryInternalUtils.requireFinite(pt);
+        return () -> new ClosestFirstIterator(pt);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Iterable<Entry<Point1S, V>> farthestEntriesFirst(final Point1S pt) {
+        GeometryInternalUtils.requireFinite(pt);
+        return () -> new ClosestFirstIterator(pt.antipodal());
     }
 
     /** {@inheritDoc} */
@@ -294,6 +311,105 @@ final class PointMap1SImpl<V>
         public void remove() {
             it.remove();
             mapUpdated();
+        }
+    }
+
+    /** Iterator that returns the entries in order of ascending distance from
+     * a given reference point.
+     */
+    private final class ClosestFirstIterator
+        implements Iterator<Map.Entry<Point1S, V>> {
+
+        /** Reference point to measure distances against. */
+        private final Point1S refPt;
+
+        /** Low entry iterator. */
+        private Iterator<Map.Entry<Point1S, V>> low;
+
+        /** High entry iterator. */
+        private Iterator<Map.Entry<Point1S, V>> high;
+
+        /** Low-valued entry. */
+        private DistancedValue<Map.Entry<Point1S, V>> lowEntry;
+
+        /** High-valued entry. */
+        private DistancedValue<Map.Entry<Point1S, V>> highEntry;
+
+        /** Number of entries remaining to retrieve from each iterator. */
+        private int remaining;
+
+        /** Construct a new instance with the given reference point.
+         * @param refPt reference point
+         */
+        ClosestFirstIterator(final Point1S refPt) {
+            this.refPt = refPt;
+
+            this.low = getMap().descendingMap().tailMap(refPt, false)
+                    .entrySet().iterator();
+            this.high = getMap().tailMap(refPt).entrySet().iterator();
+
+            this.remaining = getMap().size();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public boolean hasNext() {
+            if (lowEntry == null && remaining > 0) {
+                lowEntry = getNextEntry(low);
+
+                if (lowEntry == null) {
+                    low = getMap().descendingMap().entrySet().iterator();
+
+                    lowEntry = getNextEntry(low);
+                }
+            }
+            if (highEntry == null && remaining > 0) {
+                highEntry = getNextEntry(high);
+
+                if (highEntry == null) {
+                    high = getMap().entrySet().iterator();
+
+                    highEntry = getNextEntry(high);
+                }
+            }
+
+            return lowEntry != null || highEntry != null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Entry<Point1S, V> next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            final Entry<Point1S, V> result;
+            if (lowEntry != null &&
+                    (highEntry == null || lowEntry.getDistance() <= highEntry.getDistance())) {
+                result = lowEntry.getValue();
+                lowEntry = null;
+            } else {
+                result = highEntry.getValue();
+                highEntry = null;
+            }
+
+            return result;
+        }
+
+        /** Get a {@link DistancedValue} instance containing the next entry from the given
+         * iterator.
+         * @param it iterator to get the next value from
+         * @return distanced value containing the next entry from the iterator or null if the iterator
+         *      does not contain any more elements
+         */
+        private DistancedValue<Entry<Point1S, V>> getNextEntry(final Iterator<Entry<Point1S, V>> it) {
+            if (it.hasNext()) {
+                --remaining;
+
+                final Entry<Point1S, V> entry = it.next();
+                return DistancedValue.of(entry, refPt.distance(entry.getKey()));
+            }
+            return null;
         }
     }
 }

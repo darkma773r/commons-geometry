@@ -42,7 +42,7 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
     /** Return an {@link Iterable} providing access to map entries in ascending order
      * of distance from {@code pt}. No ordering is guaranteed for entries that are
      * exactly the same distance from {@code pt}.
-     * @param pt query point
+     * @param pt reference point
      * @return iterable providing access to map entries in ascending order of
      *      distance from {@code pt}
      */
@@ -51,7 +51,7 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
     /** Return an {@link Iterable} providing access to map entries in descending order
      * of distance from {@code pt}. No ordering is guaranteed for entries that are
      * exactly the same distance from {@code pt}.
-     * @param pt query point
+     * @param pt reference point
      * @return iterable providing access to map entries in descending order of
      *      distance from {@code pt}
      */

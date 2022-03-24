@@ -73,6 +73,12 @@ final class PointMap2DImpl<V>
         return a.eq(b, getPrecision());
     }
 
+    /** {@inheritDoc} */
+    @Override
+    protected int comparePoints(final Vector2D a, final Vector2D b) {
+        return Vector2D.COORDINATE_ASCENDING_ORDER.compare(a, b);
+    }
+
     /** Tree node class for {@link PointMap2DImpl}.
      * @param <V> Map value type
      */
@@ -146,6 +152,18 @@ final class PointMap2DImpl<V>
             super.makeLeaf(leafEntries);
 
             split = null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getMinDistanceForChild(final Vector2D pt, final int childIdx) {
+            throw new UnsupportedOperationException();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getMaxDistanceForChild(final Vector2D pt, final int childIdx) {
+            throw new UnsupportedOperationException();
         }
     }
 }

@@ -39,7 +39,7 @@ public interface PointSet<P extends Point<P>> extends Set<P> {
     /** Return an {@link Iterable} providing access to set entries, with those
      * entries closest to {@code pt} returned first. If two or more entries are
      * exactly the same distance from {@code pt}. they may be returned in any order.
-     * @param pt query point
+     * @param pt reference point
      * @return iterable providing access to set entries in ascending order of
      *      distance from {@code pt}
      */
@@ -48,7 +48,7 @@ public interface PointSet<P extends Point<P>> extends Set<P> {
     /** Return an {@link Iterable} providing access to set entries, with those
      * entries farthest from {@code pt} returned first. If two or more entries are
      * exactly the same distance from {@code pt}, they may be returned in any order.
-     * @param pt query point
+     * @param pt reference point
      * @return iterable providing access to set entries in descending order of
      *      distance from {@code pt}
      */

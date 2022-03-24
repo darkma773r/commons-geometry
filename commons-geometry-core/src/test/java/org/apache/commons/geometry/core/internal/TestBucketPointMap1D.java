@@ -26,7 +26,7 @@ import org.apache.commons.numbers.core.Precision;
  */
 public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D, V> {
 
-    static final int MAX_ENTRY_COUNT = 2;//16;
+    static final int MAX_ENTRY_COUNT = 16;
 
     static final int NODE_CHILD_COUNT = 2;
 
@@ -126,7 +126,7 @@ public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D,
                 return Math.max(parentDist, dist);
             }
 
-            return Double.MAX_VALUE;
+            return Double.POSITIVE_INFINITY;
         }
     }
 }

@@ -73,6 +73,12 @@ final class PointMap2SImpl<V>
         return a.eq(b, getPrecision());
     }
 
+    /** {@inheritDoc} */
+    @Override
+    protected int comparePoints(final Point2S a, final Point2S b) {
+        return Point2S.POLAR_AZIMUTH_ASCENDING_ORDER.compare(a, b);
+    }
+
     /** Tree node class for {@link PointMap2SImpl}.
      * @param <V> Map value type
      */
@@ -158,6 +164,18 @@ final class PointMap2SImpl<V>
 
             firstSplit = null;
             secondSplit = null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getMinDistanceForChild(final Point2S pt, final int childIdx) {
+            throw new UnsupportedOperationException();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getMaxDistanceForChild(final Point2S pt, final int childIdx) {
+            throw new UnsupportedOperationException();
         }
 
         /** Get an encoded search location for the given hyperplane location.
