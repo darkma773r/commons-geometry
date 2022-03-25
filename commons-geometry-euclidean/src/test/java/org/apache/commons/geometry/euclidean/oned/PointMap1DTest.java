@@ -117,4 +117,10 @@ class PointMap1DTest extends PointMapTestBase<Vector1D> {
     protected boolean eq(final Vector1D a, final Vector1D b, final Precision.DoubleEquivalence precision) {
         return a.eq(b, precision);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    protected int disambiguateClosestFirstOrder(final Vector1D a, final Vector1D b) {
+        return Vector1D.COORDINATE_ASCENDING_ORDER.compare(a, b);
+    }
 }

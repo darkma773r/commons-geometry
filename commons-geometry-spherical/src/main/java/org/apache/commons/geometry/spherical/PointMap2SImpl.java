@@ -168,13 +168,13 @@ final class PointMap2SImpl<V>
 
         /** {@inheritDoc} */
         @Override
-        protected double getMinDistanceForChild(final Point2S pt, final int childIdx) {
+        protected double getMinChildDistance(final int childIdx, final Point2S pt, final int ptLoc) {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
         @Override
-        protected double getMaxDistanceForChild(final Point2S pt, final int childIdx) {
+        protected double getMaxChildDistance(final int childIdx, final Point2S pt, final int ptLoc) {
             throw new UnsupportedOperationException();
         }
 

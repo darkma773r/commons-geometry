@@ -104,17 +104,15 @@ public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D,
 
         /** {@inheritDoc} */
         @Override
-        protected double getMinDistanceForChild(final TestPoint1D pt, final int childIdx) {
-            final double offset = pt.getX() - split;
-            if (offset > 0) {
-                return childIdx == 1 ? 0d : offset;
-            }
-            return childIdx == 0 ? 0d : Math.abs(offset);
+        protected double getMinChildDistance(final int childIdx, final TestPoint1D pt, final int ptLoc) {
+            return ptLoc == CHILD_LOCATIONS[childIdx] ?
+                    0d :
+                    Math.abs(pt.getX() - split);
         }
 
         /** {@inheritDoc} */
         @Override
-        protected double getMaxDistanceForChild(final TestPoint1D pt, final int childIdx) {
+        protected double getMaxChildDistance(final int childIdx, final TestPoint1D pt, final int ptLoc) {
             final TestNode1D<V> parent = (TestNode1D<V>) getParent();
             if (parent != null &&
                 ((childIdx == 0 && parent.split < split) ||

@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.apache.commons.geometry.core.collection.PointMap;
 import org.apache.commons.geometry.core.internal.AbstractBucketPointMap;
+import org.apache.commons.geometry.euclidean.internal.Vectors;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.numbers.core.Precision;
 
@@ -58,6 +59,15 @@ final class PointMap3DImpl<V>
 
     /** Z positive octant flag. */
     private static final int ZPOS = 1;
+
+    /** Bit mask for x location. */
+    private static final int XMASK = XNEG | XPOS;
+
+    /** Bit mask for y location. */
+    private static final int YMASK = YNEG | YPOS;
+
+    /** Bit mask for z location. */
+    private static final int ZMASK = ZNEG | ZPOS;
 
     /** Octant location flags for child nodes. */
     private static final int[] CHILD_LOCATIONS = {
@@ -180,13 +190,38 @@ final class PointMap3DImpl<V>
 
         /** {@inheritDoc} */
         @Override
-        protected double getMinDistanceForChild(final Vector3D pt, final int childIdx) {
-            throw new UnsupportedOperationException();
+        protected double getMinChildDistance(final int childIdx, final Vector3D pt, final int ptLoc) {
+            final int childLoc = CHILD_LOCATIONS[childIdx];
+
+            final boolean sameX = (ptLoc & XMASK) == (childLoc & XMASK);
+            final boolean sameY = (ptLoc & YMASK) == (childLoc & YMASK);
+            final boolean sameZ = (ptLoc & ZMASK) == (childLoc & ZMASK);
+
+            final Vector3D diff = pt.subtract(split);
+
+            if (sameX) {
+                if (sameY) {
+                    return sameZ ?
+                            0d :
+                            Math.abs(diff.getZ());
+                }
+                return sameZ ?
+                        Math.abs(diff.getY()) :
+                        Vectors.norm(diff.getY(), diff.getZ());
+            } else if (sameY) {
+                return sameZ ?
+                        Math.abs(diff.getX()) :
+                        Vectors.norm(diff.getX(), diff.getZ());
+            } else if (sameZ) {
+                return Vectors.norm(diff.getX(), diff.getY());
+            }
+
+            return diff.norm();
         }
 
         /** {@inheritDoc} */
         @Override
-        protected double getMaxDistanceForChild(final Vector3D pt, final int childIdx) {
+        protected double getMaxChildDistance(final int childIdx, final Vector3D pt, final int ptLoc) {
             throw new UnsupportedOperationException();
         }
     }

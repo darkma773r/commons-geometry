@@ -172,4 +172,10 @@ class AbstractBucketPointMapTest extends PointMapTestBase<TestPoint1D> {
 
         return new TestPoint1D(sum / pts.size());
     }
+
+    /** {@inheritDoc} */
+    @Override
+    protected int disambiguateClosestFirstOrder(final TestPoint1D a, final TestPoint1D b) {
+        return Double.compare(a.getX(), b.getX());
+    }
 }

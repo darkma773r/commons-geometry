@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -92,6 +93,13 @@ public abstract class PointCollectionTestBase<P extends Point<P>> {
      */
     protected abstract boolean eq(P a, P b, Precision.DoubleEquivalence precision);
 
+    /** Compare two points with equal distances computed during a "closest first" ordering.
+     * @param a first point
+     * @param b second point
+     * @return comparison of the two points
+     */
+    protected abstract int disambiguateClosestFirstOrder(P a, P b);
+
     /** Assert that {@code a} and {@code b} are equivalent using the given precision context.
      * @param a first point
      * @param b second point
@@ -108,5 +116,22 @@ public abstract class PointCollectionTestBase<P extends Point<P>> {
      */
     protected void assertNotEq(final P a, final P b, final Precision.DoubleEquivalence precision) {
         assertFalse(eq(a, b, precision), () -> "Expected " + a + " and " + b + " to not be equivalent");
+    }
+
+    /** Create a comparator for use in testing "closest first" ordering.
+     * @param refPt reference point
+     * @return comparator for use in testing "closest first" ordering
+     */
+    protected Comparator<P> createClosestFirstComparator(final P refPt) {
+        final Comparator<P> cmp = (a, b) -> Double.compare(a.distance(refPt), b.distance(refPt));
+        return cmp.thenComparing(this::disambiguateClosestFirstOrder);
+    }
+
+    /** Create a comparator for use in testing "farthest first" ordering.
+     * @param refPt reference point
+     * @return comparator for use in testing "farthest first" ordering
+     */
+    protected Comparator<P> createFarthestFirstComparator(final P refPt) {
+        return createClosestFirstComparator(refPt).reversed();
     }
 }

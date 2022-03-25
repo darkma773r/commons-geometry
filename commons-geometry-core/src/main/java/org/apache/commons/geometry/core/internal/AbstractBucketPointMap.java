@@ -699,23 +699,24 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         protected abstract boolean testChildLocation(int childIdx, int loc);
 
-        /** Get the minimum distance from {@code pt} to the region for the child
-         * node at the specified index. A value of {@code 0} should be returned in cases
-         * where the reference point is contained in the child.
-         * @param pt reference point
-         * @param childIdx index of the child in question
-         * @return minimum distance from {@code pt} to the node region
+        /** Get the minimum distance from {@code pt} to the split boundary for the child at
+         * the given index.
+         * @param childIdx child index
+         * @param pt point to compute the minimum distance from
+         * @param ptLoc encoded relative point location
+         * @return minimum distance from {@code pt} to the split boundary for the indicated child
          */
-        protected abstract double getMinDistanceForChild(P pt, int childIdx);
+        protected abstract double getMinChildDistance(int childIdx, P pt, int ptLoc);
 
         /** Get the maximum distance from {@code pt} to the region for the child
          * child node at the specified index. A value of {@code Double#POSITIVE_INFINITY}
          * should be returned if there is no maximum.
-         * @param pt reference point
          * @param childIdx index of the child in question
+         * @param pt reference point
+         * @param ptLoc encoded relative point location
          * @return maximum distance from {@code pt} to the node region
          */
-        protected abstract double getMaxDistanceForChild(P pt, int childIdx);
+        protected abstract double getMaxChildDistance(int childIdx, P pt, int ptLoc);
 
         /** Make this node a leaf node, using the given list of entries.
          * @param leafEntries list of map entries to use for the node
@@ -1170,7 +1171,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     queueLeafEntries(node);
                 } else {
                     // queue the child nodes
-                    queueChildren(node, nodeEntry.getDistance());
+                    queueChildren(nodeEntry, refPt);
                 }
             }
 
@@ -1189,14 +1190,18 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                 DistancedValue<Entry<P, V>> entry,
                 DistancedValue<BucketNode<P, V>> nextNode);
 
-        /** Get the distance value to use for the specified child node.
-         * @param parent parent node
-         * @param parentDist parent distance
-         * @param childIdx child node index
-         * @param pt reference point used to determine distance
-         * @return distance value for the specified child node
+        /** Queue the child nodes of the argument.
+         * @param nodeEntry distance entry containing the parent node
+         * @param pt reference point
          */
-        abstract double getDistanceForChild(BucketNode<P, V> parent, double parentDist, int childIdx, P pt);
+        abstract void queueChildren(final DistancedValue<BucketNode<P, V>> nodeEntry, P pt);
+
+        /** Add a node and its computed distance to the queue.
+         * @param nodeEntry node entry to add
+         */
+        void queue(final DistancedValue<BucketNode<P, V>> nodeEntry) {
+            nodes.add(nodeEntry);
+        }
 
         /** Add all entries in the given leaf node to the entries queue.
          * @param node leaf node
@@ -1205,20 +1210,6 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
             for (final Entry<P, V> entry : node.entries) {
                 final double dist = entry.getKey().distance(refPt);
                 entries.add(DistancedValue.of(entry, dist));
-            }
-        }
-
-        /** Queue all children in the given internal node.
-         * @param node internal node
-         * @param dist node distance
-         */
-        private void queueChildren(final BucketNode<P, V> node, final double dist) {
-            final int childCount = node.children.size();
-            for (int i = 0; i < childCount; ++i) {
-                final BucketNode<P, V> child = node.children.get(i);
-                if (child != null) {
-                    nodes.add(DistancedValue.of(child, getDistanceForChild(node, dist, i, refPt)));
-                }
             }
         }
 
@@ -1273,12 +1264,20 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
         /** {@inheritDoc} */
         @Override
-        protected double getDistanceForChild(
-                final BucketNode<P, V> parent,
-                final double parentDist,
-                final int childIdx,
-                final P refPt) {
-            return parent.getMinDistanceForChild(refPt, childIdx);
+        void queueChildren(final DistancedValue<BucketNode<P, V>> nodeEntry, final P refPt) {
+            final BucketNode<P, V> node = nodeEntry.getValue();
+
+            final int loc = node.getInsertLocation(refPt);
+
+            final int childCount = node.children.size();
+            for (int i = 0; i < childCount; ++i) {
+                final BucketNode<P, V> child = node.children.get(i);
+                if (child != null) {
+                    final double childDist = node.getMinChildDistance(i, refPt, loc);
+
+                    queue(DistancedValue.of(child, childDist));
+                }
+            }
         }
 
         /** Return the comparator used to compare map entries.
@@ -1328,16 +1327,23 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
         /** {@inheritDoc} */
         @Override
-        protected double getDistanceForChild(
-                final BucketNode<P, V> parent,
-                final double parentDist,
-                final int childIdx,
-                final P refPt) {
-            final double childDist = parent.getMaxDistanceForChild(refPt, childIdx);
+        void queueChildren(final DistancedValue<BucketNode<P, V>> nodeEntry, final P refPt) {
+            final BucketNode<P, V> node = nodeEntry.getValue();
+            final double nodeDist = nodeEntry.getDistance();
 
-            // return the minimum of distance from the parent and the child since the child
-            // cannot contain anything that is not also in the parent
-            return Math.min(parentDist, childDist);
+            final int loc = node.getInsertLocation(refPt);
+
+            final int childCount = node.children.size();
+            for (int i = 0; i < childCount; ++i) {
+                final BucketNode<P, V> child = node.children.get(i);
+                if (child != null) {
+                    // use the minimum of distance from the parent and the child since the child
+                    // cannot contain anything that is not also in the parent
+                    final double childDist = Math.min(nodeDist, node.getMaxChildDistance(i, refPt, loc));
+
+                    queue(DistancedValue.of(child, childDist));
+                }
+            }
         }
 
         /** Return the comparator used to compare map entries.

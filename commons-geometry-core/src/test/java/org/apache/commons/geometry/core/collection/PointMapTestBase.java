@@ -640,9 +640,10 @@ public abstract class PointMapTestBase<P extends Point<P>>
             // act/ assert
             for (int i = 0; i < cnt; ++i) {
                 for (final P refPt : getTestPointsAtDistance(pts.get(i), 2 * EPS)) {
+
                     assertIterableOrder(
                             pts,
-                            (a, b) -> Double.compare(a.distance(refPt), b.distance(refPt)),
+                            createClosestFirstComparator(refPt),
                             map.closestEntriesFirst(refPt));
                 }
             }
@@ -663,7 +664,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
             for (final P refPt : getTestPointsAtDistance(pts.get(i), 2 * EPS)) {
                 assertIterableOrder(
                         pts,
-                        (a, b) -> Double.compare(a.distance(refPt), b.distance(refPt)),
+                        createClosestFirstComparator(refPt),
                         map.closestEntriesFirst(refPt));
             }
         }
@@ -741,7 +742,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
                 for (final P refPt : getTestPointsAtDistance(pts.get(i), 2.1 * EPS)) {
                     assertIterableOrder(
                             pts,
-                            (a, b) -> Double.compare(b.distance(refPt), a.distance(refPt)),
+                            createFarthestFirstComparator(refPt),
                             map.farthestEntriesFirst(refPt));
                 }
             }
@@ -762,7 +763,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
             for (final P refPt : getTestPointsAtDistance(pts.get(i), 2.1 * EPS)) {
                 assertIterableOrder(
                         pts,
-                        (a, b) -> Double.compare(b.distance(refPt), a.distance(refPt)),
+                        createFarthestFirstComparator(refPt),
                         map.farthestEntriesFirst(refPt));
             }
         }

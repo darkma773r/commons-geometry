@@ -156,13 +156,30 @@ final class PointMap2DImpl<V>
 
         /** {@inheritDoc} */
         @Override
-        protected double getMinDistanceForChild(final Vector2D pt, final int childIdx) {
-            throw new UnsupportedOperationException();
+        protected double getMinChildDistance(final int childIdx, final Vector2D pt, final int ptLoc) {
+            final int childLoc = CHILD_LOCATIONS[childIdx];
+
+            if (ptLoc == childLoc) {
+                // same location
+                return 0d;
+            } else {
+                // TODO: fix; does not handle distances to opposite children
+
+                final int sharedLoc = childLoc & ptLoc;
+                final Vector2D diff = pt.subtract(split);
+
+                if ((XNEG & sharedLoc) > 0 ||
+                        (XPOS & sharedLoc) > 0) {
+                    // on same side of y axis
+                    return Math.abs(diff.getY());
+                }
+                return Math.abs(diff.getX());
+            }
         }
 
         /** {@inheritDoc} */
         @Override
-        protected double getMaxDistanceForChild(final Vector2D pt, final int childIdx) {
+        protected double getMaxChildDistance(final int childIdx, final Vector2D pt, final int ptLoc) {
             throw new UnsupportedOperationException();
         }
     }

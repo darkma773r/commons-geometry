@@ -172,4 +172,10 @@ class PointMap3DTest extends PointMapTestBase<Vector3D> {
     protected boolean eq(final Vector3D a, final Vector3D b, final Precision.DoubleEquivalence precision) {
         return a.eq(b, precision);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    protected int disambiguateClosestFirstOrder(final Vector3D a, final Vector3D b) {
+        return Vector3D.COORDINATE_ASCENDING_ORDER.compare(a, b);
+    }
 }
