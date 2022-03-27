@@ -923,6 +923,18 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     neg :
                     pos;
         }
+
+        /** Get the maximum distance value from {@code n} to either {@code a} or {@code b}.
+         * @param n test coordinate
+         * @param a first coordinate
+         * @param b second coordinate
+         * @return maximum distance from {@code n} to {@code a} or {@code b}
+         */
+        public static double getMaxDistance(final double n, final double a, final double b) {
+            return Math.max(
+                    Math.abs(n - a),
+                    Math.abs(n - b));
+        }
     }
 
     /** Set view of the map entries.

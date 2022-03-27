@@ -118,10 +118,7 @@ public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D,
             if (parent != null &&
                 childIdx != getChildIndex()) {
 
-                final double parentDist = Math.abs(pt.getX() - parent.split);
-                final double dist = Math.abs(pt.getX() - split);
-
-                return Math.max(parentDist, dist);
+                return getMaxDistance(pt.getX(), parent.split, split);
             }
 
             return Double.POSITIVE_INFINITY;

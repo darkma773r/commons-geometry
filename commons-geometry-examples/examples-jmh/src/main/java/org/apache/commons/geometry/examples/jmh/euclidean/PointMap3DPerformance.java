@@ -18,7 +18,6 @@ package org.apache.commons.geometry.examples.jmh.euclidean;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -329,27 +328,6 @@ public class PointMap3DPerformance {
         return points;
     }
 
-    /** Return a new list containing the elements in {@code list} ordered by relative distance to
-     * {@code pt}.
-     * @param pt reference point
-     * @param list list of points
-     * @param ascending if true, points will be sorted in order of ascending distance
-     * @return a new list sorted in order of distanced relative to {@code pt}
-     */
-    private static List<Vector3D> sortByDistance(
-            final Vector3D pt,
-            final List<Vector3D> list,
-            final boolean ascending) {
-        final List<Vector3D> result = new ArrayList<>(list);
-
-        final Comparator<Vector3D> cmp = ascending ?
-                (a, b) -> Double.compare(a.distance(pt), b.distance(pt)) :
-                (a, b) -> Double.compare(b.distance(pt), a.distance(pt));
-        Collections.sort(result, cmp);
-
-        return result;
-    }
-
     /** Run a benchmark using the {@link Map#put(Object, Object)} method.
      * @param input input for the run
      * @param bh blackhole instance
@@ -492,21 +470,6 @@ public class PointMap3DPerformance {
         return doRemove(input, bh);
     }
 
-    /** Baseline benchmark for the {@link PointMap#closestEntriesFirst(org.apache.commons.geometry.core.Point)}
-     * method. This method creates a new list with the input points and sorts it.
-     * @param input input for the run
-     * @param bh blackhole instance
-     * @return input instance
-     */
-    @Benchmark
-    public Object closestFirstBaseline(final PreInsertedPointMapInput input, final Blackhole bh) {
-        return doDistanceIteration(
-                input,
-                bh,
-                input.getPoints().size(),
-                (map, pt) -> sortByDistance(pt, input.getPoints(), true));
-    }
-
     /** Benchmark for the {@link PointMap#closestEntriesFirst(org.apache.commons.geometry.core.Point)} method.
      * @param input input for the run
      * @param bh blackhole instance
@@ -519,25 +482,6 @@ public class PointMap3DPerformance {
                 bh,
                 input.getPoints().size(),
                 PointMap::closestEntriesFirst);
-    }
-
-    /** Baseline benchmark for the iterating through a portion of the entries returned by the
-     * {@link PointMap#closestEntriesFirst(org.apache.commons.geometry.core.Point)}
-     * method. This method creates a new list with the input points, sorts it, and retrieves
-     * some, but not all, elements.
-     * @param input input for the run
-     * @param bh blackhole instance
-     * @return input instance
-     */
-    @Benchmark
-    public Object closestFirstPartialBaseline(final PreInsertedPointMapInput input, final Blackhole bh) {
-        final int cnt = input.getPoints().size() / 2;
-
-        return doDistanceIteration(
-                input,
-                bh,
-                cnt,
-                (map, pt) -> sortByDistance(pt, input.getPoints(), true));
     }
 
     /** Benchmark for iterating through a portion of the elements returned by the
@@ -557,21 +501,6 @@ public class PointMap3DPerformance {
                 PointMap::closestEntriesFirst);
     }
 
-    /** Baseline benchmark for the {@link PointMap#farthestEntriesFirst(org.apache.commons.geometry.core.Point)}
-     * method. This method creates a new list with the input points and sorts it.
-     * @param input input for the run
-     * @param bh blackhole instance
-     * @return input instance
-     */
-    @Benchmark
-    public Object farthestFirstBaseline(final PreInsertedPointMapInput input, final Blackhole bh) {
-        return doDistanceIteration(
-                input,
-                bh,
-                input.getPoints().size(),
-                (map, pt) -> sortByDistance(pt, input.getPoints(), false));
-    }
-
     /** Benchmark for the {@link PointMap#farthestEntriesFirst(org.apache.commons.geometry.core.Point)} method.
      * @param input input for the run
      * @param bh blackhole instance
@@ -584,25 +513,6 @@ public class PointMap3DPerformance {
                 bh,
                 input.getPoints().size(),
                 PointMap::farthestEntriesFirst);
-    }
-
-    /** Baseline benchmark for iterating through a portion of the results of the
-     * {@link PointMap#farthestEntriesFirst(org.apache.commons.geometry.core.Point)} method.
-     * This method creates a new list with the input points, sorts it, and retrieves a portions
-     * of the results.
-     * @param input input for the run
-     * @param bh blackhole instance
-     * @return input instance
-     */
-    @Benchmark
-    public Object farthestFirstPartialBaseline(final PreInsertedPointMapInput input, final Blackhole bh) {
-        final int cnt = input.getPoints().size() / 2;
-
-        return doDistanceIteration(
-                input,
-                bh,
-                cnt,
-                (map, pt) -> sortByDistance(pt, input.getPoints(), false));
     }
 
     /** Benchmark for iterating through a portion of the results of the

@@ -237,31 +237,17 @@ final class PointMap3DImpl<V>
                 if (oppositeX && oppositeY && oppositeZ) {
                     // the grandparent and parent splits form a completely enclosed region,
                     // meaning that we can determine a max distance
-                    final Vector3D maxDistPt = Vector3D.of(
-                                getMaxDistanceCoordinate(pt.getX(), grandParent.split.getX(), split.getX()),
-                                getMaxDistanceCoordinate(pt.getY(), grandParent.split.getY(), split.getY()),
-                                getMaxDistanceCoordinate(pt.getZ(), grandParent.split.getZ(), split.getZ())
+                    final Vector3D diff = Vector3D.of(
+                                getMaxDistance(pt.getX(), grandParent.split.getX(), split.getX()),
+                                getMaxDistance(pt.getY(), grandParent.split.getY(), split.getY()),
+                                getMaxDistance(pt.getZ(), grandParent.split.getZ(), split.getZ())
                             );
 
-                    return maxDistPt.distance(pt);
+                    return diff.norm();
                 }
             }
 
             return Double.POSITIVE_INFINITY;
-        }
-
-        /** Get the choice of {@code a} or {@code b} that is farthest from {@code n}.
-         * @param n test coordinate
-         * @param a first choice coordinate
-         * @param b second choice coordinate
-         * @return coordinate farthest from {@code n}
-         */
-        private static double getMaxDistanceCoordinate(final double n, final double a, final double b) {
-            final double aDist = Math.abs(n - a);
-            final double bDist = Math.abs(n - b);
-            return aDist > bDist ?
-                    a :
-                    b;
         }
     }
 }
