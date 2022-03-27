@@ -29,7 +29,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.function.BiFunction;
 
 import org.apache.commons.geometry.core.Point;
 import org.apache.commons.geometry.core.collection.PointMap;
@@ -64,8 +63,28 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     extends AbstractMap<P, V>
     implements PointMap<P, V> {
 
+    /** Interface for constructing new {@link BucketNode} instances.
+     * @param <P> Point type
+     * @param <V> Map value type
+     */
+    @FunctionalInterface
+    public interface BucketNodeFactory<P extends Point<P>, V>  {
+
+        /** Create a new {@link BucketNode} instance.
+         * @param map owning map
+         * @param parent parent node; will be null for the tree root
+         * @param childIndex index of the new node in its parent child list; will be {@code -1}
+         *      if the new node does not have a parent
+         * @return the newly created node
+         */
+        BucketNode<P, V> createNode(AbstractBucketPointMap<P, V> map, BucketNode<P, V> parent, int childIndex);
+    }
+
+    /** Child index used when no node parent exists. */
+    private static final int DEFAULT_CHILD_INDEX = -1;
+
     /** Function used to construct new node instances. */
-    private final BiFunction<AbstractBucketPointMap<P, V>, BucketNode<P, V>, BucketNode<P, V>> nodeFactory;
+    private final BucketNodeFactory<P, V> nodeFactory;
 
     /** Maximum number of entries stored per node before the node is split. */
     private final int maxNodeEntryCount;
@@ -93,7 +112,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
      * @param precision precision object used for floating point comparisons
      */
     protected AbstractBucketPointMap(
-            final BiFunction<AbstractBucketPointMap<P, V>, BucketNode<P, V>, BucketNode<P, V>> nodeFactory,
+            final BucketNodeFactory<P, V> nodeFactory,
             final int maxNodeEntryCount,
             final int nodeChildCount,
             final Precision.DoubleEquivalence precision) {
@@ -101,7 +120,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         this.maxNodeEntryCount = maxNodeEntryCount;
         this.nodeChildCount = nodeChildCount;
         this.precision = precision;
-        this.root = nodeFactory.apply(this, null);
+        this.root = nodeFactory.createNode(this, null, DEFAULT_CHILD_INDEX);
     }
 
     /** {@inheritDoc} */
@@ -173,7 +192,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     /** {@inheritDoc} */
     @Override
     public void clear() {
-        root = createNode(null);
+        root = createNode(null, DEFAULT_CHILD_INDEX);
         secondaryRoot = null;
     }
 
@@ -216,11 +235,12 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     }
 
     /** Construct a new node instance.
-     * @param parent parent node; will be null or the tree root
+     * @param parent parent node; will be null for the tree root
+     * @param childIndex index of the node in its parent child list
      * @return the new node instance
      */
-    private BucketNode<P, V> createNode(final BucketNode<P, V> parent) {
-        return nodeFactory.apply(this, parent);
+    private BucketNode<P, V> createNode(final BucketNode<P, V> parent, final int childIndex) {
+        return nodeFactory.createNode(this, parent, childIndex);
     }
 
     /** Method called when a new entry is added to the tree.
@@ -230,7 +250,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
         if (!root.isLeaf() && secondaryRoot == null) {
             secondaryRoot = root;
-            root = createNode(null);
+            root = createNode(null, DEFAULT_CHILD_INDEX);
         }
 
         migrateSecondaryEntry();
@@ -356,6 +376,9 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         /** Parent node. */
         private BucketNode<P, V> parent;
 
+        /** Index of this node in its parent. */
+        private int childIndex;
+
         /** Child nodes. */
         private List<BucketNode<P, V>> children;
 
@@ -368,12 +391,16 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         /** Construct a new instance.
          * @param map owning map
          * @param parent parent node or null if the tree root
+         * @param childIndex index of this node in its parent, or {@code -1}
+         *      if no parent exists
          */
         protected BucketNode(
                 final AbstractBucketPointMap<P, V> map,
-                final BucketNode<P, V> parent) {
+                final BucketNode<P, V> parent,
+                final int childIndex) {
             this.map = map;
             this.parent = parent;
+            this.childIndex = childIndex;
 
             // pull an entry list from the parent map; this will make
             // this node a leaf initially
@@ -385,6 +412,15 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         public BucketNode<P, V> getParent() {
             return parent;
+        }
+
+        /** Get the index of this node in its parent, or {@code -1} if this
+         * node does not have a parent.
+         * @return index of this node in its parent, or {@code -1} if this
+         *      node does not have a parent
+         */
+        public int getChildIndex() {
+            return childIndex;
         }
 
         /**
@@ -599,6 +635,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         public void destroy() {
             this.map = null;
             this.parent = null;
+            this.childIndex = DEFAULT_CHILD_INDEX;
             this.children = null;
             this.entries = null;
             this.entryCount = 0;
@@ -797,7 +834,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         private BucketNode<P, V> getOrCreateChild(final int idx) {
             BucketNode<P, V> child = children.get(idx);
             if (child == null) {
-                child = map.createNode(this);
+                child = map.createNode(this, idx);
                 children.set(idx, child);
             }
             return child;
@@ -1194,7 +1231,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          * @param nodeEntry distance entry containing the parent node
          * @param pt reference point
          */
-        abstract void queueChildren(final DistancedValue<BucketNode<P, V>> nodeEntry, P pt);
+        abstract void queueChildren(DistancedValue<BucketNode<P, V>> nodeEntry, P pt);
 
         /** Add a node and its computed distance to the queue.
          * @param nodeEntry node entry to add

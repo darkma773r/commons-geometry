@@ -116,10 +116,13 @@ final class PointMap3DImpl<V>
         /** Construct a new instance.
          * @param map owning map
          * @param parent parent node; set to null for the root node
+         * @param childIndex index of this node in its parent's child list;
+         *      set to {@code -1} for the root node
          */
         MapNode3D(final AbstractBucketPointMap<Vector3D, V> map,
-                final BucketNode<Vector3D, V> parent) {
-            super(map, parent);
+                final BucketNode<Vector3D, V> parent,
+                final int childIndex) {
+            super(map, parent, childIndex);
         }
 
         /** {@inheritDoc} */
@@ -222,7 +225,43 @@ final class PointMap3DImpl<V>
         /** {@inheritDoc} */
         @Override
         protected double getMaxChildDistance(final int childIdx, final Vector3D pt, final int ptLoc) {
-            throw new UnsupportedOperationException();
+            final MapNode3D<V> grandParent = (MapNode3D<V>) getParent();
+            if (grandParent != null) {
+                final int nodeLoc = CHILD_LOCATIONS[getChildIndex()];
+                final int childLoc = CHILD_LOCATIONS[childIdx];
+
+                final boolean oppositeX = (nodeLoc & XMASK) != (childLoc & XMASK);
+                final boolean oppositeY = (nodeLoc & YMASK) != (childLoc & YMASK);
+                final boolean oppositeZ = (nodeLoc & ZMASK) != (childLoc & ZMASK);
+
+                if (oppositeX && oppositeY && oppositeZ) {
+                    // the grandparent and parent splits form a completely enclosed region,
+                    // meaning that we can determine a max distance
+                    final Vector3D maxDistPt = Vector3D.of(
+                                getMaxDistanceCoordinate(pt.getX(), grandParent.split.getX(), split.getX()),
+                                getMaxDistanceCoordinate(pt.getY(), grandParent.split.getY(), split.getY()),
+                                getMaxDistanceCoordinate(pt.getZ(), grandParent.split.getZ(), split.getZ())
+                            );
+
+                    return maxDistPt.distance(pt);
+                }
+            }
+
+            return Double.POSITIVE_INFINITY;
+        }
+
+        /** Get the choice of {@code a} or {@code b} that is farthest from {@code n}.
+         * @param n test coordinate
+         * @param a first choice coordinate
+         * @param b second choice coordinate
+         * @return coordinate farthest from {@code n}
+         */
+        private static double getMaxDistanceCoordinate(final double n, final double a, final double b) {
+            final double aDist = Math.abs(n - a);
+            final double bDist = Math.abs(n - b);
+            return aDist > bDist ?
+                    a :
+                    b;
         }
     }
 }

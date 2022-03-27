@@ -48,6 +48,12 @@ final class PointMap2DImpl<V>
     /** Y positive quadrant flag. */
     private static final int YPOS = 1;
 
+    /** Bit mask for x location. */
+    private static final int XMASK = XNEG | XPOS;
+
+    /** Bit mask for y location. */
+    private static final int YMASK = YNEG | YPOS;
+
     /** Quadtree location flags for child nodes. */
     private static final int[] CHILD_LOCATIONS = {
         XNEG | YNEG,
@@ -90,10 +96,13 @@ final class PointMap2DImpl<V>
         /** Construct a new instance.
          * @param map owning map
          * @param parent parent node; set to null for the root node
+         * @param childIndex index of this node in its parent's child list;
+         *      set to {@code -1} for the root node
          */
         MapNode2D(final AbstractBucketPointMap<Vector2D, V> map,
-                final BucketNode<Vector2D, V> parent) {
-            super(map, parent);
+                final BucketNode<Vector2D, V> parent,
+                final int childIndex) {
+            super(map, parent, childIndex);
         }
 
         /** {@inheritDoc} */
@@ -159,28 +168,60 @@ final class PointMap2DImpl<V>
         protected double getMinChildDistance(final int childIdx, final Vector2D pt, final int ptLoc) {
             final int childLoc = CHILD_LOCATIONS[childIdx];
 
-            if (ptLoc == childLoc) {
-                // same location
-                return 0d;
-            } else {
-                // TODO: fix; does not handle distances to opposite children
+            final boolean sameX = (ptLoc & XMASK) == (childLoc & XMASK);
+            final boolean sameY = (ptLoc & YMASK) == (childLoc & YMASK);
 
-                final int sharedLoc = childLoc & ptLoc;
-                final Vector2D diff = pt.subtract(split);
+            final Vector2D diff = pt.subtract(split);
 
-                if ((XNEG & sharedLoc) > 0 ||
-                        (XPOS & sharedLoc) > 0) {
-                    // on same side of y axis
-                    return Math.abs(diff.getY());
-                }
+            if (sameX) {
+                return sameY ?
+                        0d :
+                        Math.abs(diff.getY());
+            } else if (sameY) {
                 return Math.abs(diff.getX());
             }
+
+            return diff.norm();
         }
 
         /** {@inheritDoc} */
         @Override
         protected double getMaxChildDistance(final int childIdx, final Vector2D pt, final int ptLoc) {
-            throw new UnsupportedOperationException();
+            final MapNode2D<V> grandParent = (MapNode2D<V>) getParent();
+            if (grandParent != null) {
+                final int nodeLoc = CHILD_LOCATIONS[getChildIndex()];
+                final int childLoc = CHILD_LOCATIONS[childIdx];
+
+                final boolean oppositeX = (nodeLoc & XMASK) != (childLoc & XMASK);
+                final boolean oppositeY = (nodeLoc & YMASK) != (childLoc & YMASK);
+
+                if (oppositeX && oppositeY) {
+                    // the grandparent and parent splits form a completely enclosed region,
+                    // meaning that we can determine a max distance
+                    final Vector2D maxDistPt = Vector2D.of(
+                                getMaxDistanceCoordinate(pt.getX(), grandParent.split.getX(), split.getX()),
+                                getMaxDistanceCoordinate(pt.getY(), grandParent.split.getY(), split.getY())
+                            );
+
+                    return maxDistPt.distance(pt);
+                }
+            }
+
+            return Double.POSITIVE_INFINITY;
+        }
+
+        /** Get the choice of {@code a} or {@code b} that is farthest from {@code n}.
+         * @param n test coordinate
+         * @param a first choice coordinate
+         * @param b second choice coordinate
+         * @return coordinate farthest from {@code n}
+         */
+        private static double getMaxDistanceCoordinate(final double n, final double a, final double b) {
+            final double aDist = Math.abs(n - a);
+            final double bDist = Math.abs(n - b);
+            return aDist > bDist ?
+                    a :
+                    b;
         }
     }
 }

@@ -68,8 +68,9 @@ public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D,
 
         TestNode1D(
                 final AbstractBucketPointMap<TestPoint1D, V> map,
-                final BucketNode<TestPoint1D, V> parent) {
-            super(map, parent);
+                final BucketNode<TestPoint1D, V> parent,
+                final int childIndex) {
+            super(map, parent, childIndex);
         }
 
         /** {@inheritDoc} */
@@ -115,8 +116,7 @@ public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D,
         protected double getMaxChildDistance(final int childIdx, final TestPoint1D pt, final int ptLoc) {
             final TestNode1D<V> parent = (TestNode1D<V>) getParent();
             if (parent != null &&
-                ((childIdx == 0 && parent.split < split) ||
-                (childIdx == 1 && parent.split > split))) {
+                childIdx != getChildIndex()) {
 
                 final double parentDist = Math.abs(pt.getX() - parent.split);
                 final double dist = Math.abs(pt.getX() - split);
