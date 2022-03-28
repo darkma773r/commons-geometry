@@ -630,7 +630,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         // arrange
         final PointMap<P, Integer> map = getMap(PRECISION);
 
-        int maxCnt = 5;
+        final int maxCnt = 5;
         for (int cnt = 1; cnt <= maxCnt; ++cnt) {
             final List<P> pts = getTestPoints(cnt, EPS, new Random(cnt));
 
@@ -706,6 +706,87 @@ public abstract class PointMapTestBase<P extends Point<P>>
 
         // assert
         Assertions.assertThrows(ConcurrentModificationException.class, () -> it.next());
+    }
+
+    @Test
+    void testClosestEntry_empty() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final P pt = getTestPoints(1, EPS).get(0);
+
+        // act/assert
+        Assertions.assertNull(map.closestEntry(pt));
+        Assertions.assertNull(map.closestEntryWithinDistance(pt, 100d));
+    }
+
+    @Test
+    void testClosestEntry_small() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final double keySpacing = 7 * EPS;
+        final double testPointSpacing = 3 * EPS;
+        final double closestWithinFoundSpacing = 4 * EPS;
+        final double closestWithinNotFoundSpacing = 2 * EPS;
+
+        int maxCnt = 5;
+        for (int cnt = 1; cnt <= maxCnt; ++cnt) {
+            final List<P> pts = getTestPoints(cnt, keySpacing, new Random(cnt));
+
+            map.clear();
+            insertPoints(pts, map);
+
+            // act/ assert
+            for (int i = 0; i < cnt; ++i) {
+                final P pt = pts.get(i);
+
+                for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
+                    Assertions.assertNull(map.get(refPt));
+
+                    final Map.Entry<P, Integer> closest = map.closestEntry(refPt);
+
+                    Assertions.assertEquals(pt, closest.getKey());
+                    Assertions.assertEquals(i, closest.getValue());
+
+                    Assertions.assertEquals(pt,
+                            map.closestEntryWithinDistance(refPt, closestWithinFoundSpacing).getKey());
+                    Assertions.assertNull(map.closestEntryWithinDistance(refPt, closestWithinNotFoundSpacing));
+                }
+            }
+        }
+    }
+
+    @Test
+    void testClosestEntry_large() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final double keySpacing = 7 * EPS;
+        final double testPointSpacing = 3 * EPS;
+        final double closestWithinFoundSpacing = 4 * EPS;
+        final double closestWithinNotFoundSpacing = 2 * EPS;
+
+        final int cnt = 1000;
+        final List<P> pts = getTestPoints(cnt, keySpacing, new Random(5L));
+        insertPoints(pts, map);
+
+        // act/ assert
+        for (int i = 0; i < cnt; ++i) {
+            final P pt = pts.get(i);
+
+            for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
+                Assertions.assertNull(map.get(refPt));
+
+                final Map.Entry<P, Integer> closest = map.closestEntry(refPt);
+
+                Assertions.assertEquals(pt, closest.getKey());
+                Assertions.assertEquals(i, closest.getValue());
+
+                Assertions.assertEquals(pt, map.closestEntryWithinDistance(refPt, closestWithinFoundSpacing).getKey());
+                Assertions.assertNull(map.closestEntryWithinDistance(refPt, closestWithinNotFoundSpacing));
+            }
+        }
     }
 
     @Test
@@ -805,6 +886,73 @@ public abstract class PointMapTestBase<P extends Point<P>>
 
         // assert
         Assertions.assertThrows(ConcurrentModificationException.class, () -> it.next());
+    }
+
+    @Test
+    void testFarthestEntry_empty() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final P pt = getTestPoints(1, EPS).get(0);
+
+        // act/assert
+        Assertions.assertNull(map.farthestEntry(pt));
+    }
+
+    @Test
+    void testFarthestEntry_small() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final double keySpacing = 7 * EPS;
+        final double testPointSpacing = 3 * EPS;
+
+        int maxCnt = 5;
+        for (int cnt = 1; cnt <= maxCnt; ++cnt) {
+            final List<P> pts = getTestPoints(cnt, keySpacing, new Random(cnt));
+
+            map.clear();
+            insertPoints(pts, map);
+
+            // act/ assert
+            for (int i = 0; i < cnt; ++i) {
+                final P pt = pts.get(i);
+
+                for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
+                    Assertions.assertNull(map.get(refPt));
+
+                    final Map.Entry<P, Integer> farthest = map.farthestEntry(refPt);
+
+                    Assertions.assertEquals(findFarthest(refPt, pts), farthest.getKey());
+                }
+            }
+        }
+    }
+
+    @Test
+    void testFarthestEntry_large() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final double keySpacing = 7 * EPS;
+        final double testPointSpacing = 3 * EPS;
+
+        final int cnt = 1000;
+        final List<P> pts = getTestPoints(cnt, keySpacing, new Random(5L));
+        insertPoints(pts, map);
+
+        // act/ assert
+        for (int i = 0; i < cnt; ++i) {
+            final P pt = pts.get(i);
+
+            for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
+                Assertions.assertNull(map.get(refPt));
+
+                final Map.Entry<P, Integer> farthest = map.farthestEntry(refPt);
+
+                Assertions.assertEquals(findFarthest(refPt, pts), farthest.getKey());
+            }
+        }
     }
 
     @Test
@@ -1814,6 +1962,14 @@ public abstract class PointMapTestBase<P extends Point<P>>
         Assertions.assertThrows(ConcurrentModificationException.class, () -> it.next());
     }
 
+    /** Assert that {@code iterable} returns entries with the same keys in the same order as
+     * {@code list} when sorted with {@code cmp}.
+     * @param <P> Point type
+     * @param <V> Value type
+     * @param list expected key list
+     * @param cmp comparator producing the expected order
+     * @param iterable iterable to test
+     */
     public static <P extends Point<P>, V> void assertIterableOrder(
             final List<P> list,
             final Comparator<P> cmp,
@@ -1833,6 +1989,13 @@ public abstract class PointMapTestBase<P extends Point<P>>
         Assertions.assertEquals(i, expected.size(), "Unexpected iteration count");
     }
 
+    /** Assert that {@code iterable} returns entries with the same keys in the same order as
+     * {@code list}.
+     * @param <P> Point type
+     * @param <V> Value type
+     * @param expected expected key list
+     * @param iterable iterable to test
+     */
     public static <P extends Point<P>, V> void assertIterableOrder(
             final List<P> expected,
             final Iterable<Map.Entry<P, V>> iterable) {

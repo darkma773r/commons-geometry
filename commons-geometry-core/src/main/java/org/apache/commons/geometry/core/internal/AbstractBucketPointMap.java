@@ -20,6 +20,7 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -194,6 +195,31 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     public void clear() {
         root = createNode(null, DEFAULT_CHILD_INDEX);
         secondaryRoot = null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Map.Entry<P, V> closestEntry(final P pt) {
+        return closestEntryWithinDistance(pt, Double.POSITIVE_INFINITY);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Map.Entry<P, V> closestEntryWithinDistance(final P pt, final double dist) {
+        DistancedValue<Map.Entry<P, V>> result = root.findClosestEntry(pt, dist);
+        if (secondaryRoot != null) {
+            final DistancedValue<Map.Entry<P, V>> secondaryResult =
+                    secondaryRoot.findClosestEntry(pt, dist);
+
+            if (secondaryResult != null &&
+                    (result == null || secondaryResult.getDistance() <= result.getDistance())) {
+                result = secondaryResult;
+            }
+        }
+
+        return result != null ?
+                result.getValue() :
+                null;
     }
 
     /** {@inheritDoc} */
@@ -574,6 +600,69 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
             // not found
             return null;
+        }
+
+        /** Find the closest entry to {@code refPt} within the maximum distance specified in the subtree
+         * rooted at this node, or null if no such entry exists.
+         * @param refPt reference point
+         * @param maxDist maximum search distance
+         * @return closest entry to {@code refPt} within the maximum distance specified in the subtree
+         *      rooted at this node, or null if no such entry exists.
+         */
+        public DistancedValue<Map.Entry<P, V>> findClosestEntry(final P refPt, final double maxDist) {
+            if (isLeaf()) {
+                // leaf node; check the existing entries for a match
+                Map.Entry<P, V> closest = null;
+                double closestDist = Double.POSITIVE_INFINITY;
+
+                for (final Map.Entry<P, V> entry : entries) {
+                    final double entryDist = entry.getKey().distance(refPt);
+
+                    if (entryDist <= maxDist &&
+                            (closest == null || entryDist < closestDist ||
+                            (entryDist == closestDist && map.comparePoints(entry.getKey(), closest.getKey()) < 0))) {
+                        closest = entry;
+                        closestDist = entryDist;
+                    }
+                }
+
+                return closest != null ?
+                        DistancedValue.of(closest, closestDist) :
+                        null;
+            } else {
+                // internal node; look through children
+                final List<DistancedValue<BucketNode<P, V>>> sortedNodeList = new ArrayList<>(map.nodeChildCount);
+
+                final int loc = getInsertLocation(refPt);
+                for (int i = 0; i < children.size(); ++i) {
+                    final BucketNode<P, V> child = children.get(i);
+                    if (child != null) {
+                        final double minChildDist = getMinChildDistance(i, refPt, loc);
+                        if (minChildDist <= maxDist) {
+                            sortedNodeList.add(DistancedValue.of(child, minChildDist));
+                        }
+                    }
+                }
+
+                Collections.sort(sortedNodeList, DistancedValue.ascendingDistance());
+
+                DistancedValue<Map.Entry<P, V>> closest = null;
+                for (final DistancedValue<BucketNode<P, V>> nodeValue : sortedNodeList) {
+                    if (closest != null && closest.getDistance() < nodeValue.getDistance()) {
+                        break;
+                    }
+
+                    final DistancedValue<Map.Entry<P, V>> entry = nodeValue.getValue()
+                            .findClosestEntry(refPt, maxDist);
+
+                    if (entry != null &&
+                            (closest == null || entry.getDistance() < closest.getDistance())) {
+                        closest = entry;
+                    }
+                }
+
+                return closest;
+            }
         }
 
         /** Append an entry to the entry list for this node. This method must

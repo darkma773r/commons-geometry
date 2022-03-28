@@ -28,8 +28,8 @@ import org.apache.commons.geometry.core.Point;
  */
 public interface PointSet<P extends Point<P>> extends Set<P> {
 
-    /** Get the set entry equivalent to {@code pt} or null if no
-     * such entry exists.
+    /** Get the element equivalent to {@code pt} or null if no
+     * such an element exists.
      * @param pt point to find an equivalent for
      * @return set entry equivalent to {@code pt} or null if
      *      no such entry exists
@@ -45,6 +45,27 @@ public interface PointSet<P extends Point<P>> extends Set<P> {
      */
     Iterable<P> closestFirst(P pt);
 
+    /** Return an element from the map such that no element is closer to {@code pt}.
+     * If multiple elements are the exact same distance from {@code pt}, implementations
+     * must choose which to return based on whatever criteria is convenient. Callers
+     * should not rely on this tie-breaking behavior. Null is returned if the set
+     * is empty.
+     * @param pt reference point
+     * @return an element such that no element is closer to {@code pt}, or {@code null} if
+     *      the set is empty
+     */
+    P closest(P pt);
+
+    /** Return an element from the set such that no element is closer to {@code pt} and
+     * the element satisfies the condition {@code element.distance(pt) <= dist} (using
+     * standard floating point comparisons). Null is returned if no such element exists.
+     * @param pt reference point
+     * @param dist maximum distance from {@code pt}
+     * @return an element such that no element is closer to {@code pt} and the distance
+     *      from the element to {@code pt} is less than or equal to {@code dist}
+     */
+    P closestWithinDistance(P pt, double dist);
+
     /** Return an {@link Iterable} providing access to set entries, with those
      * entries farthest from {@code pt} returned first. If two or more entries are
      * exactly the same distance from {@code pt}, they may be returned in any order.
@@ -53,4 +74,15 @@ public interface PointSet<P extends Point<P>> extends Set<P> {
      *      distance from {@code pt}
      */
     Iterable<P> farthestFirst(P pt);
+
+    /** Return an element from the set such that no element is farther from {@code pt}.
+     * If multiple elements are the exact same distance from {@code pt}, implementations
+     * must choose which to return based on whatever criteria is convenient. Callers
+     * should not rely on this tie-breaking behavior. Null is returned if the set
+     * is empty.
+     * @param pt reference point
+     * @return an element such that no element is farther than {@code pt}, or {@code null} if
+     *      the set is empty
+     */
+    P farthest(P pt);
 }

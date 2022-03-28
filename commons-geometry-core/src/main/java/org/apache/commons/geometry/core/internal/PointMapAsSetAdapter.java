@@ -51,10 +51,7 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
     /** {@inheritDoc} */
     @Override
     public P get(final P pt) {
-        final Map.Entry<P, Object> entry = map.getEntry(pt);
-        return entry != null ?
-                entry.getKey() :
-                null;
+        return getKey(map.getEntry(pt));
     }
 
     /** {@inheritDoc} */
@@ -72,9 +69,27 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
 
     /** {@inheritDoc} */
     @Override
+    public P closest(final P pt) {
+        return getKey(map.closestEntry(pt));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public P closestWithinDistance(final P pt, final double dist) {
+        return getKey(map.closestEntryWithinDistance(pt, dist));
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public Iterable<P> farthestFirst(final P pt) {
         final Iterable<Map.Entry<P, Object>> mapIterable = map.farthestEntriesFirst(pt);
         return () -> new EntryIteratorWrapper<>(mapIterable.iterator());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public P farthest(final P pt) {
+        return getKey(map.farthestEntry(pt));
     }
 
     /** {@inheritDoc} */
@@ -106,6 +121,17 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
     @Override
     public void clear() {
         map.clear();
+    }
+
+    /** Get the entry key or {@code null} if {@code entry} is {@code null}.
+     * @param <P> Point type
+     * @param entry map entry
+     * @return entry key or {@code null} if {@code entry} is {@code null}
+     */
+    private static <P extends Point<P>> P getKey(final Map.Entry<P, ?> entry) {
+        return entry != null ?
+                entry.getKey() :
+                null;
     }
 
     /** Iterator that converts from a map entry iterator to a key iteration.

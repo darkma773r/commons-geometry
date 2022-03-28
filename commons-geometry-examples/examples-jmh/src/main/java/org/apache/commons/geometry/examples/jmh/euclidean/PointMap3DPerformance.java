@@ -410,6 +410,28 @@ public class PointMap3DPerformance {
         return input;
     }
 
+    /** Run a benchmark for a distance select operation.
+     * @param input input for the run
+     * @param bh blackhole instance
+     * @param selectFn function used to select from the map
+     * @return input instance
+     */
+    private static PreInsertedPointMapInput doDistanceSelect(
+            final PreInsertedPointMapInput input,
+            final Blackhole bh,
+            final BiFunction<
+                PointMap<Vector3D, Integer>,
+                Vector3D,
+                Map.Entry<Vector3D, Integer>> selectFn) {
+        final PointMap<Vector3D, Integer> map = input.getMap();
+
+        for (final Vector3D pt : input.getTestPoints()) {
+            bh.consume(selectFn.apply(map, pt));
+        }
+
+        return input;
+    }
+
     /** Baseline benchmark for {@link Map#put(Object, Object)} using a {@link TreeMap}.
      * @param input input for the run
      * @param bh blackhole instance
@@ -476,7 +498,7 @@ public class PointMap3DPerformance {
      * @return input instance
      */
     @Benchmark
-    public Object closestFirst(final PreInsertedPointMapInput input, final Blackhole bh) {
+    public Object closestEntriesFirst(final PreInsertedPointMapInput input, final Blackhole bh) {
         return doDistanceIteration(
                 input,
                 bh,
@@ -491,7 +513,7 @@ public class PointMap3DPerformance {
      * @return input instance
      */
     @Benchmark
-    public Object closestFirstPartial(final PreInsertedPointMapInput input, final Blackhole bh) {
+    public Object closestEntriesFirstPartial(final PreInsertedPointMapInput input, final Blackhole bh) {
         final int cnt = input.getPoints().size() / 2;
 
         return doDistanceIteration(
@@ -501,13 +523,26 @@ public class PointMap3DPerformance {
                 PointMap::closestEntriesFirst);
     }
 
+    /** Benchmark for the {@link PointMap#closestEntry(org.apache.commons.geometry.core.Point)} method.
+     * @param input input for the run
+     * @param bh blackhole instance
+     * @return input instance
+     */
+    @Benchmark
+    public Object closestEntry(final PreInsertedPointMapInput input, final Blackhole bh) {
+        return doDistanceSelect(
+                input,
+                bh,
+                PointMap::closestEntry);
+    }
+
     /** Benchmark for the {@link PointMap#farthestEntriesFirst(org.apache.commons.geometry.core.Point)} method.
      * @param input input for the run
      * @param bh blackhole instance
      * @return input instance
      */
     @Benchmark
-    public Object farthestFirst(final PreInsertedPointMapInput input, final Blackhole bh) {
+    public Object farthestEntriesFirst(final PreInsertedPointMapInput input, final Blackhole bh) {
         return doDistanceIteration(
                 input,
                 bh,
@@ -522,7 +557,7 @@ public class PointMap3DPerformance {
      * @return input instance
      */
     @Benchmark
-    public Object farthestFirstPartial(final PreInsertedPointMapInput input, final Blackhole bh) {
+    public Object farthestEntriesFirstPartial(final PreInsertedPointMapInput input, final Blackhole bh) {
         final int cnt = input.getPoints().size() / 2;
 
         return doDistanceIteration(
@@ -531,4 +566,18 @@ public class PointMap3DPerformance {
                 cnt,
                 PointMap::farthestEntriesFirst);
     }
+
+    /** Benchmark for the {@link PointMap#farthestEntry(org.apache.commons.geometry.core.Point)} method.
+     * @param input input for the run
+     * @param bh blackhole instance
+     * @return input instance
+     */
+    @Benchmark
+    public Object farthestEntry(final PreInsertedPointMapInput input, final Blackhole bh) {
+        return doDistanceSelect(
+                input,
+                bh,
+                PointMap::farthestEntry);
+    }
+
 }

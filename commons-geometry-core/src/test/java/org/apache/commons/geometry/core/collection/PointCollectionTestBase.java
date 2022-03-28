@@ -134,4 +134,22 @@ public abstract class PointCollectionTestBase<P extends Point<P>> {
     protected Comparator<P> createFarthestFirstComparator(final P refPt) {
         return createClosestFirstComparator(refPt).reversed();
     }
+
+    /** Find the element in {@code list} farthest away from {@code refPt}.
+     * @param refPt reference point
+     * @param list list to search
+     * @return element in {@code list} farthest from {@code refPt}
+     */
+    protected P findFarthest(final P refPt, final List<P> list) {
+        final Comparator<P> cmp = createFarthestFirstComparator(refPt);
+
+        P result = null;
+        for (final P pt : list) {
+            if (result == null || cmp.compare(pt, result) < 0) {
+                result = pt;
+            }
+        }
+
+        return result;
+    }
 }

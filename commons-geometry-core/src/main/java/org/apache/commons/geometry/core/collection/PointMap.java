@@ -16,6 +16,7 @@
  */
 package org.apache.commons.geometry.core.collection;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.geometry.core.Point;
@@ -48,6 +49,38 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      */
     Iterable<Map.Entry<P, V>> closestEntriesFirst(P pt);
 
+    /** Return an entry from the map such that no entry is closer to {@code pt}.
+     * Distance is measured from {@code pt} to the {@link Map.Entry#getKey() key} of each
+     * entry. If multiple entries are the exact same distance from {@code pt}, implementations
+     * must choose which to return based on whatever criteria is convenient. Callers
+     * should not rely on this tie-breaking behavior. Null is returned if the map
+     * is empty.
+     * @param pt reference point
+     * @return map entry such that no entry is closer to {@code pt}, or {@code null} if
+     *      the map is empty
+     */
+    default Map.Entry<P, V> closestEntry(final P pt) {
+        final Iterator<Map.Entry<P, V>> it = closestEntriesFirst(pt).iterator();
+        return it.hasNext() ?
+                it.next() :
+                null;
+    }
+
+    /** Return an entry from the map such that no entry is closer to {@code pt} and the
+     * entry satisfies the condition {@code entry.getKey().distance(pt) <= dist} (using
+     * standard floating point comparisons). Null is returned if no such entry exists.
+     * @param pt reference point
+     * @param dist maximum distance from {@code pt}
+     * @return a map entry such that no entry is closer to {@code pt} and the distance
+     *      from the entry's key to {@code pt} is less than or equal to {@code dist}
+     */
+    default Map.Entry<P, V> closestEntryWithinDistance(final P pt, final double dist) {
+        final Map.Entry<P, V> closest = closestEntry(pt);
+        return closest != null && closest.getKey().distance(pt) <= dist ?
+                closest :
+                null;
+    }
+
     /** Return an {@link Iterable} providing access to map entries in descending order
      * of distance from {@code pt}. No ordering is guaranteed for entries that are
      * exactly the same distance from {@code pt}.
@@ -56,4 +89,21 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      *      distance from {@code pt}
      */
     Iterable<Map.Entry<P, V>> farthestEntriesFirst(P pt);
+
+    /** Return an entry from the map such that no entry is farther from {@code pt}.
+     * Distance is measured from {@code pt} to the {@link Map.Entry#getKey() key} of each
+     * entry. If multiple entries are the exact same distance from {@code pt}, implementations
+     * must choose which to return based on whatever criteria is convenient. Callers
+     * should not rely on this tie-breaking behavior. Null is returned if the map
+     * is empty.
+     * @param pt reference point
+     * @return map entry such that no entry is farther than {@code pt}, or {@code null} if
+     *      the map is empty
+     */
+    default Map.Entry<P, V> farthestEntry(final P pt) {
+        final Iterator<Map.Entry<P, V>> it = farthestEntriesFirst(pt).iterator();
+        return it.hasNext() ?
+                it.next() :
+                null;
+    }
 }
