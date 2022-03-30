@@ -88,7 +88,7 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      * @return iterable providing access to map entries in descending order of
      *      distance from {@code pt}
      */
-    Iterable<Map.Entry<P, V>> entriesfarToNear(P pt);
+    Iterable<Map.Entry<P, V>> entriesFarToNear(P pt);
 
     /** Return an entry from the map such that no entry is farther from {@code pt}.
      * Distance is measured from {@code pt} to the {@link Map.Entry#getKey() key} of each
@@ -101,7 +101,7 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      *      the map is empty
      */
     default Map.Entry<P, V> farthestEntry(final P pt) {
-        final Iterator<Map.Entry<P, V>> it = entriesfarToNear(pt).iterator();
+        final Iterator<Map.Entry<P, V>> it = entriesFarToNear(pt).iterator();
         return it.hasNext() ?
                 it.next() :
                 null;

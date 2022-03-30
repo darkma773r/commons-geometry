@@ -205,10 +205,10 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     /** {@inheritDoc} */
     @Override
     public Entry<P, V> nearestEntryWithinRadius(final P pt, final double dist) {
-        DistancedValue<Entry<P, V>> result = root.findClosestEntry(pt, dist);
+        DistancedValue<Entry<P, V>> result = root.findNearestEntry(pt, dist);
         if (secondaryRoot != null) {
             final DistancedValue<Entry<P, V>> secondaryResult =
-                    secondaryRoot.findClosestEntry(pt, dist);
+                    secondaryRoot.findNearestEntry(pt, dist);
 
             if (secondaryResult != null &&
                     (result == null || secondaryResult.getDistance() <= result.getDistance())) {
@@ -230,9 +230,35 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Entry<P, V>> entriesfarToNear(final P pt) {
+    public Iterable<Entry<P, V>> entriesFarToNear(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
         return () -> new FarthestFirstIterator<>(this, pt);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Entry<P, V> farthestEntry(final P pt) {
+        DistancedValue<Entry<P, V>> result = root.findFarthestEntry(pt, Double.POSITIVE_INFINITY);
+        if (secondaryRoot != null) {
+            final DistancedValue<Entry<P, V>> secondaryResult =
+                    secondaryRoot.findFarthestEntry(pt, Double.POSITIVE_INFINITY);
+
+            if (secondaryResult != null &&
+                    (result == null || secondaryResult.getDistance() >= result.getDistance())) {
+                result = secondaryResult;
+            }
+        }
+
+        return result != null ?
+                result.getValue() :
+                null;
+    }
+
+    /** Get the configured precision for the instance.
+     * @return precision object
+     */
+    protected Precision.DoubleEquivalence getPrecision() {
+        return precision;
     }
 
     /** Return true if the given points are equivalent using the precision
@@ -251,13 +277,6 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
      * @return integer comparison result
      */
     protected abstract int comparePoints(P a, P b);
-
-    /** Get the configured precision for the instance.
-     * @return precision object
-     */
-    protected Precision.DoubleEquivalence getPrecision() {
-        return precision;
-    }
 
     /** Construct a new node instance.
      * @param parent parent node; will be null for the tree root
@@ -601,14 +620,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
             return null;
         }
 
-        /** Find the closest entry to {@code refPt} within the maximum distance specified in the subtree
+        /** Find the nearest entry to {@code refPt} within the maximum distance specified in the subtree
          * rooted at this node, or null if no such entry exists.
          * @param refPt reference point
          * @param maxDist maximum search distance
          * @return closest entry to {@code refPt} within the maximum distance specified in the subtree
          *      rooted at this node, or null if no such entry exists.
          */
-        public DistancedValue<Entry<P, V>> findClosestEntry(final P refPt, final double maxDist) {
+        public DistancedValue<Entry<P, V>> findNearestEntry(final P refPt, final double maxDist) {
             if (isLeaf()) {
                 // leaf node; check the existing entries for a match
                 Entry<P, V> closest = null;
@@ -652,7 +671,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     }
 
                     final DistancedValue<Entry<P, V>> entry = nodeValue.getValue()
-                            .findClosestEntry(refPt, maxDist);
+                            .findNearestEntry(refPt, maxDist);
 
                     if (entry != null &&
                             (closest == null || entry.getDistance() < closest.getDistance())) {
@@ -661,6 +680,69 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                 }
 
                 return closest;
+            }
+        }
+
+        /** Find the farthest entry from {@code refPt} within the specified radius in the subtree
+         * rooted at this node, or null if no such entry exists.
+         * @param refPt reference point
+         * @param radius search radius
+         * @return farthest entry from {@code refPt} within the specified radius in the subtree
+         *      rooted at this node, or null if no such entry exists.
+         */
+        public DistancedValue<Entry<P, V>> findFarthestEntry(final P refPt, final double radius) {
+            if (isLeaf()) {
+                // leaf node; check the existing entries for a match
+                Entry<P, V> farthest = null;
+                double farthestDist = 0d;
+
+                for (final Entry<P, V> entry : entries) {
+                    final double entryDist = entry.getKey().distance(refPt);
+
+                    if (entryDist <= radius &&
+                            (farthest == null || entryDist > farthestDist ||
+                            (entryDist == farthestDist && map.comparePoints(entry.getKey(), farthest.getKey()) > 0))) {
+                        farthest = entry;
+                        farthestDist = entryDist;
+                    }
+                }
+
+                return farthest != null ?
+                        DistancedValue.of(farthest, farthestDist) :
+                        null;
+            } else {
+                // internal node; look through children
+                final List<DistancedValue<BucketNode<P, V>>> sortedNodeList = new ArrayList<>(map.nodeChildCount);
+
+                final int loc = getInsertLocation(refPt);
+                for (int i = 0; i < children.size(); ++i) {
+                    final BucketNode<P, V> child = children.get(i);
+                    if (child != null) {
+                        final double maxChildDist = getMaxChildDistance(i, refPt, loc);
+                        if (maxChildDist <= radius) {
+                            sortedNodeList.add(DistancedValue.of(child, maxChildDist));
+                        }
+                    }
+                }
+
+                Collections.sort(sortedNodeList, DistancedValue.descendingDistance());
+
+                DistancedValue<Entry<P, V>> farthest = null;
+                for (final DistancedValue<BucketNode<P, V>> nodeValue : sortedNodeList) {
+                    if (farthest != null && farthest.getDistance() > nodeValue.getDistance()) {
+                        break;
+                    }
+
+                    final DistancedValue<Entry<P, V>> entry = nodeValue.getValue()
+                            .findFarthestEntry(refPt, radius);
+
+                    if (entry != null &&
+                            (farthest == null || entry.getDistance() > farthest.getDistance())) {
+                        farthest = entry;
+                    }
+                }
+
+                return farthest;
             }
         }
 
@@ -1497,5 +1579,12 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
             return cmp.thenComparing(
                     (a, b) -> pointCmp.compare(b.getValue().getKey(), a.getValue().getKey()));
         }
+    }
+
+    public interface DistanceOrdering<P extends Point<P>, V> {
+
+        int compareDistance(double a, double b);
+
+
     }
 }

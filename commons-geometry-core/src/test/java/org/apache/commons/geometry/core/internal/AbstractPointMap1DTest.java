@@ -166,7 +166,7 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
 
         /** {@inheritDoc} */
         @Override
-        public Iterable<Entry<TestPoint1D, V>> entriesfarToNear(final TestPoint1D pt) {
+        public Iterable<Entry<TestPoint1D, V>> entriesFarToNear(final TestPoint1D pt) {
             GeometryInternalUtils.requireFinite(pt);
             return () -> new FarthestFirstIterator(pt);
         }

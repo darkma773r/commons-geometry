@@ -112,7 +112,7 @@ final class PointMap1SImpl<V>
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Entry<Point1S, V>> entriesfarToNear(final Point1S pt) {
+    public Iterable<Entry<Point1S, V>> entriesFarToNear(final Point1S pt) {
         GeometryInternalUtils.requireFinite(pt);
         return () -> new ClosestFirstIterator(pt.antipodal());
     }

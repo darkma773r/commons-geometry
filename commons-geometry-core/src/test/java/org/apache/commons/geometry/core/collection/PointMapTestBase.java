@@ -798,7 +798,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         final List<P> ordered = new ArrayList<>();
 
         // act
-        for (final Map.Entry<P, Integer> entry : map.entriesfarToNear(pt)) {
+        for (final Map.Entry<P, Integer> entry : map.entriesFarToNear(pt)) {
             ordered.add(entry.getKey());
         }
 
@@ -824,7 +824,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
                     assertIterableOrder(
                             pts,
                             createFarthestFirstComparator(refPt),
-                            map.entriesfarToNear(refPt));
+                            map.entriesFarToNear(refPt));
                 }
             }
         }
@@ -845,7 +845,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
                 assertIterableOrder(
                         pts,
                         createFarthestFirstComparator(refPt),
-                        map.entriesfarToNear(refPt));
+                        map.entriesFarToNear(refPt));
             }
         }
     }
@@ -859,7 +859,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         insertPoints(pts, map);
 
         // act/assert
-        final Iterator<Map.Entry<P, Integer>> it = map.entriesfarToNear(pts.get(0)).iterator();
+        final Iterator<Map.Entry<P, Integer>> it = map.entriesFarToNear(pts.get(0)).iterator();
         Assertions.assertTrue(it.hasNext());
         Assertions.assertEquals(new SimpleEntry<>(pts.get(1), 1), it.next());
         Assertions.assertThrows(UnsupportedOperationException.class, () -> it.remove());
@@ -881,7 +881,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         insertPoints(pts, map);
 
         // act
-        final Iterator<Map.Entry<P, Integer>> it = map.entriesfarToNear(pts.get(0)).iterator();
+        final Iterator<Map.Entry<P, Integer>> it = map.entriesFarToNear(pts.get(0)).iterator();
         map.remove(pts.get(0));
 
         // assert

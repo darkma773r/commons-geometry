@@ -101,7 +101,7 @@ class AbstractBucketPointMapTest extends PointMapTestBase<TestPoint1D> {
         // act/assert
         assertIterableOrder(
                 expected,
-                map.entriesfarToNear(new TestPoint1D(0)));
+                map.entriesFarToNear(new TestPoint1D(0)));
     }
 
     /** {@inheritDoc} */

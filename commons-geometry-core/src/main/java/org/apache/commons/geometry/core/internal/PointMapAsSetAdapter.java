@@ -82,7 +82,7 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
     /** {@inheritDoc} */
     @Override
     public Iterable<P> farToNear(final P pt) {
-        final Iterable<Map.Entry<P, Object>> mapIterable = map.entriesfarToNear(pt);
+        final Iterable<Map.Entry<P, Object>> mapIterable = map.entriesFarToNear(pt);
         return () -> new EntryIteratorWrapper<>(mapIterable.iterator());
     }
 
