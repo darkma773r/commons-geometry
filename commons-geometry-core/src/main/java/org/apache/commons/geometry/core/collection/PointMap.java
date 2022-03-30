@@ -16,7 +16,6 @@
  */
 package org.apache.commons.geometry.core.collection;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.geometry.core.Point;
@@ -32,13 +31,13 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
 
     /** Get the map entry with a key equivalent to {@code pt} or {@code null}
      * if no such entry exists. The returned instance supports use of
-     * the {@link Map.Entry#setValue(Object)} method to modify the
+     * the {@link Entry#setValue(Object)} method to modify the
      * mapping.
      * @param pt point to fetch the map entry for
      * @return map entry for the given point or null if no such entry
      *      exists
      */
-    Map.Entry<P, V> getEntry(P pt);
+    Entry<P, V> getEntry(P pt);
 
     /** Return an {@link Iterable} providing access to map entries in ascending order
      * of distance from {@code pt}. No ordering is guaranteed for entries that are
@@ -47,10 +46,10 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      * @return iterable providing access to map entries in ascending order of
      *      distance from {@code pt}
      */
-    Iterable<Map.Entry<P, V>> entriesNearToFar(P pt);
+    Iterable<Entry<P, V>> entriesNearToFar(P pt);
 
     /** Return an entry from the map such that no entry is nearer to {@code pt}.
-     * Distance is measured from {@code pt} to the {@link Map.Entry#getKey() key} of each
+     * Distance is measured from {@code pt} to the {@link Entry#getKey() key} of each
      * entry. If multiple entries are the exact same distance from {@code pt}, implementations
      * must choose which to return based on whatever criteria is convenient. Callers
      * should not rely on this tie-breaking behavior. Null is returned if the map
@@ -59,12 +58,7 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      * @return map entry such that no entry is nearer to {@code pt}, or {@code null} if
      *      the map is empty
      */
-    default Map.Entry<P, V> nearestEntry(final P pt) {
-        final Iterator<Map.Entry<P, V>> it = entriesNearToFar(pt).iterator();
-        return it.hasNext() ?
-                it.next() :
-                null;
-    }
+    Entry<P, V> nearestEntry(P pt);
 
     /** Return an entry from the map such that no entry is nearer to {@code pt} and the
      * entry satisfies the condition {@code entry.getKey().distance(pt) <= dist} (using
@@ -74,12 +68,7 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      * @return a map entry such that no entry is nearer to {@code pt} and the distance
      *      from the entry's key to {@code pt} is less than or equal to {@code dist}
      */
-    default Map.Entry<P, V> nearestEntryWithinRadius(final P pt, final double radius) {
-        final Map.Entry<P, V> closest = nearestEntry(pt);
-        return closest != null && closest.getKey().distance(pt) <= radius ?
-                closest :
-                null;
-    }
+    Entry<P, V> nearestEntryWithinRadius(P pt, double radius);
 
     /** Return an {@link Iterable} providing access to map entries in descending order
      * of distance from {@code pt}. No ordering is guaranteed for entries that are
@@ -88,10 +77,10 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      * @return iterable providing access to map entries in descending order of
      *      distance from {@code pt}
      */
-    Iterable<Map.Entry<P, V>> entriesFarToNear(P pt);
+    Iterable<Entry<P, V>> entriesFarToNear(P pt);
 
     /** Return an entry from the map such that no entry is farther from {@code pt}.
-     * Distance is measured from {@code pt} to the {@link Map.Entry#getKey() key} of each
+     * Distance is measured from {@code pt} to the {@link Entry#getKey() key} of each
      * entry. If multiple entries are the exact same distance from {@code pt}, implementations
      * must choose which to return based on whatever criteria is convenient. Callers
      * should not rely on this tie-breaking behavior. Null is returned if the map
@@ -100,10 +89,5 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      * @return map entry such that no entry is farther than {@code pt}, or {@code null} if
      *      the map is empty
      */
-    default Map.Entry<P, V> farthestEntry(final P pt) {
-        final Iterator<Map.Entry<P, V>> it = entriesFarToNear(pt).iterator();
-        return it.hasNext() ?
-                it.next() :
-                null;
-    }
+    Entry<P, V> farthestEntry(P pt);
 }

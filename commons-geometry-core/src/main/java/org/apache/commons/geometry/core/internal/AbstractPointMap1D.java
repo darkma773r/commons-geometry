@@ -19,6 +19,7 @@ package org.apache.commons.geometry.core.internal;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -68,7 +69,7 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public Map.Entry<P, V> getEntry(final P key) {
+    public Entry<P, V> getEntry(final P key) {
         return exportEntry(getEntryInternal(key));
     }
 
@@ -82,7 +83,7 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
     /** {@inheritDoc} */
     @Override
     public void putAll(final Map<? extends P, ? extends V> m) {
-        for (final Map.Entry<? extends P, ? extends V> entry : m.entrySet()) {
+        for (final Entry<? extends P, ? extends V> entry : m.entrySet()) {
             put(entry.getKey(), entry.getValue());
         }
     }
@@ -91,6 +92,33 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
     @Override
     public Collection<V> values() {
         return map.values();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Entry<P, V> nearestEntry(final P pt) {
+        final Iterator<Entry<P, V>> it = entriesNearToFar(pt).iterator();
+        return it.hasNext() ?
+                it.next() :
+                null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Entry<P, V> nearestEntryWithinRadius(final P pt, final double radius) {
+        final Entry<P, V> closest = nearestEntry(pt);
+        return closest != null && closest.getKey().distance(pt) <= radius ?
+                closest :
+                null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Entry<P, V> farthestEntry(final P pt) {
+        final Iterator<Entry<P, V>> it = entriesFarToNear(pt).iterator();
+        return it.hasNext() ?
+                it.next() :
+                null;
     }
 
     /** {@inheritDoc} */

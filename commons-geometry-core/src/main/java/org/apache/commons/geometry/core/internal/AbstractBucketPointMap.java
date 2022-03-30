@@ -141,7 +141,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     public V put(final P key, final V value) {
         GeometryInternalUtils.requireFinite(key);
 
-        Entry<P, V> entry = findEntryByPoint(key);
+        final Entry<P, V> entry = findEntryByPoint(key);
         if (entry != null) {
             return entry.setValue(value);
         }
