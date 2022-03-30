@@ -198,13 +198,13 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public Entry<P, V> closestEntry(final P pt) {
-        return closestEntryWithinDistance(pt, Double.POSITIVE_INFINITY);
+    public Entry<P, V> nearestEntry(final P pt) {
+        return nearestEntryWithinRadius(pt, Double.POSITIVE_INFINITY);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Entry<P, V> closestEntryWithinDistance(final P pt, final double dist) {
+    public Entry<P, V> nearestEntryWithinRadius(final P pt, final double dist) {
         DistancedValue<Entry<P, V>> result = root.findClosestEntry(pt, dist);
         if (secondaryRoot != null) {
             final DistancedValue<Entry<P, V>> secondaryResult =
@@ -223,14 +223,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Entry<P, V>> closestEntriesFirst(final P pt) {
+    public Iterable<Entry<P, V>> entriesNearToFar(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
         return () -> new ClosestFirstIterator<>(this, pt);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Entry<P, V>> farthestEntriesFirst(final P pt) {
+    public Iterable<Entry<P, V>> entriesfarToNear(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
         return () -> new FarthestFirstIterator<>(this, pt);
     }

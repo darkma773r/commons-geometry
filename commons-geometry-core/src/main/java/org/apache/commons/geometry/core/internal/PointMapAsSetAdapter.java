@@ -62,27 +62,27 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<P> closestFirst(final P pt) {
-        final Iterable<Map.Entry<P, Object>> mapIterable = map.closestEntriesFirst(pt);
+    public Iterable<P> nearToFar(final P pt) {
+        final Iterable<Map.Entry<P, Object>> mapIterable = map.entriesNearToFar(pt);
         return () -> new EntryIteratorWrapper<>(mapIterable.iterator());
     }
 
     /** {@inheritDoc} */
     @Override
-    public P closest(final P pt) {
-        return getKey(map.closestEntry(pt));
+    public P nearest(final P pt) {
+        return getKey(map.nearestEntry(pt));
     }
 
     /** {@inheritDoc} */
     @Override
-    public P closestWithinDistance(final P pt, final double dist) {
-        return getKey(map.closestEntryWithinDistance(pt, dist));
+    public P nearestWithinRadius(final P pt, final double dist) {
+        return getKey(map.nearestEntryWithinRadius(pt, dist));
     }
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<P> farthestFirst(final P pt) {
-        final Iterable<Map.Entry<P, Object>> mapIterable = map.farthestEntriesFirst(pt);
+    public Iterable<P> farToNear(final P pt) {
+        final Iterable<Map.Entry<P, Object>> mapIterable = map.entriesfarToNear(pt);
         return () -> new EntryIteratorWrapper<>(mapIterable.iterator());
     }
 

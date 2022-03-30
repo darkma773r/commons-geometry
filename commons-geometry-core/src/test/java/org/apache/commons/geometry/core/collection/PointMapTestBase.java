@@ -617,7 +617,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         final List<P> ordered = new ArrayList<>();
 
         // act
-        for (final Map.Entry<P, Integer> entry : map.closestEntriesFirst(pt)) {
+        for (final Map.Entry<P, Integer> entry : map.entriesNearToFar(pt)) {
             ordered.add(entry.getKey());
         }
 
@@ -644,7 +644,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
                     assertIterableOrder(
                             pts,
                             createClosestFirstComparator(refPt),
-                            map.closestEntriesFirst(refPt));
+                            map.entriesNearToFar(refPt));
                 }
             }
         }
@@ -665,7 +665,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
                 assertIterableOrder(
                         pts,
                         createClosestFirstComparator(refPt),
-                        map.closestEntriesFirst(refPt));
+                        map.entriesNearToFar(refPt));
             }
         }
     }
@@ -679,7 +679,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         insertPoints(pts, map);
 
         // act/assert
-        final Iterator<Map.Entry<P, Integer>> it = map.closestEntriesFirst(pts.get(0)).iterator();
+        final Iterator<Map.Entry<P, Integer>> it = map.entriesNearToFar(pts.get(0)).iterator();
         Assertions.assertTrue(it.hasNext());
         Assertions.assertEquals(new SimpleEntry<>(pts.get(0), 0), it.next());
         Assertions.assertThrows(UnsupportedOperationException.class, () -> it.remove());
@@ -701,7 +701,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         insertPoints(pts, map);
 
         // act
-        final Iterator<Map.Entry<P, Integer>> it = map.closestEntriesFirst(pts.get(0)).iterator();
+        final Iterator<Map.Entry<P, Integer>> it = map.entriesNearToFar(pts.get(0)).iterator();
         map.remove(pts.get(0));
 
         // assert
@@ -716,8 +716,8 @@ public abstract class PointMapTestBase<P extends Point<P>>
         final P pt = getTestPoints(1, EPS).get(0);
 
         // act/assert
-        Assertions.assertNull(map.closestEntry(pt));
-        Assertions.assertNull(map.closestEntryWithinDistance(pt, 100d));
+        Assertions.assertNull(map.nearestEntry(pt));
+        Assertions.assertNull(map.nearestEntryWithinRadius(pt, 100d));
     }
 
     @Test
@@ -744,14 +744,14 @@ public abstract class PointMapTestBase<P extends Point<P>>
                 for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
                     Assertions.assertNull(map.get(refPt));
 
-                    final Map.Entry<P, Integer> closest = map.closestEntry(refPt);
+                    final Map.Entry<P, Integer> closest = map.nearestEntry(refPt);
 
                     Assertions.assertEquals(pt, closest.getKey());
                     Assertions.assertEquals(i, closest.getValue());
 
                     Assertions.assertEquals(pt,
-                            map.closestEntryWithinDistance(refPt, closestWithinFoundSpacing).getKey());
-                    Assertions.assertNull(map.closestEntryWithinDistance(refPt, closestWithinNotFoundSpacing));
+                            map.nearestEntryWithinRadius(refPt, closestWithinFoundSpacing).getKey());
+                    Assertions.assertNull(map.nearestEntryWithinRadius(refPt, closestWithinNotFoundSpacing));
                 }
             }
         }
@@ -778,13 +778,13 @@ public abstract class PointMapTestBase<P extends Point<P>>
             for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
                 Assertions.assertNull(map.get(refPt));
 
-                final Map.Entry<P, Integer> closest = map.closestEntry(refPt);
+                final Map.Entry<P, Integer> closest = map.nearestEntry(refPt);
 
                 Assertions.assertEquals(pt, closest.getKey());
                 Assertions.assertEquals(i, closest.getValue());
 
-                Assertions.assertEquals(pt, map.closestEntryWithinDistance(refPt, closestWithinFoundSpacing).getKey());
-                Assertions.assertNull(map.closestEntryWithinDistance(refPt, closestWithinNotFoundSpacing));
+                Assertions.assertEquals(pt, map.nearestEntryWithinRadius(refPt, closestWithinFoundSpacing).getKey());
+                Assertions.assertNull(map.nearestEntryWithinRadius(refPt, closestWithinNotFoundSpacing));
             }
         }
     }
@@ -798,7 +798,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         final List<P> ordered = new ArrayList<>();
 
         // act
-        for (final Map.Entry<P, Integer> entry : map.farthestEntriesFirst(pt)) {
+        for (final Map.Entry<P, Integer> entry : map.entriesfarToNear(pt)) {
             ordered.add(entry.getKey());
         }
 
@@ -824,7 +824,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
                     assertIterableOrder(
                             pts,
                             createFarthestFirstComparator(refPt),
-                            map.farthestEntriesFirst(refPt));
+                            map.entriesfarToNear(refPt));
                 }
             }
         }
@@ -845,7 +845,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
                 assertIterableOrder(
                         pts,
                         createFarthestFirstComparator(refPt),
-                        map.farthestEntriesFirst(refPt));
+                        map.entriesfarToNear(refPt));
             }
         }
     }
@@ -859,7 +859,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         insertPoints(pts, map);
 
         // act/assert
-        final Iterator<Map.Entry<P, Integer>> it = map.farthestEntriesFirst(pts.get(0)).iterator();
+        final Iterator<Map.Entry<P, Integer>> it = map.entriesfarToNear(pts.get(0)).iterator();
         Assertions.assertTrue(it.hasNext());
         Assertions.assertEquals(new SimpleEntry<>(pts.get(1), 1), it.next());
         Assertions.assertThrows(UnsupportedOperationException.class, () -> it.remove());
@@ -881,7 +881,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         insertPoints(pts, map);
 
         // act
-        final Iterator<Map.Entry<P, Integer>> it = map.farthestEntriesFirst(pts.get(0)).iterator();
+        final Iterator<Map.Entry<P, Integer>> it = map.entriesfarToNear(pts.get(0)).iterator();
         map.remove(pts.get(0));
 
         // assert

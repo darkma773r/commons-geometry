@@ -653,7 +653,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
         final List<P> ordered = new ArrayList<>();
 
         // act
-        for (final P closest : set.closestFirst(pt)) {
+        for (final P closest : set.nearToFar(pt)) {
             ordered.add(closest);
         }
 
@@ -680,7 +680,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
                     assertIterableOrder(
                             pts,
                             createClosestFirstComparator(refPt),
-                            set.closestFirst(refPt));
+                            set.nearToFar(refPt));
                 }
             }
         }
@@ -701,7 +701,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
                 assertIterableOrder(
                         pts,
                         createClosestFirstComparator(refPt),
-                        set.closestFirst(refPt));
+                        set.nearToFar(refPt));
             }
         }
     }
@@ -715,7 +715,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
         set.addAll(pts);
 
         // act/assert
-        final Iterator<P> it = set.closestFirst(pts.get(0)).iterator();
+        final Iterator<P> it = set.nearToFar(pts.get(0)).iterator();
         Assertions.assertTrue(it.hasNext());
         Assertions.assertEquals(pts.get(0), it.next());
         Assertions.assertThrows(UnsupportedOperationException.class, () -> it.remove());
@@ -737,7 +737,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
         set.addAll(pts);
 
         // act
-        final Iterator<P> it = set.closestFirst(pts.get(0)).iterator();
+        final Iterator<P> it = set.nearToFar(pts.get(0)).iterator();
         set.remove(pts.get(0));
 
         // assert
@@ -752,8 +752,8 @@ public abstract class PointSetTestBase<P extends Point<P>>
         final P pt = getTestPoints(1, EPS).get(0);
 
         // act/assert
-        Assertions.assertNull(set.closest(pt));
-        Assertions.assertNull(set.closestWithinDistance(pt, 100d));
+        Assertions.assertNull(set.nearest(pt));
+        Assertions.assertNull(set.nearestWithinRadius(pt, 100d));
     }
 
     @Test
@@ -780,12 +780,12 @@ public abstract class PointSetTestBase<P extends Point<P>>
                 for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
                     Assertions.assertNull(set.get(refPt));
 
-                    final P closest = set.closest(refPt);
+                    final P closest = set.nearest(refPt);
 
                     Assertions.assertEquals(pt, closest);
 
-                    Assertions.assertEquals(pt, set.closestWithinDistance(refPt, closestWithinFoundSpacing));
-                    Assertions.assertNull(set.closestWithinDistance(refPt, closestWithinNotFoundSpacing));
+                    Assertions.assertEquals(pt, set.nearestWithinRadius(refPt, closestWithinFoundSpacing));
+                    Assertions.assertNull(set.nearestWithinRadius(refPt, closestWithinNotFoundSpacing));
                 }
             }
         }
@@ -812,12 +812,12 @@ public abstract class PointSetTestBase<P extends Point<P>>
             for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
                 Assertions.assertNull(set.get(refPt));
 
-                final P closest = set.closest(refPt);
+                final P closest = set.nearest(refPt);
 
                 Assertions.assertEquals(pt, closest);
 
-                Assertions.assertEquals(pt, set.closestWithinDistance(refPt, closestWithinFoundSpacing));
-                Assertions.assertNull(set.closestWithinDistance(refPt, closestWithinNotFoundSpacing));
+                Assertions.assertEquals(pt, set.nearestWithinRadius(refPt, closestWithinFoundSpacing));
+                Assertions.assertNull(set.nearestWithinRadius(refPt, closestWithinNotFoundSpacing));
             }
         }
     }
@@ -831,7 +831,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
         final List<P> ordered = new ArrayList<>();
 
         // act
-        for (final P element : set.farthestFirst(pt)) {
+        for (final P element : set.farToNear(pt)) {
             ordered.add(element);
         }
 
@@ -857,7 +857,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
                     assertIterableOrder(
                             pts,
                             createFarthestFirstComparator(refPt),
-                            set.farthestFirst(refPt));
+                            set.farToNear(refPt));
                 }
             }
         }
@@ -878,7 +878,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
                 assertIterableOrder(
                         pts,
                         createFarthestFirstComparator(refPt),
-                        set.farthestFirst(refPt));
+                        set.farToNear(refPt));
             }
         }
     }
@@ -892,7 +892,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
         set.addAll(pts);
 
         // act/assert
-        final Iterator<P> it = set.farthestFirst(pts.get(0)).iterator();
+        final Iterator<P> it = set.farToNear(pts.get(0)).iterator();
         Assertions.assertTrue(it.hasNext());
         Assertions.assertEquals(pts.get(1), it.next());
         Assertions.assertThrows(UnsupportedOperationException.class, () -> it.remove());
@@ -914,7 +914,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
         set.addAll(pts);
 
         // act
-        final Iterator<P> it = set.farthestFirst(pts.get(0)).iterator();
+        final Iterator<P> it = set.farToNear(pts.get(0)).iterator();
         set.remove(pts.get(0));
 
         // assert

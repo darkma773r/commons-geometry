@@ -81,14 +81,14 @@ final class PointMap1DImpl<V>
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Entry<Vector1D, V>> closestEntriesFirst(final Vector1D pt) {
+    public Iterable<Entry<Vector1D, V>> entriesNearToFar(final Vector1D pt) {
         GeometryInternalUtils.requireFinite(pt);
         return () -> new ClosestFirstIterator(pt);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Entry<Vector1D, V>> farthestEntriesFirst(final Vector1D pt) {
+    public Iterable<Entry<Vector1D, V>> entriesfarToNear(final Vector1D pt) {
         GeometryInternalUtils.requireFinite(pt);
         return () -> new FarthestFirstIterator(pt);
     }

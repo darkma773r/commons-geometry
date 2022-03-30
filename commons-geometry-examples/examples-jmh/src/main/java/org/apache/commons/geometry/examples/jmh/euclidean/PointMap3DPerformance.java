@@ -492,7 +492,7 @@ public class PointMap3DPerformance {
         return doRemove(input, bh);
     }
 
-    /** Benchmark for the {@link PointMap#closestEntriesFirst(org.apache.commons.geometry.core.Point)} method.
+    /** Benchmark for the {@link PointMap#entriesNearToFar(org.apache.commons.geometry.core.Point)} method.
      * @param input input for the run
      * @param bh blackhole instance
      * @return input instance
@@ -503,11 +503,11 @@ public class PointMap3DPerformance {
                 input,
                 bh,
                 input.getPoints().size(),
-                PointMap::closestEntriesFirst);
+                PointMap::entriesNearToFar);
     }
 
     /** Benchmark for iterating through a portion of the elements returned by the
-     * {@link PointMap#closestEntriesFirst(org.apache.commons.geometry.core.Point)} method.
+     * {@link PointMap#entriesNearToFar(org.apache.commons.geometry.core.Point)} method.
      * @param input input for the run
      * @param bh blackhole instance
      * @return input instance
@@ -520,10 +520,10 @@ public class PointMap3DPerformance {
                 input,
                 bh,
                 cnt,
-                PointMap::closestEntriesFirst);
+                PointMap::entriesNearToFar);
     }
 
-    /** Benchmark for the {@link PointMap#closestEntry(org.apache.commons.geometry.core.Point)} method.
+    /** Benchmark for the {@link PointMap#nearestEntry(org.apache.commons.geometry.core.Point)} method.
      * @param input input for the run
      * @param bh blackhole instance
      * @return input instance
@@ -533,10 +533,10 @@ public class PointMap3DPerformance {
         return doDistanceSelect(
                 input,
                 bh,
-                PointMap::closestEntry);
+                PointMap::nearestEntry);
     }
 
-    /** Benchmark for the {@link PointMap#farthestEntriesFirst(org.apache.commons.geometry.core.Point)} method.
+    /** Benchmark for the {@link PointMap#entriesfarToNear(org.apache.commons.geometry.core.Point)} method.
      * @param input input for the run
      * @param bh blackhole instance
      * @return input instance
@@ -547,11 +547,11 @@ public class PointMap3DPerformance {
                 input,
                 bh,
                 input.getPoints().size(),
-                PointMap::farthestEntriesFirst);
+                PointMap::entriesfarToNear);
     }
 
     /** Benchmark for iterating through a portion of the results of the
-     * {@link PointMap#farthestEntriesFirst(org.apache.commons.geometry.core.Point)} method.
+     * {@link PointMap#entriesfarToNear(org.apache.commons.geometry.core.Point)} method.
      * @param input input for the run
      * @param bh blackhole instance
      * @return input instance
@@ -564,7 +564,7 @@ public class PointMap3DPerformance {
                 input,
                 bh,
                 cnt,
-                PointMap::farthestEntriesFirst);
+                PointMap::entriesfarToNear);
     }
 
     /** Benchmark for the {@link PointMap#farthestEntry(org.apache.commons.geometry.core.Point)} method.

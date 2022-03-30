@@ -43,28 +43,28 @@ public interface PointSet<P extends Point<P>> extends Set<P> {
      * @return iterable providing access to set entries in ascending order of
      *      distance from {@code pt}
      */
-    Iterable<P> closestFirst(P pt);
+    Iterable<P> nearToFar(P pt);
 
-    /** Return an element from the map such that no element is closer to {@code pt}.
+    /** Return an element from the map such that no element is nearer to {@code pt}.
      * If multiple elements are the exact same distance from {@code pt}, implementations
      * must choose which to return based on whatever criteria is convenient. Callers
      * should not rely on this tie-breaking behavior. Null is returned if the set
      * is empty.
      * @param pt reference point
-     * @return an element such that no element is closer to {@code pt}, or {@code null} if
+     * @return an element such that no element is nearer to {@code pt}, or {@code null} if
      *      the set is empty
      */
-    P closest(P pt);
+    P nearest(P pt);
 
-    /** Return an element from the set such that no element is closer to {@code pt} and
+    /** Return an element from the set such that no element is nearer to {@code pt} and
      * the element satisfies the condition {@code element.distance(pt) <= dist} (using
      * standard floating point comparisons). Null is returned if no such element exists.
      * @param pt reference point
      * @param dist maximum distance from {@code pt}
-     * @return an element such that no element is closer to {@code pt} and the distance
+     * @return an element such that no element is nearer to {@code pt} and the distance
      *      from the element to {@code pt} is less than or equal to {@code dist}
      */
-    P closestWithinDistance(P pt, double dist);
+    P nearestWithinRadius(P pt, double dist);
 
     /** Return an {@link Iterable} providing access to set entries, with those
      * entries farthest from {@code pt} returned first. If two or more entries are
@@ -73,7 +73,7 @@ public interface PointSet<P extends Point<P>> extends Set<P> {
      * @return iterable providing access to set entries in descending order of
      *      distance from {@code pt}
      */
-    Iterable<P> farthestFirst(P pt);
+    Iterable<P> farToNear(P pt);
 
     /** Return an element from the set such that no element is farther from {@code pt}.
      * If multiple elements are the exact same distance from {@code pt}, implementations
