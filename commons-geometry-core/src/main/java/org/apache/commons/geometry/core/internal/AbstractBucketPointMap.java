@@ -25,7 +25,6 @@ import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PriorityQueue;
@@ -126,7 +125,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public Map.Entry<P, V> getEntry(final P pt) {
+    public Entry<P, V> getEntry(final P pt) {
         return findEntryByPoint(pt);
     }
 
@@ -199,16 +198,16 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public Map.Entry<P, V> closestEntry(final P pt) {
+    public Entry<P, V> closestEntry(final P pt) {
         return closestEntryWithinDistance(pt, Double.POSITIVE_INFINITY);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Map.Entry<P, V> closestEntryWithinDistance(final P pt, final double dist) {
-        DistancedValue<Map.Entry<P, V>> result = root.findClosestEntry(pt, dist);
+    public Entry<P, V> closestEntryWithinDistance(final P pt, final double dist) {
+        DistancedValue<Entry<P, V>> result = root.findClosestEntry(pt, dist);
         if (secondaryRoot != null) {
-            final DistancedValue<Map.Entry<P, V>> secondaryResult =
+            final DistancedValue<Entry<P, V>> secondaryResult =
                     secondaryRoot.findClosestEntry(pt, dist);
 
             if (secondaryResult != null &&
@@ -224,14 +223,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Map.Entry<P, V>> closestEntriesFirst(final P pt) {
+    public Iterable<Entry<P, V>> closestEntriesFirst(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
         return () -> new ClosestFirstIterator<>(this, pt);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Map.Entry<P, V>> farthestEntriesFirst(final P pt) {
+    public Iterable<Entry<P, V>> farthestEntriesFirst(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
         return () -> new FarthestFirstIterator<>(this, pt);
     }
@@ -535,7 +534,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          * subtree. No check is made as to whether or not the entry already exists.
          * @param entry entry to insert
          */
-        public void insertEntry(final Map.Entry<P, V> entry) {
+        public void insertEntry(final Entry<P, V> entry) {
             if (isLeaf()) {
                 if (entries.size() < map.maxNodeEntryCount) {
                     // we have an open spot here so just add the entry
@@ -609,13 +608,13 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          * @return closest entry to {@code refPt} within the maximum distance specified in the subtree
          *      rooted at this node, or null if no such entry exists.
          */
-        public DistancedValue<Map.Entry<P, V>> findClosestEntry(final P refPt, final double maxDist) {
+        public DistancedValue<Entry<P, V>> findClosestEntry(final P refPt, final double maxDist) {
             if (isLeaf()) {
                 // leaf node; check the existing entries for a match
-                Map.Entry<P, V> closest = null;
+                Entry<P, V> closest = null;
                 double closestDist = Double.POSITIVE_INFINITY;
 
-                for (final Map.Entry<P, V> entry : entries) {
+                for (final Entry<P, V> entry : entries) {
                     final double entryDist = entry.getKey().distance(refPt);
 
                     if (entryDist <= maxDist &&
@@ -646,13 +645,13 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
                 Collections.sort(sortedNodeList, DistancedValue.ascendingDistance());
 
-                DistancedValue<Map.Entry<P, V>> closest = null;
+                DistancedValue<Entry<P, V>> closest = null;
                 for (final DistancedValue<BucketNode<P, V>> nodeValue : sortedNodeList) {
                     if (closest != null && closest.getDistance() < nodeValue.getDistance()) {
                         break;
                     }
 
-                    final DistancedValue<Map.Entry<P, V>> entry = nodeValue.getValue()
+                    final DistancedValue<Entry<P, V>> entry = nodeValue.getValue()
                             .findClosestEntry(refPt, maxDist);
 
                     if (entry != null &&
@@ -743,7 +742,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          * @return iterator for accessing the entries stored in this node
          */
         @Override
-        public Iterator<Map.Entry<P, V>> iterator() {
+        public Iterator<Entry<P, V>> iterator() {
             return iterator(0);
         }
 
@@ -754,14 +753,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          * @return iterator for accessing the entries stored in this node, starting with the entry at
          *      the given index
          */
-        private Iterator<Map.Entry<P, V>> iterator(final int idx) {
-            final List<Map.Entry<P, V>> iteratedList = idx == 0 ?
+        private Iterator<Entry<P, V>> iterator(final int idx) {
+            final List<Entry<P, V>> iteratedList = idx == 0 ?
                     entries :
                     entries.subList(idx, entries.size());
 
-            final Iterator<Map.Entry<P, V>> it = iteratedList.iterator();
+            final Iterator<Entry<P, V>> it = iteratedList.iterator();
 
-            return new Iterator<Map.Entry<P, V>>() {
+            return new Iterator<Entry<P, V>>() {
 
                 @Override
                 public boolean hasNext() {
@@ -1031,7 +1030,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
      * @param <V> Value type
      */
     private static final class EntrySet<P extends Point<P>, V>
-        extends AbstractSet<Map.Entry<P, V>> {
+        extends AbstractSet<Entry<P, V>> {
 
         /** Owning map. */
         private final AbstractBucketPointMap<P, V> map;
@@ -1047,11 +1046,11 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         @SuppressWarnings("unchecked")
         @Override
         public boolean contains(final Object obj) {
-            if (obj instanceof Map.Entry) {
-                final Map.Entry<?, ?> search = (Map.Entry<?, ?>) obj;
+            if (obj instanceof Entry) {
+                final Entry<?, ?> search = (Entry<?, ?>) obj;
                 final Object key = search.getKey();
 
-                final Map.Entry<P, V> actual = map.findEntry(key);
+                final Entry<P, V> actual = map.findEntry(key);
                 if (actual != null) {
                     return map.pointsEq(actual.getKey(), (P) search.getKey()) &&
                             Objects.equals(actual.getValue(), search.getValue());
@@ -1078,7 +1077,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
      * @param <V> Value type
      */
     private static final class EntryIterator<P extends Point<P>, V>
-        implements Iterator<Map.Entry<P, V>> {
+        implements Iterator<Entry<P, V>> {
 
         /** Owning map. */
         private final AbstractBucketPointMap<P, V> map;
@@ -1087,7 +1086,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         private int size;
 
         /** Iterator that produces the next entry to be returned. */
-        private Iterator<Map.Entry<P, V>> nextEntryIterator;
+        private Iterator<Entry<P, V>> nextEntryIterator;
 
         /** Index of the entry that will be returned next from the iterator. */
         private int nextIdx;
@@ -1125,7 +1124,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                 nextEntryIterator = findIterator();
             }
 
-            final Map.Entry<P, V> result = nextEntryIterator.next();
+            final Entry<P, V> result = nextEntryIterator.next();
             ++nextIdx;
 
             return result;
@@ -1227,7 +1226,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
      * @param <V> Value type
      */
     private abstract static class AbstractDistanceOrderIterator<P extends Point<P>, V>
-        implements Iterator<Map.Entry<P, V>> {
+        implements Iterator<Entry<P, V>> {
 
         /** Owning map. */
         private final AbstractBucketPointMap<P, V> map;
