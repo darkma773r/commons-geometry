@@ -81,7 +81,7 @@ final class PointMap2DImpl<V>
 
     /** {@inheritDoc} */
     @Override
-    protected int comparePoints(final Vector2D a, final Vector2D b) {
+    protected int disambiguatePointComparison(final Vector2D a, final Vector2D b) {
         return Vector2D.COORDINATE_ASCENDING_ORDER.compare(a, b);
     }
 

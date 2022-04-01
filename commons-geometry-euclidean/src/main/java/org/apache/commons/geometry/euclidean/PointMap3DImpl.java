@@ -101,7 +101,7 @@ final class PointMap3DImpl<V>
 
     /** {@inheritDoc} */
     @Override
-    protected int comparePoints(final Vector3D a, final Vector3D b) {
+    protected int disambiguatePointComparison(final Vector3D a, final Vector3D b) {
         return Vector3D.COORDINATE_ASCENDING_ORDER.compare(a, b);
     }
 

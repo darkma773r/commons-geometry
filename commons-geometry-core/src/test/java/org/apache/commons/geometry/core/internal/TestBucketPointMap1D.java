@@ -45,7 +45,7 @@ public class TestBucketPointMap1D<V> extends AbstractBucketPointMap<TestPoint1D,
 
     /** {@inheritDoc} */
     @Override
-    protected int comparePoints(final TestPoint1D a, final TestPoint1D b) {
+    protected int disambiguatePointComparison(final TestPoint1D a, final TestPoint1D b) {
         return Double.compare(a.getX(), b.getX());
     }
 

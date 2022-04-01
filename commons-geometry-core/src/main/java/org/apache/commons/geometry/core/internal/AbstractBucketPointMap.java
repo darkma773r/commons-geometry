@@ -206,14 +206,10 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     @Override
     public Entry<P, V> nearestEntryWithinRadius(final P pt, final double dist) {
         DistancedValue<Entry<P, V>> result = root.findNearestEntry(pt, dist);
-        if (secondaryRoot != null) {
-            final DistancedValue<Entry<P, V>> secondaryResult =
-                    secondaryRoot.findNearestEntry(pt, dist);
 
-            if (secondaryResult != null &&
-                    (result == null || secondaryResult.getDistance() <= result.getDistance())) {
-                result = secondaryResult;
-            }
+        if (secondaryRoot != null) {
+            final DistancedValue<Entry<P, V>> secondaryResult = secondaryRoot.findNearestEntry(pt, dist);
+            result = getNearest(secondaryResult, result);
         }
 
         return result != null ?
@@ -239,14 +235,11 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     @Override
     public Entry<P, V> farthestEntry(final P pt) {
         DistancedValue<Entry<P, V>> result = root.findFarthestEntry(pt, Double.POSITIVE_INFINITY);
+
         if (secondaryRoot != null) {
             final DistancedValue<Entry<P, V>> secondaryResult =
                     secondaryRoot.findFarthestEntry(pt, Double.POSITIVE_INFINITY);
-
-            if (secondaryResult != null &&
-                    (result == null || secondaryResult.getDistance() >= result.getDistance())) {
-                result = secondaryResult;
-            }
+            result = getFarthest(secondaryResult, result);
         }
 
         return result != null ?
@@ -269,14 +262,13 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
      */
     protected abstract boolean pointsEq(P a, P b);
 
-    /** Compare the two points using a standard ordering for the space. This is used
-     * to break ties and provide a consistent ordering when iterating entries by
-     * distance.
+    /** Compare two points to determine a consistent ordering when other comparison
+     * criteria consider them equal.
      * @param a first point
      * @param b second point
      * @return integer comparison result
      */
-    protected abstract int comparePoints(P a, P b);
+    protected abstract int disambiguatePointComparison(P a, P b);
 
     /** Construct a new node instance.
      * @param parent parent node; will be null for the tree root
@@ -394,6 +386,65 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         }
     }
 
+    /** Get the argument with the smallest distance value.
+     * @param a first entry; may be null
+     * @param b second entry; may be null
+     * @return argument with the smallest distance value
+     */
+    private DistancedValue<Entry<P, V>> getNearest(
+            final DistancedValue<Entry<P, V>> a,
+            final DistancedValue<Entry<P, V>> b) {
+        return compareEntries(a, b, Double.POSITIVE_INFINITY) < 0 ?
+                a :
+                b;
+    }
+
+    /** Get the argument with the largest distance value.
+     * @param a first entry; may be null
+     * @param b second entry; may be null
+     * @return argument with the largest distance value
+     */
+    private DistancedValue<Entry<P, V>> getFarthest(
+            final DistancedValue<Entry<P, V>> a,
+            final DistancedValue<Entry<P, V>> b) {
+        return compareEntries(a, b, 0d) > 0 ?
+                a :
+                b;
+    }
+
+    /** Compare two entries with distance values. If either entry is null, the distance
+     * for that entry is taken to be {@code nullDistance}.
+     * @param a first entry; may be null
+     * @param b second entry; may be null
+     * @param nullDistance distance used for null arguments
+     * @return integer comparison result
+     */
+    private int compareEntries(
+            final DistancedValue<Entry<P, V>> a,
+            final DistancedValue<Entry<P, V>> b,
+            final double nullDistance) {
+        final double aDist = a != null ? a.getDistance() : nullDistance;
+        final double bDist = b != null ? b.getDistance() : nullDistance;
+
+        int cmp = precision.compare(aDist, bDist);
+        if (cmp == 0 &&
+                a != null &&
+                b != null) {
+            return disambiguatePointComparison(a.getValue().getKey(), b.getValue().getKey());
+        }
+        return cmp;
+    }
+
+    /** Return true if {@code dist} is within the specified radius, meaning if it
+     * is less than or equal to {@code radius} using the configured precision context.
+     * @param dist distance to test
+     * @param radius radius to compare with
+     * @return true if {@code dist} is within the given radius
+     */
+    private boolean distanceIsWithinRadius(final double dist, final double radius) {
+        return precision.lte(dist, radius);
+    }
+
     /** Return the value for the argument or {@code null} if {@code entry}
      * is {@code null}.
      * @param <V> Value type
@@ -420,7 +471,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         /** Parent node. */
         private BucketNode<P, V> parent;
 
-        /** Index of this node in its parent. */
+        /** Index of this node in its parent child list. */
         private int childIndex;
 
         /** Child nodes. */
@@ -629,26 +680,23 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         public DistancedValue<Entry<P, V>> findNearestEntry(final P refPt, final double maxDist) {
             if (isLeaf()) {
-                // leaf node; check the existing entries for a match
-                Entry<P, V> closest = null;
-                double closestDist = Double.POSITIVE_INFINITY;
+                // leaf node; look through the stored entries
+                DistancedValue<Entry<P, V>> closest = null;
 
                 for (final Entry<P, V> entry : entries) {
-                    final double entryDist = entry.getKey().distance(refPt);
+                    final DistancedValue<Entry<P, V>> entryWithDist = DistancedValue.of(
+                            entry,
+                            entry.getKey().distance(refPt));
 
-                    if (entryDist <= maxDist &&
-                            (closest == null || entryDist < closestDist ||
-                            (entryDist == closestDist && map.comparePoints(entry.getKey(), closest.getKey()) < 0))) {
-                        closest = entry;
-                        closestDist = entryDist;
+                    if (map.distanceIsWithinRadius(entryWithDist.getDistance(), maxDist)) {
+                        closest = map.getNearest(entryWithDist, closest);
                     }
                 }
 
-                return closest != null ?
-                        DistancedValue.of(closest, closestDist) :
-                        null;
+                return closest;
             } else {
-                // internal node; look through children
+                // internal node; look through children in order of increasing minimum
+                // distance from the reference point
                 final List<DistancedValue<BucketNode<P, V>>> sortedNodeList = new ArrayList<>(map.nodeChildCount);
 
                 final int loc = getInsertLocation(refPt);
@@ -656,7 +704,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     final BucketNode<P, V> child = children.get(i);
                     if (child != null) {
                         final double minChildDist = getMinChildDistance(i, refPt, loc);
-                        if (minChildDist <= maxDist) {
+                        if (map.distanceIsWithinRadius(minChildDist, maxDist)) {
                             sortedNodeList.add(DistancedValue.of(child, minChildDist));
                         }
                     }
@@ -666,17 +714,15 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
                 DistancedValue<Entry<P, V>> closest = null;
                 for (final DistancedValue<BucketNode<P, V>> nodeValue : sortedNodeList) {
-                    if (closest != null && closest.getDistance() < nodeValue.getDistance()) {
+                    if (closest != null &&
+                            map.distanceIsWithinRadius(closest.getDistance(), nodeValue.getDistance())) {
+                        // no more child nodes can contain anything closer so we can stop looking
                         break;
                     }
 
                     final DistancedValue<Entry<P, V>> entry = nodeValue.getValue()
                             .findNearestEntry(refPt, maxDist);
-
-                    if (entry != null &&
-                            (closest == null || entry.getDistance() < closest.getDistance())) {
-                        closest = entry;
-                    }
+                    closest = map.getNearest(entry, closest);
                 }
 
                 return closest;
@@ -692,26 +738,23 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         public DistancedValue<Entry<P, V>> findFarthestEntry(final P refPt, final double radius) {
             if (isLeaf()) {
-                // leaf node; check the existing entries for a match
-                Entry<P, V> farthest = null;
-                double farthestDist = 0d;
+                // leaf node; look through the stored entries
+                DistancedValue<Entry<P, V>> farthest = null;
 
                 for (final Entry<P, V> entry : entries) {
-                    final double entryDist = entry.getKey().distance(refPt);
+                    final DistancedValue<Entry<P, V>> entryWithDist = DistancedValue.of(
+                            entry,
+                            entry.getKey().distance(refPt));
 
-                    if (entryDist <= radius &&
-                            (farthest == null || entryDist > farthestDist ||
-                            (entryDist == farthestDist && map.comparePoints(entry.getKey(), farthest.getKey()) > 0))) {
-                        farthest = entry;
-                        farthestDist = entryDist;
+                    if (map.distanceIsWithinRadius(entryWithDist.getDistance(), radius)) {
+                        farthest = map.getFarthest(entryWithDist, farthest);
                     }
                 }
 
-                return farthest != null ?
-                        DistancedValue.of(farthest, farthestDist) :
-                        null;
+                return farthest;
             } else {
-                // internal node; look through children
+                // internal node; look through children in order of decreasing maximum distance
+                // distance from the reference point
                 final List<DistancedValue<BucketNode<P, V>>> sortedNodeList = new ArrayList<>(map.nodeChildCount);
 
                 final int loc = getInsertLocation(refPt);
@@ -719,7 +762,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     final BucketNode<P, V> child = children.get(i);
                     if (child != null) {
                         final double maxChildDist = getMaxChildDistance(i, refPt, loc);
-                        if (maxChildDist <= radius) {
+                        if (map.distanceIsWithinRadius(maxChildDist, radius)) {
                             sortedNodeList.add(DistancedValue.of(child, maxChildDist));
                         }
                     }
@@ -729,17 +772,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
                 DistancedValue<Entry<P, V>> farthest = null;
                 for (final DistancedValue<BucketNode<P, V>> nodeValue : sortedNodeList) {
-                    if (farthest != null && farthest.getDistance() > nodeValue.getDistance()) {
+                    if (farthest != null &&
+                            map.precision.gt(farthest.getDistance(), nodeValue.getDistance())) {
                         break;
                     }
 
                     final DistancedValue<Entry<P, V>> entry = nodeValue.getValue()
                             .findFarthestEntry(refPt, radius);
-
-                    if (entry != null &&
-                            (farthest == null || entry.getDistance() > farthest.getDistance())) {
-                        farthest = entry;
-                    }
+                    farthest = map.getFarthest(entry, farthest);
                 }
 
                 return farthest;
@@ -1328,7 +1368,8 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         /** The next entry to be returned from the iterator. */
         private Entry<P, V> nextEntry;
 
-        /** Construct a new instance for the given map.
+        /** Construct a new instance for ordering map entries by distance in reference
+         * to {@code refPt}.
          * @param map owning map
          * @param refPt reference point used to determine distance
          * @param rootDistance distance value to use for the root nodes
@@ -1403,11 +1444,13 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          * next queue node.
          * @param entry next entry in the queue
          * @param nextNode next node in the queue
+         * @param precision precision context to use for floating point comparisons
          * @return true if the given entry can be returned from the iterator
          */
         abstract boolean canReturnEntry(
                 DistancedValue<Entry<P, V>> entry,
-                DistancedValue<BucketNode<P, V>> nextNode);
+                DistancedValue<BucketNode<P, V>> nextNode,
+                Precision.DoubleEquivalence precision);
 
         /** Queue the child nodes of the argument.
          * @param nodeEntry distance entry containing the parent node
@@ -1439,14 +1482,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         private boolean requiresTreeTraversal() {
             return !nodes.isEmpty() &&
-                    (entries.isEmpty() || !canReturnEntry(entries.peek(), nodes.peek()));
+                    (entries.isEmpty() || !canReturnEntry(entries.peek(), nodes.peek(), map.precision));
         }
 
         /** Throw a {@link ConcurrentModificationException} if the map version does
          * not match the expected version.
          */
         private void checkVersion() {
-            if (map.version != expectedVersion) {
+            if (expectedVersion != map.version) {
                 throw new ConcurrentModificationException();
             }
         }
@@ -1460,7 +1503,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         extends AbstractDistanceOrderIterator<P, V> {
 
         /** Construct a new iterator instance for the given map and reference point.
-         * @param map map to iterator over
+         * @param map owning map
          * @param refPt reference point
          */
         ClosestFirstIterator(final AbstractBucketPointMap<P, V> map, final P refPt) {
@@ -1468,7 +1511,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     refPt,
                     0d,
                     DistancedValue.ascendingDistance(),
-                    entryComparator(map::comparePoints));
+                    (a, b) -> map.compareEntries(a, b, Double.POSITIVE_INFINITY));
 
             queueNextEntry();
         }
@@ -1477,8 +1520,9 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         @Override
         protected boolean canReturnEntry(
                 final DistancedValue<Entry<P, V>> nextEntry,
-                final DistancedValue<BucketNode<P, V>> nextNode) {
-            return nextEntry.getDistance() < nextNode.getDistance();
+                final DistancedValue<BucketNode<P, V>> nextNode,
+                final Precision.DoubleEquivalence precision) {
+            return precision.lt(nextEntry.getDistance(), nextNode.getDistance());
         }
 
         /** {@inheritDoc} */
@@ -1498,21 +1542,6 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                 }
             }
         }
-
-        /** Return the comparator used to compare map entries.
-         * @param <P> Point type
-         * @param <V> Value type
-         * @param pointCmp point comparison method; used to disambiguate the ordering when entries
-         *      have the same distance
-         * @return comparator used to compare map entries
-         */
-        private static <P extends Point<P>, V> Comparator<DistancedValue<Entry<P, V>>> entryComparator(
-                final Comparator<P> pointCmp) {
-
-            final Comparator<DistancedValue<Entry<P, V>>> cmp = DistancedValue.ascendingDistance();
-            return cmp.thenComparing(
-                    (a, b) -> pointCmp.compare(a.getValue().getKey(), b.getValue().getKey()));
-        }
     }
 
     /** Iterator that returns map entries in order of decreasing distance from a specified point.
@@ -1523,7 +1552,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         extends AbstractDistanceOrderIterator<P, V> {
 
         /** Construct a new iterator instance for the given map and reference point.
-         * @param map map to iterator over
+         * @param map owning map
          * @param refPt reference point
          */
         FarthestFirstIterator(final AbstractBucketPointMap<P, V> map, final P refPt) {
@@ -1531,7 +1560,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     refPt,
                     Double.POSITIVE_INFINITY,
                     DistancedValue.descendingDistance(),
-                    entryComparator(map::comparePoints));
+                    (a, b) -> map.compareEntries(b, a, 0d));
 
             queueNextEntry();
         }
@@ -1540,8 +1569,9 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         @Override
         protected boolean canReturnEntry(
                 final DistancedValue<Entry<P, V>> nextEntry,
-                final DistancedValue<BucketNode<P, V>> nextNode) {
-            return nextEntry.getDistance() > nextNode.getDistance();
+                final DistancedValue<BucketNode<P, V>> nextNode,
+                final Precision.DoubleEquivalence precision) {
+            return precision.gt(nextEntry.getDistance(), nextNode.getDistance());
         }
 
         /** {@inheritDoc} */
@@ -1564,27 +1594,5 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                 }
             }
         }
-
-        /** Return the comparator used to compare map entries.
-         * @param <P> Point type
-         * @param <V> Value type
-         * @param pointCmp point comparison method; used to disambiguate the ordering when entries
-         *      have the same distance
-         * @return comparator used to compare map entries
-         */
-        private static <P extends Point<P>, V> Comparator<DistancedValue<Entry<P, V>>> entryComparator(
-                final Comparator<P> pointCmp) {
-
-            final Comparator<DistancedValue<Entry<P, V>>> cmp = DistancedValue.descendingDistance();
-            return cmp.thenComparing(
-                    (a, b) -> pointCmp.compare(b.getValue().getKey(), a.getValue().getKey()));
-        }
-    }
-
-    public interface DistanceOrdering<P extends Point<P>, V> {
-
-        int compareDistance(double a, double b);
-
-
     }
 }
