@@ -764,7 +764,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
         final double keySpacing = 7 * EPS;
         final double testPointSpacing = 3 * EPS;
         final double closestWithinFoundSpacing = 4 * EPS;
-        final double closestWithinNotFoundSpacing = 2 * EPS;
+        final double closestWithinNotFoundSpacing = 1.5 * EPS;
 
         int maxCnt = 5;
         for (int cnt = 1; cnt <= maxCnt; ++cnt) {
@@ -799,7 +799,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
         final double keySpacing = 7 * EPS;
         final double testPointSpacing = 3 * EPS;
         final double closestWithinFoundSpacing = 4 * EPS;
-        final double closestWithinNotFoundSpacing = 2 * EPS;
+        final double closestWithinNotFoundSpacing = 1.5 * EPS;
 
         final int cnt = 1000;
         final List<P> pts = getTestPoints(cnt, keySpacing, new Random(5L));
