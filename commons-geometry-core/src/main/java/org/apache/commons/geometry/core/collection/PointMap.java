@@ -39,55 +39,20 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      */
     Entry<P, V> getEntry(P pt);
 
-    /** Return an {@link Iterable} providing access to map entries in ascending order
-     * of distance from {@code pt}. No ordering is guaranteed for entries that are
-     * exactly the same distance from {@code pt}.
+    /** Return a view of all entries in this map with ordering based on distance
+     * from the given reference point.
      * @param pt reference point
-     * @return iterable providing access to map entries in ascending order of
-     *      distance from {@code pt}
+     * @return a view of the entries in this map with ordering based on distance
+     *      from the given reference point
      */
-    Iterable<Entry<P, V>> entriesNearToFar(P pt);
+    DistanceOrdering<Entry<P, V>> entriesFrom(P pt);
 
-    /** Return an entry from the map such that no entry is nearer to {@code pt}.
-     * Distance is measured from {@code pt} to the {@link Entry#getKey() key} of each
-     * entry. If multiple entries are the exact same distance from {@code pt}, implementations
-     * must choose which to return based on whatever criteria is convenient. Callers
-     * should not rely on this tie-breaking behavior. Null is returned if the map
-     * is empty.
-     * @param pt reference point
-     * @return map entry such that no entry is nearer to {@code pt}, or {@code null} if
-     *      the map is empty
-     */
-    Entry<P, V> nearestEntry(P pt);
-
-    /** Return an entry from the map such that no entry is nearer to {@code pt} and the
-     * entry satisfies the condition {@code entry.getKey().distance(pt) <= dist} (using
-     * standard floating point comparisons). Null is returned if no such entry exists.
+    /** Return a view of entries in this map within {@code radius} distance from
+     * {@code pt}. Ordering is based on distance from the reference point.
      * @param pt reference point
      * @param radius maximum distance from {@code pt}
-     * @return a map entry such that no entry is nearer to {@code pt} and the distance
-     *      from the entry's key to {@code pt} is less than or equal to {@code dist}
+     * @return a view of entries in this map within {@code radius} distance from
+     *      {@code pt}
      */
-    Entry<P, V> nearestEntryWithinRadius(P pt, double radius);
-
-    /** Return an {@link Iterable} providing access to map entries in descending order
-     * of distance from {@code pt}. No ordering is guaranteed for entries that are
-     * exactly the same distance from {@code pt}.
-     * @param pt reference point
-     * @return iterable providing access to map entries in descending order of
-     *      distance from {@code pt}
-     */
-    Iterable<Entry<P, V>> entriesFarToNear(P pt);
-
-    /** Return an entry from the map such that no entry is farther from {@code pt}.
-     * Distance is measured from {@code pt} to the {@link Entry#getKey() key} of each
-     * entry. If multiple entries are the exact same distance from {@code pt}, implementations
-     * must choose which to return based on whatever criteria is convenient. Callers
-     * should not rely on this tie-breaking behavior. Null is returned if the map
-     * is empty.
-     * @param pt reference point
-     * @return map entry such that no entry is farther than {@code pt}, or {@code null} if
-     *      the map is empty
-     */
-    Entry<P, V> farthestEntry(P pt);
+    DistanceOrdering<Entry<P, V>> entriesWithinRadius(P pt, double radius);
 }

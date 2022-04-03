@@ -18,7 +18,6 @@ package org.apache.commons.geometry.spherical;
 
 import java.util.AbstractSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -26,7 +25,6 @@ import java.util.Set;
 
 import org.apache.commons.geometry.core.internal.AbstractPointMap1D;
 import org.apache.commons.geometry.core.internal.DistancedValue;
-import org.apache.commons.geometry.core.internal.GeometryInternalUtils;
 import org.apache.commons.geometry.spherical.oned.Point1S;
 import org.apache.commons.numbers.angle.Angle;
 import org.apache.commons.numbers.core.Precision;
@@ -39,9 +37,6 @@ import org.apache.commons.numbers.core.Precision;
 final class PointMap1SImpl<V>
     extends AbstractPointMap1D<Point1S, V> {
 
-    /** Precision context used to determine floating point equality. */
-    private final Precision.DoubleEquivalence precision;
-
     /** Minimum key in the map, or null if not known. */
     private Point1S minKey;
 
@@ -53,8 +48,7 @@ final class PointMap1SImpl<V>
      * @param precision object used to determine floating point equality
      */
     PointMap1SImpl(final Precision.DoubleEquivalence precision) {
-        super((a, b) -> precision.compare(a.getNormalizedAzimuth(), b.getNormalizedAzimuth()));
-        this.precision = precision;
+        super(precision, Point1S::getNormalizedAzimuth);
     }
 
     /** {@inheritDoc} */
@@ -72,7 +66,7 @@ final class PointMap1SImpl<V>
     /** {@inheritDoc} */
     @Override
     public V remove(final Object key) {
-        final Map.Entry<Point1S, V> entry = getEntryInternal((Point1S) key);
+        final Entry<Point1S, V> entry = getEntryInternal((Point1S) key);
         if (entry != null) {
             final V result = getMap().remove(entry.getKey());
 
@@ -105,24 +99,22 @@ final class PointMap1SImpl<V>
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Entry<Point1S, V>> entriesNearToFar(final Point1S pt) {
-        GeometryInternalUtils.requireFinite(pt);
-        return () -> new ClosestFirstIterator(pt);
+    protected Iterator<DistancedValue<Entry<Point1S, V>>> nearToFarIterator(final Point1S pt) {
+        return new NearToFarIterator(pt);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Entry<Point1S, V>> entriesFarToNear(final Point1S pt) {
-        GeometryInternalUtils.requireFinite(pt);
-        return () -> new ClosestFirstIterator(pt.antipodal());
+    protected Iterator<DistancedValue<Entry<Point1S, V>>> farToNearIterator(final Point1S pt) {
+        return new NearToFarIterator(pt.antipodal());
     }
 
     /** {@inheritDoc} */
     @Override
-    protected Map.Entry<Point1S, V> getEntryInternal(final Point1S pt) {
+    protected Entry<Point1S, V> getEntryInternal(final Point1S pt) {
         final NavigableMap<Point1S, V> map = getMap();
 
-        final Map.Entry<Point1S, V> floor = map.floorEntry(pt);
+        final Entry<Point1S, V> floor = map.floorEntry(pt);
         if (floor != null && keyEq(pt, floor)) {
             return floor;
         } else {
@@ -142,7 +134,7 @@ final class PointMap1SImpl<V>
     protected V putInternal(final Point1S key, final V value) {
         final NavigableMap<Point1S, V> map = getMap();
 
-        final Map.Entry<Point1S, V> entry = getEntryInternal(key);
+        final Entry<Point1S, V> entry = getEntryInternal(key);
         if (entry != null) {
             return map.put(entry.getKey(), value);
         }
@@ -167,8 +159,8 @@ final class PointMap1SImpl<V>
      * @return true if {@code pt} is directly equivalent to the key for {@code entry},
      *      without considering wrap around
      */
-    private boolean keyEq(final Point1S pt, final Map.Entry<Point1S, V> entry) {
-        return precision.eq(pt.getNormalizedAzimuth(), entry.getKey().getNormalizedAzimuth());
+    private boolean keyEq(final Point1S pt, final Entry<Point1S, V> entry) {
+        return getPrecision().eq(pt.getNormalizedAzimuth(), entry.getKey().getNormalizedAzimuth());
     }
 
     /** Return true if the given point wraps around the zero point from high to low
@@ -184,7 +176,7 @@ final class PointMap1SImpl<V>
             }
 
             final double adjustedAz = pt.getNormalizedAzimuth() - Angle.TWO_PI;
-            return precision.eq(adjustedAz, minKey.getNormalizedAzimuth());
+            return getPrecision().eq(adjustedAz, minKey.getNormalizedAzimuth());
         }
 
         return false;
@@ -203,7 +195,7 @@ final class PointMap1SImpl<V>
             }
 
             final double adjustedAz = pt.getNormalizedAzimuth() + Angle.TWO_PI;
-            return precision.eq(adjustedAz, maxKey.getNormalizedAzimuth());
+            return getPrecision().eq(adjustedAz, maxKey.getNormalizedAzimuth());
         }
 
         return false;
@@ -214,7 +206,7 @@ final class PointMap1SImpl<V>
      * @param entry map entry
      * @return map value or null if {@code entry} is null
      */
-    private static <V> V getValue(final Map.Entry<?, V> entry) {
+    private static <V> V getValue(final Entry<?, V> entry) {
         return entry != null ?
                 entry.getValue() :
                 null;
@@ -247,18 +239,18 @@ final class PointMap1SImpl<V>
     /** Entry set view of the map.
      */
     private final class EntrySet
-        extends AbstractSet<Map.Entry<Point1S, V>> {
+        extends AbstractSet<Entry<Point1S, V>> {
 
         /** {@inheritDoc} */
         @Override
         public boolean contains(final Object obj) {
-            if (obj instanceof Map.Entry) {
-                final Map.Entry<?, ?> search = (Map.Entry<?, ?>) obj;
+            if (obj instanceof Entry) {
+                final Entry<?, ?> search = (Entry<?, ?>) obj;
                 final Object key = search.getKey();
 
-                final Map.Entry<Point1S, V> actual = getEntry((Point1S) key);
+                final Entry<Point1S, V> actual = getEntry((Point1S) key);
                 if (actual != null) {
-                    return actual.getKey().eq((Point1S) search.getKey(), precision) &&
+                    return actual.getKey().eq((Point1S) search.getKey(), getPrecision()) &&
                             Objects.equals(actual.getValue(), search.getValue());
                 }
             }
@@ -317,23 +309,23 @@ final class PointMap1SImpl<V>
     /** Iterator that returns the entries in order of ascending distance from
      * a given reference point.
      */
-    private final class ClosestFirstIterator
-        implements Iterator<Map.Entry<Point1S, V>> {
+    private final class NearToFarIterator
+        implements Iterator<DistancedValue<Entry<Point1S, V>>> {
 
         /** Reference point to measure distances against. */
         private final Point1S refPt;
 
         /** Low entry iterator. */
-        private Iterator<Map.Entry<Point1S, V>> low;
+        private Iterator<Entry<Point1S, V>> low;
 
         /** High entry iterator. */
-        private Iterator<Map.Entry<Point1S, V>> high;
+        private Iterator<Entry<Point1S, V>> high;
 
         /** Low-valued entry. */
-        private DistancedValue<Map.Entry<Point1S, V>> lowEntry;
+        private DistancedValue<Entry<Point1S, V>> lowEntry;
 
         /** High-valued entry. */
-        private DistancedValue<Map.Entry<Point1S, V>> highEntry;
+        private DistancedValue<Entry<Point1S, V>> highEntry;
 
         /** Number of entries remaining to retrieve from each iterator. */
         private int remaining;
@@ -341,7 +333,7 @@ final class PointMap1SImpl<V>
         /** Construct a new instance with the given reference point.
          * @param refPt reference point
          */
-        ClosestFirstIterator(final Point1S refPt) {
+        NearToFarIterator(final Point1S refPt) {
             this.refPt = refPt;
 
             this.low = getMap().descendingMap().tailMap(refPt, false)
@@ -378,18 +370,18 @@ final class PointMap1SImpl<V>
 
         /** {@inheritDoc} */
         @Override
-        public Entry<Point1S, V> next() {
+        public DistancedValue<Entry<Point1S, V>> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
 
-            final Entry<Point1S, V> result;
+            final DistancedValue<Entry<Point1S, V>> result;
             if (lowEntry != null &&
                     (highEntry == null || lowEntry.getDistance() <= highEntry.getDistance())) {
-                result = lowEntry.getValue();
+                result = lowEntry;
                 lowEntry = null;
             } else {
-                result = highEntry.getValue();
+                result = highEntry;
                 highEntry = null;
             }
 

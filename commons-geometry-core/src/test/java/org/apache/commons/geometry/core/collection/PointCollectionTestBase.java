@@ -24,9 +24,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.apache.commons.geometry.core.Point;
 import org.apache.commons.numbers.core.Precision;
+import org.junit.jupiter.api.Assertions;
 
 /** Base test class for point collection types.
  * @param <P> Point type
@@ -151,5 +153,128 @@ public abstract class PointCollectionTestBase<P extends Point<P>> {
         }
 
         return result;
+    }
+
+    /** Check basic {@link DistanceOrdering} functionality.
+     * @param <T> Element type
+     * @param ordering instance under test
+     * @param elements elements in the collection
+     * @param nearToFarCmp comparator used to sort the elements in the collection
+     *      from near to far
+     */
+    protected static <T> void checkDistanceOrdering(
+            final DistanceOrdering<T> ordering,
+            final List<T> elements,
+            final Comparator<T> nearToFarCmp) {
+        new DistanceOrderingChecker<>(ordering, elements, nearToFarCmp)
+            .check();
+    }
+
+    /** Class used to assert basic {@link DistanceOrdering} functionality.
+     * @param <T> Element type
+     */
+    public static class DistanceOrderingChecker<T> {
+
+        /** View under test. */
+        private final DistanceOrdering<T> ordering;
+
+        /** Expected near to far list. */
+        private final List<T> expectedNearToFar;
+
+        /** Expected far to near list. */
+        private final List<T> expectedFarToNear;
+
+        /** Construct a new instance for testing the given {@code ordering}.
+         * @param ordering instance under test
+         * @param elements elements in the collection
+         * @param nearToFarCmp comparator used to sort the elements in the collection
+         *      from near to far
+         */
+        public DistanceOrderingChecker(
+                final DistanceOrdering<T> ordering,
+                final List<T> elements,
+                final Comparator<T> nearToFarCmp) {
+            this.ordering = ordering;
+
+            this.expectedNearToFar = new ArrayList<>(elements);
+            Collections.sort(this.expectedNearToFar, nearToFarCmp);
+
+            this.expectedFarToNear = new ArrayList<>(this.expectedNearToFar);
+            Collections.reverse(expectedFarToNear);
+        }
+
+        public void check() {
+            checkNearest();
+            checkKNearest();
+            checkNearToFar();
+
+            checkFarthest();
+            checkKFarthest();
+            checkFarToNear();
+        }
+
+        private void checkNearest() {
+            final T expected = expectedNearToFar.isEmpty() ?
+                    null :
+                    expectedNearToFar.get(0);
+
+            Assertions.assertEquals(expected, ordering.nearest());
+        }
+
+        private void checkKNearest() {
+            Assertions.assertThrows(IllegalArgumentException.class, () -> ordering.kNearest(-1));
+
+            Assertions.assertEquals(Collections.emptyList(), ordering.kNearest(0));
+
+            for (int i = 1; i <= expectedNearToFar.size(); ++i) {
+                Assertions.assertEquals(expectedNearToFar.subList(0, i), ordering.kNearest(i));
+            }
+
+            Assertions.assertEquals(expectedNearToFar, ordering.kNearest(expectedNearToFar.size() + 1));
+        }
+
+        private void checkNearToFar() {
+            final List<T> actual = ordering.nearToFar().stream()
+                    .collect(Collectors.toList());
+
+            Assertions.assertEquals(expectedNearToFar.size(), actual.size(), "Unexpected size");
+
+            for (int i = 0; i < expectedNearToFar.size(); ++i) {
+                Assertions.assertEquals(expectedNearToFar.get(i), actual.get(i),
+                        "Unexpected element at index " + i);
+            }
+        }
+
+        private void checkFarthest() {
+            final T expected = expectedFarToNear.isEmpty() ?
+                    null :
+                        expectedFarToNear.get(0);
+
+            Assertions.assertEquals(expected, ordering.farthest());
+        }
+
+        private void checkKFarthest() {
+            Assertions.assertThrows(IllegalArgumentException.class, () -> ordering.kFarthest(-1));
+
+            Assertions.assertEquals(Collections.emptyList(), ordering.kFarthest(0));
+
+            for (int i = 1; i <= expectedFarToNear.size(); ++i) {
+                Assertions.assertEquals(expectedFarToNear.subList(0, i), ordering.kFarthest(i));
+            }
+
+            Assertions.assertEquals(expectedFarToNear, ordering.kFarthest(expectedFarToNear.size() + 1));
+        }
+
+        private void checkFarToNear() {
+            final List<T> actual = ordering.farToNear().stream()
+                    .collect(Collectors.toList());
+
+            Assertions.assertEquals(expectedFarToNear.size(), actual.size(), "Unexpected size");
+
+            for (int i = 0; i < expectedFarToNear.size(); ++i) {
+                Assertions.assertEquals(expectedFarToNear.get(i), actual.get(i),
+                        "Unexpected element at index " + i);
+            }
+        }
     }
 }

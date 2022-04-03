@@ -31,7 +31,9 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 import org.apache.commons.geometry.core.Point;
+import org.apache.commons.geometry.core.collection.DistanceOrdering;
 import org.apache.commons.geometry.core.collection.PointMap;
+import org.apache.commons.geometry.core.collection.StreamingIterable;
 import org.apache.commons.numbers.core.Precision;
 
 /** Abstract tree-based {@link PointMap} implementation that stores entries in bucket nodes
@@ -100,6 +102,9 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** Secondary tree root. */
     private BucketNode<P, V> secondaryRoot;
+
+    /** Cached entry set instance. */
+    private EntrySet entrySetInstance;
 
     /** Version counter, used to track tree modifications. */
     private int version;
@@ -186,7 +191,10 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     /** {@inheritDoc} */
     @Override
     public Set<Entry<P, V>> entrySet() {
-        return new EntrySet<>(this);
+        if (entrySetInstance == null) {
+            entrySetInstance = new EntrySet();
+        }
+        return entrySetInstance;
     }
 
     /** {@inheritDoc} */
@@ -198,53 +206,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public Entry<P, V> nearestEntry(final P pt) {
-        return nearestEntryWithinRadius(pt, Double.POSITIVE_INFINITY);
+    public DistanceOrdering<Entry<P, V>> entriesFrom(final P pt) {
+        return entriesWithinRadius(pt, Double.POSITIVE_INFINITY);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Entry<P, V> nearestEntryWithinRadius(final P pt, final double dist) {
-        DistancedValue<Entry<P, V>> result = root.findNearestEntry(pt, dist);
-
-        if (secondaryRoot != null) {
-            final DistancedValue<Entry<P, V>> secondaryResult = secondaryRoot.findNearestEntry(pt, dist);
-            result = getNearest(secondaryResult, result);
-        }
-
-        return result != null ?
-                result.getValue() :
-                null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Iterable<Entry<P, V>> entriesNearToFar(final P pt) {
-        GeometryInternalUtils.requireFinite(pt);
-        return () -> new ClosestFirstIterator<>(this, pt);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Iterable<Entry<P, V>> entriesFarToNear(final P pt) {
-        GeometryInternalUtils.requireFinite(pt);
-        return () -> new FarthestFirstIterator<>(this, pt);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Entry<P, V> farthestEntry(final P pt) {
-        DistancedValue<Entry<P, V>> result = root.findFarthestEntry(pt, Double.POSITIVE_INFINITY);
-
-        if (secondaryRoot != null) {
-            final DistancedValue<Entry<P, V>> secondaryResult =
-                    secondaryRoot.findFarthestEntry(pt, Double.POSITIVE_INFINITY);
-            result = getFarthest(secondaryResult, result);
-        }
-
-        return result != null ?
-                result.getValue() :
-                null;
+    public DistanceOrdering<Entry<P, V>> entriesWithinRadius(final P pt, final double radius) {
+        return new DistanceOrderingImpl(pt, radius);
     }
 
     /** Get the configured precision for the instance.
@@ -435,14 +404,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         return cmp;
     }
 
-    /** Return true if {@code dist} is within the specified radius, meaning if it
-     * is less than or equal to {@code radius} using the configured precision context.
+    /** Return true if {@code dist} is within the specified maximum value, meaning if it
+     * is less than or equal to {@code maxDist} using the configured precision context.
      * @param dist distance to test
-     * @param radius radius to compare with
-     * @return true if {@code dist} is within the given radius
+     * @param maxDist maximum distance
+     * @return true if {@code dist} is within the given maximum
      */
-    private boolean distanceIsWithinRadius(final double dist, final double radius) {
-        return precision.lte(dist, radius);
+    private boolean distanceIsWithinMax(final double dist, final double maxDist) {
+        return precision.lte(dist, maxDist);
     }
 
     /** Return the value for the argument or {@code null} if {@code entry}
@@ -688,7 +657,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                             entry,
                             entry.getKey().distance(refPt));
 
-                    if (map.distanceIsWithinRadius(entryWithDist.getDistance(), maxDist)) {
+                    if (map.distanceIsWithinMax(entryWithDist.getDistance(), maxDist)) {
                         closest = map.getNearest(entryWithDist, closest);
                     }
                 }
@@ -704,7 +673,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     final BucketNode<P, V> child = children.get(i);
                     if (child != null) {
                         final double minChildDist = getMinChildDistance(i, refPt, loc);
-                        if (map.distanceIsWithinRadius(minChildDist, maxDist)) {
+                        if (map.distanceIsWithinMax(minChildDist, maxDist)) {
                             sortedNodeList.add(DistancedValue.of(child, minChildDist));
                         }
                     }
@@ -715,7 +684,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                 DistancedValue<Entry<P, V>> closest = null;
                 for (final DistancedValue<BucketNode<P, V>> nodeValue : sortedNodeList) {
                     if (closest != null &&
-                            map.distanceIsWithinRadius(closest.getDistance(), nodeValue.getDistance())) {
+                            map.distanceIsWithinMax(closest.getDistance(), nodeValue.getDistance())) {
                         // no more child nodes can contain anything closer so we can stop looking
                         break;
                     }
@@ -732,11 +701,11 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         /** Find the farthest entry from {@code refPt} within the specified radius in the subtree
          * rooted at this node, or null if no such entry exists.
          * @param refPt reference point
-         * @param radius search radius
+         * @param maxDist maximum search distance
          * @return farthest entry from {@code refPt} within the specified radius in the subtree
          *      rooted at this node, or null if no such entry exists.
          */
-        public DistancedValue<Entry<P, V>> findFarthestEntry(final P refPt, final double radius) {
+        public DistancedValue<Entry<P, V>> findFarthestEntry(final P refPt, final double maxDist) {
             if (isLeaf()) {
                 // leaf node; look through the stored entries
                 DistancedValue<Entry<P, V>> farthest = null;
@@ -746,7 +715,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                             entry,
                             entry.getKey().distance(refPt));
 
-                    if (map.distanceIsWithinRadius(entryWithDist.getDistance(), radius)) {
+                    if (map.distanceIsWithinMax(entryWithDist.getDistance(), maxDist)) {
                         farthest = map.getFarthest(entryWithDist, farthest);
                     }
                 }
@@ -762,7 +731,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     final BucketNode<P, V> child = children.get(i);
                     if (child != null) {
                         final double maxChildDist = getMaxChildDistance(i, refPt, loc);
-                        if (map.distanceIsWithinRadius(maxChildDist, radius)) {
+                        if (map.distanceIsWithinMax(maxChildDist, maxDist)) {
                             sortedNodeList.add(DistancedValue.of(child, maxChildDist));
                         }
                     }
@@ -778,7 +747,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     }
 
                     final DistancedValue<Entry<P, V>> entry = nodeValue.getValue()
-                            .findFarthestEntry(refPt, radius);
+                            .findFarthestEntry(refPt, maxDist);
                     farthest = map.getFarthest(entry, farthest);
                 }
 
@@ -1148,21 +1117,9 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     }
 
     /** Set view of the map entries.
-     * @param <P> Point type
-     * @param <V> Value type
      */
-    private static final class EntrySet<P extends Point<P>, V>
+    private final class EntrySet
         extends AbstractSet<Entry<P, V>> {
-
-        /** Owning map. */
-        private final AbstractBucketPointMap<P, V> map;
-
-        /** Construct a new instance for the given map.
-         * @param map map instance
-         */
-        EntrySet(final AbstractBucketPointMap<P, V> map) {
-            this.map = map;
-        }
 
         /** {@inheritDoc} */
         @SuppressWarnings("unchecked")
@@ -1172,9 +1129,9 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                 final Entry<?, ?> search = (Entry<?, ?>) obj;
                 final Object key = search.getKey();
 
-                final Entry<P, V> actual = map.findEntry(key);
+                final Entry<P, V> actual = findEntry(key);
                 if (actual != null) {
-                    return map.pointsEq(actual.getKey(), (P) search.getKey()) &&
+                    return pointsEq(actual.getKey(), (P) search.getKey()) &&
                             Objects.equals(actual.getValue(), search.getValue());
                 }
             }
@@ -1184,25 +1141,20 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         /** {@inheritDoc} */
         @Override
         public Iterator<Entry<P, V>> iterator() {
-            return new EntryIterator<>(map);
+            return new EntryIterator();
         }
 
         /** {@inheritDoc} */
         @Override
         public int size() {
-            return map.size();
+            return AbstractBucketPointMap.this.size();
         }
     }
 
     /** Iterator for iterating through each entry in the map.
-     * @param <P> Point type
-     * @param <V> Value type
      */
-    private static final class EntryIterator<P extends Point<P>, V>
+    private final class EntryIterator
         implements Iterator<Entry<P, V>> {
-
-        /** Owning map. */
-        private final AbstractBucketPointMap<P, V> map;
 
         /** Size of the owning map. */
         private int size;
@@ -1216,12 +1168,10 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         /** Expected map modification version. */
         private int expectedVersion;
 
-        /** Construct a new instance for the given map.
-         * @param map map instance
+        /** Simple constructor.
          */
-        EntryIterator(final AbstractBucketPointMap<P, V> map) {
-            this.map = map;
-            this.size = map.size();
+        EntryIterator() {
+            this.size = AbstractBucketPointMap.this.size();
 
             updateExpectedVersion();
         }
@@ -1271,16 +1221,16 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         private Iterator<Entry<P, V>> findIterator() {
             int offset = 0;
-            if (map.secondaryRoot != null) {
-                final Iterator<Entry<P, V>> secondaryIt = findIteratorRecursive(map.secondaryRoot, offset);
+            if (secondaryRoot != null) {
+                final Iterator<Entry<P, V>> secondaryIt = findIteratorRecursive(secondaryRoot, offset);
                 if (secondaryIt != null) {
                     return secondaryIt;
                 }
 
-                offset += map.secondaryRoot.getEntryCount();
+                offset += secondaryRoot.getEntryCount();
             }
 
-            return findIteratorRecursive(map.root, offset);
+            return findIteratorRecursive(root, offset);
         }
 
         /** Find the next map entry iterator recursively in the subtree rooted at {@code node}.
@@ -1329,7 +1279,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          * not match the expected version.
          */
         private void checkVersion() {
-            if (map.version != expectedVersion) {
+            if (expectedVersion != version) {
                 throw new ConcurrentModificationException();
             }
         }
@@ -1338,7 +1288,72 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          * whenever the map is changed through this instance.
          */
         private void updateExpectedVersion() {
-            expectedVersion = map.version;
+            expectedVersion = version;
+        }
+    }
+
+    /** Internal implementation of {@link DistanceOrdering}.
+     */
+    private final class DistanceOrderingImpl implements DistanceOrdering<Entry<P, V>> {
+
+        /** Reference point. */
+        private final P refPt;
+
+        /** Maximum distance from {@code maxDist} to search. */
+        private final double maxDist;
+
+        /** Construct a new instance with distances relative to {@code refPt}.
+         * @param refPt reference point
+         * @param maxDist maximum distance from {@code refPt} to include in the search
+         * @throws NullPointerException if {@code refPt} is null
+         * @throws IllegalArgumentException if {@code refPt} is not finite
+         */
+        DistanceOrderingImpl(final P refPt, final double maxDist) {
+            this.refPt = GeometryInternalUtils.requireFinite(refPt);
+            this.maxDist = maxDist;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Entry<P, V> nearest() {
+            DistancedValue<Entry<P, V>> result = root.findNearestEntry(refPt, maxDist);
+
+            if (secondaryRoot != null) {
+                final DistancedValue<Entry<P, V>> secondaryResult = secondaryRoot.findNearestEntry(refPt, maxDist);
+                result = getNearest(secondaryResult, result);
+            }
+
+            return result != null ?
+                    result.getValue() :
+                    null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Entry<P, V> farthest() {
+            DistancedValue<Entry<P, V>> result = root.findFarthestEntry(refPt, maxDist);
+
+            if (secondaryRoot != null) {
+                final DistancedValue<Entry<P, V>> secondaryResult =
+                        secondaryRoot.findFarthestEntry(refPt, maxDist);
+                result = getFarthest(secondaryResult, result);
+            }
+
+            return result != null ?
+                    result.getValue() :
+                    null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public StreamingIterable<Entry<P, V>> nearToFar() {
+            return () -> new NearToFarIterator<>(AbstractBucketPointMap.this, refPt);
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public StreamingIterable<Entry<P, V>> farToNear() {
+            return () -> new FarToNearIterator<>(AbstractBucketPointMap.this, refPt);
         }
     }
 
@@ -1499,14 +1514,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
      * @param <P> Point type
      * @param <V> Value type
      */
-    private static final class ClosestFirstIterator<P extends Point<P>, V>
+    private static final class NearToFarIterator<P extends Point<P>, V>
         extends AbstractDistanceOrderIterator<P, V> {
 
         /** Construct a new iterator instance for the given map and reference point.
          * @param map owning map
          * @param refPt reference point
          */
-        ClosestFirstIterator(final AbstractBucketPointMap<P, V> map, final P refPt) {
+        NearToFarIterator(final AbstractBucketPointMap<P, V> map, final P refPt) {
             super(map,
                     refPt,
                     0d,
@@ -1548,14 +1563,14 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
      * @param <P> Point type
      * @param <V> Value type
      */
-    private static final class FarthestFirstIterator<P extends Point<P>, V>
+    private static final class FarToNearIterator<P extends Point<P>, V>
         extends AbstractDistanceOrderIterator<P, V> {
 
         /** Construct a new iterator instance for the given map and reference point.
          * @param map owning map
          * @param refPt reference point
          */
-        FarthestFirstIterator(final AbstractBucketPointMap<P, V> map, final P refPt) {
+        FarToNearIterator(final AbstractBucketPointMap<P, V> map, final P refPt) {
             super(map,
                     refPt,
                     Double.POSITIVE_INFINITY,

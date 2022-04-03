@@ -18,14 +18,18 @@ package org.apache.commons.geometry.core.internal;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
+import java.util.function.ToDoubleFunction;
 
 import org.apache.commons.geometry.core.Point;
+import org.apache.commons.geometry.core.collection.DistanceOrdering;
 import org.apache.commons.geometry.core.collection.PointMap;
+import org.apache.commons.geometry.core.collection.StreamingIterable;
+import org.apache.commons.numbers.core.Precision;
 
 /** Abstract base class for 1D {@link PointMap} implementations. This class delegates
  * entry storage to an internal {@link TreeMap} instance. Simple methods, such as
@@ -37,15 +41,23 @@ import org.apache.commons.geometry.core.collection.PointMap;
 public abstract class AbstractPointMap1D<P extends Point<P>, V>
     implements PointMap<P, V> {
 
+    /** Precision context. */
+    private final Precision.DoubleEquivalence precision;
+
     /** Underlying map. */
     private final NavigableMap<P, V> map;
 
-    /** Construct a new instance that uses the given comparator in the
-     * underlying {@link TreeMap}.
-     * @param cmp tree map comparator
+    /** Construct a new instance that uses the given precision and coordinate accessor
+     * function to sort elements.
+     * @param precision precision object used for floating point comparisons
+     * @param coordinateFn function used to obtain coordinate values from point instance
      */
-    protected AbstractPointMap1D(final Comparator<P> cmp) {
-        this.map = new TreeMap<>(cmp);
+    protected AbstractPointMap1D(
+            final Precision.DoubleEquivalence precision,
+            final ToDoubleFunction<P> coordinateFn) {
+        this.precision = precision;
+        this.map = new TreeMap<>(
+                (a, b) -> precision.compare(coordinateFn.applyAsDouble(a), coordinateFn.applyAsDouble(b)));
     }
 
     /** {@inheritDoc} */
@@ -96,29 +108,14 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public Entry<P, V> nearestEntry(final P pt) {
-        final Iterator<Entry<P, V>> it = entriesNearToFar(pt).iterator();
-        return it.hasNext() ?
-                it.next() :
-                null;
+    public DistanceOrdering<Entry<P, V>> entriesFrom(final P pt) {
+        return entriesWithinRadius(pt, Double.POSITIVE_INFINITY);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Entry<P, V> nearestEntryWithinRadius(final P pt, final double radius) {
-        final Entry<P, V> closest = nearestEntry(pt);
-        return closest != null && closest.getKey().distance(pt) <= radius ?
-                closest :
-                null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Entry<P, V> farthestEntry(final P pt) {
-        final Iterator<Entry<P, V>> it = entriesFarToNear(pt).iterator();
-        return it.hasNext() ?
-                it.next() :
-                null;
+    public DistanceOrdering<Entry<P, V>> entriesWithinRadius(final P pt, final double radius) {
+        return new DistanceOrderingImpl(pt, radius);
     }
 
     /** {@inheritDoc} */
@@ -172,6 +169,81 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
                 null;
     }
 
+    /** Get the configured precision for the instance.
+     * @return precision object
+     */
+    protected Precision.DoubleEquivalence getPrecision() {
+        return precision;
+    }
+
+    /** Get an iterator for accessing map entries in order of nearest to farthest
+     * from {@code pt}.
+     * @param pt reference point
+     * @return iterator for accessing map entries in order of nearest to farthest
+     * f        from {@code pt}.
+     */
+    protected abstract Iterator<DistancedValue<Entry<P, V>>> nearToFarIterator(P pt);
+
+    /** Get an iterator for accessing map entries in order of farthest to nearest
+     * from {@code pt}.
+     * @param pt reference point
+     * @return iterator for accessing map entries in order of farthest to nearest
+     * f        from {@code pt}.
+     */
+    protected abstract Iterator<DistancedValue<Entry<P, V>>> farToNearIterator(P pt);
+
+    /** Internal implementation of {@link DistanceOrdering}.
+     */
+    private class DistanceOrderingImpl implements DistanceOrdering<Entry<P, V>> {
+
+        /** Reference point. */
+        private final P refPt;
+
+        /** Maximum distance. */
+        private final double maxDist;
+
+        /** Construct a new ordering instance.
+         * @param refPt reference point
+         * @param maxDist maximum distance
+         * @throws NullPointerException if {@code refPt} is null
+         * @throws IllegalArgumentException if {@code refPt} is not finite
+         */
+        DistanceOrderingImpl(final P refPt, final double maxDist) {
+            this.refPt = GeometryInternalUtils.requireFinite(refPt);
+            this.maxDist = maxDist;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Entry<P, V> nearest() {
+            final Iterator<DistancedValue<Entry<P, V>>> it = nearToFarIterator(refPt);
+            return it.hasNext() ?
+                    it.next().getValue() :
+                    null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Entry<P, V> farthest() {
+            final Iterator<DistancedValue<Entry<P, V>>> it = farToNearIterator(refPt);
+            return it.hasNext() ?
+                    it.next().getValue() :
+                    null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public StreamingIterable<Entry<P, V>> nearToFar() {
+            return () -> new DistanceOrderIterator(nearToFarIterator(refPt), maxDist);
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public StreamingIterable<Entry<P, V>> farToNear() {
+            return () -> new DistanceOrderIterator(farToNearIterator(refPt), maxDist);
+        }
+    }
+
     /** {@link Map.Entry} subclass that adds support for the {@link Map.Entry#setValue(Object)}.
      */
     private final class MutableEntryWrapper extends SimpleEntry<P, V> {
@@ -194,6 +266,56 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
 
             // set the local value
             return super.setValue(value);
+        }
+    }
+
+    private final class DistanceOrderIterator
+        implements Iterator<Entry<P, V>> {
+
+        private final Iterator<DistancedValue<Entry<P, V>>> iterator;
+
+        private final double maxDist;
+
+        private DistancedValue<Entry<P, V>> nextEntry;
+
+        DistanceOrderIterator(
+                final Iterator<DistancedValue<Entry<P, V>>> iterator,
+                final double dist) {
+            this.iterator = iterator;
+            this.maxDist = dist;
+
+            queueNext();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public boolean hasNext() {
+            return nextEntry != null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Entry<P, V> next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            final Entry<P, V> result = nextEntry.getValue();
+            nextEntry = null;
+
+            queueNext();
+
+            return result;
+        }
+
+        private void queueNext() {
+            if (iterator.hasNext()) {
+                // continue getting entries until we pass the maximum distance
+                final DistancedValue<Entry<P, V>> entry = iterator.next();
+                if (getPrecision().lte(entry.getDistance(), maxDist)) {
+                    nextEntry = entry;
+                }
+            }
         }
     }
 }

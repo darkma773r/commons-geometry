@@ -18,11 +18,13 @@ package org.apache.commons.geometry.core.internal;
 
 import java.util.AbstractSet;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.geometry.core.Point;
+import org.apache.commons.geometry.core.collection.DistanceOrdering;
 import org.apache.commons.geometry.core.collection.PointMap;
 import org.apache.commons.geometry.core.collection.PointSet;
+import org.apache.commons.geometry.core.collection.StreamingIterable;
 
 /** Internal utility class that exposes a {@link PointMap} as a {@link PointSet}.
  * This class is not intended for direct use by users of this library. Users should
@@ -62,34 +64,14 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<P> nearToFar(final P pt) {
-        final Iterable<Map.Entry<P, Object>> mapIterable = map.entriesNearToFar(pt);
-        return () -> new EntryIteratorWrapper<>(mapIterable.iterator());
+    public DistanceOrdering<P> from(final P pt) {
+        return new EntryDistanceOrderingWrapper<>(map.entriesFrom(pt));
     }
 
     /** {@inheritDoc} */
     @Override
-    public P nearest(final P pt) {
-        return getKey(map.nearestEntry(pt));
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public P nearestWithinRadius(final P pt, final double dist) {
-        return getKey(map.nearestEntryWithinRadius(pt, dist));
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Iterable<P> farToNear(final P pt) {
-        final Iterable<Map.Entry<P, Object>> mapIterable = map.entriesFarToNear(pt);
-        return () -> new EntryIteratorWrapper<>(mapIterable.iterator());
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public P farthest(final P pt) {
-        return getKey(map.farthestEntry(pt));
+    public DistanceOrdering<P> withinRadius(final P pt, final double maxDist) {
+        return new EntryDistanceOrderingWrapper<>(map.entriesWithinRadius(pt, maxDist));
     }
 
     /** {@inheritDoc} */
@@ -128,10 +110,62 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
      * @param entry map entry
      * @return entry key or {@code null} if {@code entry} is {@code null}
      */
-    private static <P extends Point<P>> P getKey(final Map.Entry<P, ?> entry) {
+    private static <P extends Point<P>> P getKey(final Entry<P, ?> entry) {
         return entry != null ?
                 entry.getKey() :
                 null;
+    }
+
+    /** Class that wraps a {@link DistanceOrdering} view from a map and converts
+     * it to return only the map keys.
+     * @param <P> Point type
+     */
+    private static final class EntryDistanceOrderingWrapper<P extends Point<P>>
+        implements DistanceOrdering<P> {
+
+        /** Underlying map entry view. */
+        private final DistanceOrdering<Entry<P, Object>> ordering;
+
+        /** Construct a new instance that wraps the given map entry view.
+         * @param ordering map entry view
+         */
+        EntryDistanceOrderingWrapper(final DistanceOrdering<Entry<P, Object>> ordering) {
+            this.ordering = ordering;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public P nearest() {
+            return getKey(ordering.nearest());
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public P farthest() {
+            return getKey(ordering.farthest());
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public StreamingIterable<P> nearToFar() {
+            return () -> new EntryIteratorWrapper<>(ordering.nearToFar().iterator());
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public StreamingIterable<P> farToNear() {
+            return () -> new EntryIteratorWrapper<>(ordering.farToNear().iterator());
+        }
+
+        /** Get the key for the given entry or {@code null} if the entry is null.
+         * @param entry entry to get the key for
+         * @return the key for the given entry or {@code null} if the entry is null
+         */
+        private P getKey(final Entry<P, ?> entry) {
+            return entry != null ?
+                    entry.getKey() :
+                    null;
+        }
     }
 
     /** Iterator that converts from a map entry iterator to a key iteration.
@@ -141,12 +175,12 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
         implements Iterator<P> {
 
         /** Underlying entry iterator. */
-        private final Iterator<Map.Entry<P, Object>> entryIterator;
+        private final Iterator<Entry<P, Object>> entryIterator;
 
         /** Construct a new instance wrapping the given entry iterator.
          * @param entryIterator map entry iterator
          */
-        EntryIteratorWrapper(final Iterator<Map.Entry<P, Object>> entryIterator) {
+        EntryIteratorWrapper(final Iterator<Entry<P, Object>> entryIterator) {
             this.entryIterator = entryIterator;
         }
 

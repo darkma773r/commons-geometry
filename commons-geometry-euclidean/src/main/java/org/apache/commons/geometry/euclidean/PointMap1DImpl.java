@@ -17,14 +17,12 @@
 package org.apache.commons.geometry.euclidean;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.commons.geometry.core.internal.AbstractPointMap1D;
 import org.apache.commons.geometry.core.internal.DistancedValue;
-import org.apache.commons.geometry.core.internal.GeometryInternalUtils;
 import org.apache.commons.geometry.euclidean.oned.Vector1D;
 import org.apache.commons.numbers.core.Precision;
 
@@ -40,7 +38,7 @@ final class PointMap1DImpl<V>
      * @param precision precision context
      */
     PointMap1DImpl(final Precision.DoubleEquivalence precision) {
-        super((a, b) -> precision.compare(a.getX(), b.getX()));
+        super(precision, Vector1D::getX);
     }
 
     /** {@inheritDoc} */
@@ -81,24 +79,10 @@ final class PointMap1DImpl<V>
 
     /** {@inheritDoc} */
     @Override
-    public Iterable<Entry<Vector1D, V>> entriesNearToFar(final Vector1D pt) {
-        GeometryInternalUtils.requireFinite(pt);
-        return () -> new ClosestFirstIterator(pt);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Iterable<Entry<Vector1D, V>> entriesFarToNear(final Vector1D pt) {
-        GeometryInternalUtils.requireFinite(pt);
-        return () -> new FarthestFirstIterator(pt);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected Map.Entry<Vector1D, V> getEntryInternal(final Vector1D key) {
+    protected Entry<Vector1D, V> getEntryInternal(final Vector1D key) {
         final NavigableMap<Vector1D, V> map = getMap();
 
-        final Map.Entry<Vector1D, V> floor = map.floorEntry(key);
+        final Entry<Vector1D, V> floor = map.floorEntry(key);
         if (floor != null &&
                 map.comparator().compare(floor.getKey(), key) == 0) {
             return floor;
@@ -112,31 +96,43 @@ final class PointMap1DImpl<V>
         return getMap().put(key, value);
     }
 
-    /** Iterator that returns the entries in order of ascending distance from
+    /** {@inheritDoc} */
+    @Override
+    protected Iterator<DistancedValue<Entry<Vector1D, V>>> nearToFarIterator(final Vector1D pt) {
+        return new NearToFarIterator(pt);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected Iterator<DistancedValue<Entry<Vector1D, V>>> farToNearIterator(final Vector1D pt) {
+        return new FarToNearIterator(pt);
+    }
+
+    /** Iterator that returns entries in order of ascending distance from
      * a given reference point.
      */
-    private final class ClosestFirstIterator
-        implements Iterator<Map.Entry<Vector1D, V>> {
+    private final class NearToFarIterator
+        implements Iterator<DistancedValue<Entry<Vector1D, V>>> {
 
         /** Reference point to measure distances against. */
         private final Vector1D refPt;
 
         /** Low entry iterator. */
-        private final Iterator<Map.Entry<Vector1D, V>> low;
+        private final Iterator<Entry<Vector1D, V>> low;
 
         /** High entry iterator. */
-        private final Iterator<Map.Entry<Vector1D, V>> high;
+        private final Iterator<Entry<Vector1D, V>> high;
 
         /** Low-valued entry. */
-        private DistancedValue<Map.Entry<Vector1D, V>> lowEntry;
+        private DistancedValue<Entry<Vector1D, V>> lowEntry;
 
         /** High-valued entry. */
-        private DistancedValue<Map.Entry<Vector1D, V>> highEntry;
+        private DistancedValue<Entry<Vector1D, V>> highEntry;
 
         /** Construct a new instance with the given reference point.
          * @param refPt reference point
          */
-        ClosestFirstIterator(final Vector1D refPt) {
+        NearToFarIterator(final Vector1D refPt) {
             this.refPt = refPt;
 
             this.low = getMap().descendingMap().tailMap(refPt, false)
@@ -159,18 +155,18 @@ final class PointMap1DImpl<V>
 
         /** {@inheritDoc} */
         @Override
-        public Entry<Vector1D, V> next() {
+        public DistancedValue<Entry<Vector1D, V>> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
 
-            final Entry<Vector1D, V> result;
+            final DistancedValue<Entry<Vector1D, V>> result;
             if (lowEntry != null &&
                     (highEntry == null || lowEntry.getDistance() <= highEntry.getDistance())) {
-                result = lowEntry.getValue();
+                result = lowEntry;
                 lowEntry = null;
             } else {
-                result = highEntry.getValue();
+                result = highEntry;
                 highEntry = null;
             }
 
@@ -192,26 +188,26 @@ final class PointMap1DImpl<V>
         }
     }
 
-    /** Iterator that returns the entries in order of descending distance from
+    /** Iterator that returns entries in order of descending distance from
      * a given reference point.
      */
-    private final class FarthestFirstIterator
-        implements Iterator<Map.Entry<Vector1D, V>> {
+    private final class FarToNearIterator
+        implements Iterator<DistancedValue<Entry<Vector1D, V>>> {
 
         /** Reference point to measure distances against. */
         private final Vector1D refPt;
 
         /** Low entry iterator. */
-        private Iterator<Map.Entry<Vector1D, V>> low;
+        private Iterator<Entry<Vector1D, V>> low;
 
         /** High entry iterator. */
-        private Iterator<Map.Entry<Vector1D, V>> high;
+        private Iterator<Entry<Vector1D, V>> high;
 
         /** Low-valued entry. */
-        private DistancedValue<Map.Entry<Vector1D, V>> lowEntry;
+        private DistancedValue<Entry<Vector1D, V>> lowEntry;
 
         /** High-valued entry. */
-        private DistancedValue<Map.Entry<Vector1D, V>> highEntry;
+        private DistancedValue<Entry<Vector1D, V>> highEntry;
 
         /** The last value returned by the low iterator. */
         private double lastLowValue = Double.NEGATIVE_INFINITY;
@@ -223,7 +219,7 @@ final class PointMap1DImpl<V>
          * reference point.
          * @param refPt reference point
          */
-        FarthestFirstIterator(final Vector1D refPt) {
+        FarToNearIterator(final Vector1D refPt) {
             this.refPt = refPt;
 
             this.low = getMap().entrySet().iterator();
@@ -261,18 +257,18 @@ final class PointMap1DImpl<V>
 
         /** {@inheritDoc} */
         @Override
-        public Entry<Vector1D, V> next() {
+        public DistancedValue<Entry<Vector1D, V>> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
 
-            final Entry<Vector1D, V> result;
+            final DistancedValue<Entry<Vector1D, V>> result;
             if (lowEntry != null &&
                     (highEntry == null || lowEntry.getDistance() >= highEntry.getDistance())) {
-                result = lowEntry.getValue();
+                result = lowEntry;
                 lowEntry = null;
             } else {
-                result = highEntry.getValue();
+                result = highEntry;
                 highEntry = null;
             }
 

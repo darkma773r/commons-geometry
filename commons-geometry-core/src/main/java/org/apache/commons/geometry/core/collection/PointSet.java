@@ -36,53 +36,20 @@ public interface PointSet<P extends Point<P>> extends Set<P> {
      */
     P get(P pt);
 
-    /** Return an {@link Iterable} providing access to set entries, with those
-     * entries closest to {@code pt} returned first. If two or more entries are
-     * exactly the same distance from {@code pt}. they may be returned in any order.
+    /** Return a view of all elements in this set with ordering based on distance
+     * from the given reference point.
      * @param pt reference point
-     * @return iterable providing access to set entries in ascending order of
-     *      distance from {@code pt}
+     * @return a view of the elements in this set with ordering based on distance
+     *      from the given reference point
      */
-    Iterable<P> nearToFar(P pt);
+    DistanceOrdering<P> from(P pt);
 
-    /** Return an element from the map such that no element is nearer to {@code pt}.
-     * If multiple elements are the exact same distance from {@code pt}, implementations
-     * must choose which to return based on whatever criteria is convenient. Callers
-     * should not rely on this tie-breaking behavior. Null is returned if the set
-     * is empty.
+    /** Return a view of elements in this set within {@code radius} distance from
+     * {@code pt}. Ordering is based on distance from the reference point.
      * @param pt reference point
-     * @return an element such that no element is nearer to {@code pt}, or {@code null} if
-     *      the set is empty
+     * @param radius maximum distance from {@code pt}
+     * @return a view of elements in this set within {@code radius} distance from
+     *      {@code pt}
      */
-    P nearest(P pt);
-
-    /** Return an element from the set such that no element is nearer to {@code pt} and
-     * the element satisfies the condition {@code element.distance(pt) <= dist} (using
-     * standard floating point comparisons). Null is returned if no such element exists.
-     * @param pt reference point
-     * @param dist maximum distance from {@code pt}
-     * @return an element such that no element is nearer to {@code pt} and the distance
-     *      from the element to {@code pt} is less than or equal to {@code dist}
-     */
-    P nearestWithinRadius(P pt, double dist);
-
-    /** Return an {@link Iterable} providing access to set entries, with those
-     * entries farthest from {@code pt} returned first. If two or more entries are
-     * exactly the same distance from {@code pt}, they may be returned in any order.
-     * @param pt reference point
-     * @return iterable providing access to set entries in descending order of
-     *      distance from {@code pt}
-     */
-    Iterable<P> farToNear(P pt);
-
-    /** Return an element from the set such that no element is farther from {@code pt}.
-     * If multiple elements are the exact same distance from {@code pt}, implementations
-     * must choose which to return based on whatever criteria is convenient. Callers
-     * should not rely on this tie-breaking behavior. Null is returned if the set
-     * is empty.
-     * @param pt reference point
-     * @return an element such that no element is farther than {@code pt}, or {@code null} if
-     *      the set is empty
-     */
-    P farthest(P pt);
+    DistanceOrdering<P> withinRadius(P pt, double radius);
 }

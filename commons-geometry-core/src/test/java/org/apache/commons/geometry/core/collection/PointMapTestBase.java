@@ -609,7 +609,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
     }
 
     @Test
-    void testClosestEntriesFirst_empty() {
+    void testFrom_empty() {
         // arrange
         final PointMap<P, Integer> map = getMap(PRECISION);
 
