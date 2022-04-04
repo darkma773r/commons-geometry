@@ -25,6 +25,9 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
+import org.apache.commons.geometry.euclidean.threed.line.Line3D;
+import org.apache.commons.geometry.euclidean.threed.line.LinecastPoint3D;
+import org.apache.commons.geometry.euclidean.threed.line.Lines3D;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
 import org.apache.commons.numbers.core.Precision;
 import org.junit.jupiter.api.Assertions;
@@ -408,6 +411,47 @@ class Bounds3DTest {
 
         Assertions.assertFalse(b1.eq(b4, high));
         Assertions.assertFalse(b4.eq(b1, high));
+    }
+
+    @Test
+    void testLinecastFirst_lineIntersects() {
+        // -- arrange
+        final Bounds3D bounds = Bounds3D.from(Vector3D.of(-1, -1, -1), Vector3D.of(1, 1, 1));
+
+        // -- act/assert
+        checkLinecast(bounds, Vector3D.of(1, 0, 0), Vector3D.Unit.PLUS_X);
+        checkLinecast(bounds, Vector3D.of(-1, 0, 0), Vector3D.Unit.MINUS_X);
+
+        checkLinecast(bounds, Vector3D.of(0, 1, 0), Vector3D.Unit.PLUS_Y);
+        checkLinecast(bounds, Vector3D.of(0, -1, 0), Vector3D.Unit.MINUS_Y);
+
+        checkLinecast(bounds, Vector3D.of(0, 0, 1), Vector3D.Unit.PLUS_Z);
+        checkLinecast(bounds, Vector3D.of(0, 0, -1), Vector3D.Unit.MINUS_Z);
+    }
+
+    private void checkLinecast(
+            final Bounds3D bounds,
+            final Vector3D facePt,
+            final Vector3D normal) {
+
+        EuclideanTestUtils.permute(-1, 1, 0.5, (x, y, z) -> {
+            final Vector3D otherPt = facePt
+                    .add(Vector3D.of(x, y, z))
+                    .add(facePt.project(normal));
+            final Line3D line = Lines3D.fromPoints(facePt, otherPt, TEST_PRECISION);
+
+            assertLinecast(bounds.linecastFirst(line), facePt, normal);
+            assertLinecast(bounds.linecastFirst(line.reverse()), facePt, normal);
+        });
+    }
+
+    private void assertLinecast(
+            final LinecastPoint3D result,
+            final Vector3D expectedPt,
+            final Vector3D expectedNorma) {
+
+        EuclideanTestUtils.assertCoordinatesEqual(expectedPt, result.getPoint(), TEST_EPS);
+        EuclideanTestUtils.assertCoordinatesEqual(expectedNorma, result.getNormal(), TEST_EPS);
     }
 
     @Test

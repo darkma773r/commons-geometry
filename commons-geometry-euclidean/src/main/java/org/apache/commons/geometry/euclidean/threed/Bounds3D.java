@@ -17,9 +17,13 @@
 package org.apache.commons.geometry.euclidean.threed;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.geometry.euclidean.AbstractBounds;
+import org.apache.commons.geometry.euclidean.threed.line.LineConvexSubset3D;
+import org.apache.commons.geometry.euclidean.threed.line.LinecastPoint3D;
+import org.apache.commons.geometry.euclidean.threed.line.Linecastable3D;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
 import org.apache.commons.numbers.core.Precision;
 
@@ -29,7 +33,8 @@ import org.apache.commons.numbers.core.Precision;
  *
  * <p>Instances of this class are guaranteed to be immutable.</p>
  */
-public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D> {
+public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
+    implements Linecastable3D {
 
     /** Simple constructor. Callers are responsible for ensuring the min is not greater than max.
      * @param min minimum point
@@ -118,6 +123,20 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D> {
         }
 
         return null; // no intersection
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public List<LinecastPoint3D> linecast(final LineConvexSubset3D subset) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public LinecastPoint3D linecastFirst(final LineConvexSubset3D subset) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /** {@inheritDoc}
