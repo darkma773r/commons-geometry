@@ -82,16 +82,16 @@ public abstract class LineConvexSubset3D extends LineSubset3D {
         return line.contains(pt) && containsAbscissa(line.abscissa(pt));
     }
 
-    /** Transform this instance.
-     * @param transform the transform to apply
-     * @return a new, transformed instance
-     */
-    public abstract LineConvexSubset3D transform(Transform<Vector3D> transform);
-
     /** Return true if the given abscissa value is contained in the line subset (ie, in the subspace region
      * or one of its 1D boundaries).
      * @param abscissa abscissa to check
      * @return true if {@code abscissa} lies on the inside or boundary of the subspace region
      */
-    abstract boolean containsAbscissa(double abscissa);
+    public abstract boolean containsAbscissa(double abscissa);
+
+    /** Transform this instance.
+     * @param transform the transform to apply
+     * @return a new, transformed instance
+     */
+    public abstract LineConvexSubset3D transform(Transform<Vector3D> transform);
 }

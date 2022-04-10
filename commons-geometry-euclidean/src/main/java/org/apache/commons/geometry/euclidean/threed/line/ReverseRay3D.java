@@ -129,6 +129,12 @@ public final class ReverseRay3D extends LineConvexSubset3D {
 
     /** {@inheritDoc} */
     @Override
+    public boolean containsAbscissa(final double abscissa) {
+        return getLine().getPrecision().lte(abscissa, end);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public ReverseRay3D transform(final Transform<Vector3D> transform) {
         final Line3D tLine = getLine().transform(transform);
         final Vector3D tEnd = transform.apply(getEndPoint());
@@ -148,11 +154,5 @@ public final class ReverseRay3D extends LineConvexSubset3D {
             .append(']');
 
         return sb.toString();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    boolean containsAbscissa(final double abscissa) {
-        return getLine().getPrecision().lte(abscissa, end);
     }
 }

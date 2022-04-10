@@ -434,11 +434,17 @@ class Bounds3DTest {
             final Vector3D facePt,
             final Vector3D normal) {
 
+        final Vector3D offset = normal.multiply(1.2);
+
         EuclideanTestUtils.permute(-1, 1, 0.5, (x, y, z) -> {
             final Vector3D otherPt = facePt
                     .add(Vector3D.of(x, y, z))
-                    .add(facePt.project(normal));
-            final Line3D line = Lines3D.fromPoints(facePt, otherPt, TEST_PRECISION);
+                    .add(offset);
+            final Line3D line = Lines3D.fromPoints(otherPt, facePt, TEST_PRECISION);
+
+            System.out.println();
+            System.out.println(otherPt + " " + facePt);
+            System.out.println(bounds.linecastFirst(line));
 
             assertLinecast(bounds.linecastFirst(line), facePt, normal);
             assertLinecast(bounds.linecastFirst(line.reverse()), facePt, normal);

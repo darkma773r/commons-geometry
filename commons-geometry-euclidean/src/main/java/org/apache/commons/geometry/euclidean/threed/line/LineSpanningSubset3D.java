@@ -119,6 +119,12 @@ final class LineSpanningSubset3D extends LineConvexSubset3D {
 
     /** {@inheritDoc} */
     @Override
+    public boolean containsAbscissa(final double abscissa) {
+        return true;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public LineSpanningSubset3D transform(final Transform<Vector3D> transform) {
         return new LineSpanningSubset3D(getLine().transform(transform));
     }
@@ -132,11 +138,5 @@ final class LineSpanningSubset3D extends LineConvexSubset3D {
                 getClass().getSimpleName(),
                 line.getOrigin(),
                 line.getDirection());
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    boolean containsAbscissa(final double abscissa) {
-        return true;
     }
 }

@@ -124,6 +124,14 @@ public final class Segment3D extends LineConvexSubset3D {
 
     /** {@inheritDoc} */
     @Override
+    public boolean containsAbscissa(final double abscissa) {
+        final Precision.DoubleEquivalence precision = getLine().getPrecision();
+        return precision.gte(abscissa, start) &&
+                precision.lte(abscissa, end);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public Segment3D transform(final Transform<Vector3D> transform) {
         final Vector3D t1 = transform.apply(getStartPoint());
         final Vector3D t2 = transform.apply(getEndPoint());
@@ -145,13 +153,5 @@ public final class Segment3D extends LineConvexSubset3D {
             .append(']');
 
         return sb.toString();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    boolean containsAbscissa(final double abscissa) {
-        final Precision.DoubleEquivalence precision = getLine().getPrecision();
-        return precision.gte(abscissa, start) &&
-                precision.lte(abscissa, end);
     }
 }

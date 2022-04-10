@@ -16,11 +16,15 @@
  */
 package org.apache.commons.geometry.euclidean.threed;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.ToDoubleFunction;
 
 import org.apache.commons.geometry.euclidean.AbstractBounds;
+import org.apache.commons.geometry.euclidean.threed.line.Line3D;
 import org.apache.commons.geometry.euclidean.threed.line.LineConvexSubset3D;
 import org.apache.commons.geometry.euclidean.threed.line.LinecastPoint3D;
 import org.apache.commons.geometry.euclidean.threed.line.Linecastable3D;
@@ -128,15 +132,13 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
     /** {@inheritDoc} */
     @Override
     public List<LinecastPoint3D> linecast(final LineConvexSubset3D subset) {
-        // TODO Auto-generated method stub
-        return null;
+        return new Linecaster(subset).getIntersections();
     }
 
     /** {@inheritDoc} */
     @Override
     public LinecastPoint3D linecastFirst(final LineConvexSubset3D subset) {
-        // TODO Auto-generated method stub
-        return null;
+        return new Linecaster(subset).getFirstIntersection();
     }
 
     /** {@inheritDoc}
@@ -304,6 +306,100 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
             }
 
             return new Bounds3D(min, max);
+        }
+    }
+
+    private final class Linecaster {
+
+        private final LineConvexSubset3D subset;
+
+        private final Line3D line;
+
+        private final Precision.DoubleEquivalence precision;
+
+        private double near = Double.NEGATIVE_INFINITY;
+
+        private double far = Double.POSITIVE_INFINITY;
+
+        private Vector3D nearNormal;
+
+        private Vector3D farNormal;
+
+        Linecaster(final LineConvexSubset3D subset) {
+            this.subset = subset;
+            this.line = subset.getLine();
+            this.precision = line.getPrecision();
+        }
+
+        public List<LinecastPoint3D> getIntersections() {
+            if (computeNearFar()) {
+                final List<LinecastPoint3D> results = new ArrayList<>(2);
+                if (subset.containsAbscissa(near)) {
+                    results.add(new LinecastPoint3D(line.pointAt(near), nearNormal, line));
+                }
+                if (subset.containsAbscissa(far)) {
+                    results.add(new LinecastPoint3D(line.pointAt(far), farNormal, line));
+                }
+
+                return results;
+            }
+
+            return Collections.emptyList();
+        }
+
+        public LinecastPoint3D getFirstIntersection() {
+            if (computeNearFar() && subset.containsAbscissa(near)) {
+                return new LinecastPoint3D(line.pointAt(near), nearNormal, line);
+            }
+            return null;
+        }
+
+        private boolean computeNearFar() {
+            return computeNearFar(Vector3D::getX, Vector3D.Unit.PLUS_X) &&
+                    computeNearFar(Vector3D::getY, Vector3D.Unit.PLUS_Y) &&
+                    computeNearFar(Vector3D::getZ, Vector3D.Unit.PLUS_Z);
+        }
+
+        private boolean computeNearFar(
+                final ToDoubleFunction<Vector3D> coordinateFn,
+                final Vector3D positiveNormal) {
+            final double dir = coordinateFn.applyAsDouble(line.getDirection());
+            final double origin = coordinateFn.applyAsDouble(line.getOrigin());
+
+            final double min = coordinateFn.applyAsDouble(getMin());
+            final double max = coordinateFn.applyAsDouble(getMax());
+
+            if (line.getPrecision().eqZero(dir) &&
+                    (precision.lt(origin, min) || precision.gt(origin, max))) {
+                return false;
+            }
+
+            double t1 = (min - origin) / dir;
+            double t2 = (max - origin) / dir;
+            double normalFactor = -1d;
+
+            if (t1 > t2) {
+                final double temp = t1;
+                t1 = t2;
+                t2 = temp;
+                normalFactor = 1d;
+            }
+
+            if (t1 > near) {
+                near = t1;
+                nearNormal = positiveNormal.multiply(normalFactor);
+            }
+
+            if (t2 < far) {
+                far = t2;
+                farNormal = positiveNormal.multiply(-1 * normalFactor);
+            }
+
+            if (precision.gt(near, far)) {
+                return false;
+            }
+
+            return true;
         }
     }
 }
