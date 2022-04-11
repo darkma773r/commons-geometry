@@ -16,6 +16,7 @@
  */
 package org.apache.commons.geometry.euclidean.threed.line;
 
+import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.Transform;
 import org.apache.commons.geometry.euclidean.oned.Interval;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
@@ -79,15 +80,8 @@ public abstract class LineConvexSubset3D extends LineSubset3D {
      */
     public boolean contains(final Vector3D pt) {
         final Line3D line = getLine();
-        return line.contains(pt) && containsAbscissa(line.abscissa(pt));
+        return line.contains(pt) && classifyAbscissa(line.abscissa(pt)) != RegionLocation.OUTSIDE;
     }
-
-    /** Return true if the given abscissa value is contained in the line subset (ie, in the subspace region
-     * or one of its 1D boundaries).
-     * @param abscissa abscissa to check
-     * @return true if {@code abscissa} lies on the inside or boundary of the subspace region
-     */
-    public abstract boolean containsAbscissa(double abscissa);
 
     /** Transform this instance.
      * @param transform the transform to apply

@@ -16,6 +16,7 @@
  */
 package org.apache.commons.geometry.euclidean.threed.line;
 
+import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.Transform;
 import org.apache.commons.geometry.euclidean.threed.Bounds3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
@@ -135,8 +136,14 @@ public final class Ray3D extends LineConvexSubset3D {
 
     /** {@inheritDoc} */
     @Override
-    public boolean containsAbscissa(final double abscissa) {
-        return getLine().getPrecision().gte(abscissa, start);
+    public RegionLocation classifyAbscissa(final double abscissa) {
+        final int cmp = getLine().getPrecision().compare(abscissa, start);
+        if (cmp < 0) {
+            return RegionLocation.OUTSIDE;
+        } else if (cmp == 0) {
+            return RegionLocation.BOUNDARY;
+        }
+        return RegionLocation.INSIDE;
     }
 
     /** {@inheritDoc} */

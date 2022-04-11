@@ -18,6 +18,7 @@ package org.apache.commons.geometry.euclidean.threed.line;
 
 import java.text.MessageFormat;
 
+import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.Transform;
 import org.apache.commons.geometry.euclidean.threed.Bounds3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
@@ -119,8 +120,8 @@ final class LineSpanningSubset3D extends LineConvexSubset3D {
 
     /** {@inheritDoc} */
     @Override
-    public boolean containsAbscissa(final double abscissa) {
-        return true;
+    public RegionLocation classifyAbscissa(final double abscissa) {
+        return RegionLocation.INSIDE;
     }
 
     /** {@inheritDoc} */

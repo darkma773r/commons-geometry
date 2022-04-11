@@ -23,11 +23,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.ToDoubleFunction;
 
+import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.euclidean.AbstractBounds;
 import org.apache.commons.geometry.euclidean.threed.line.Line3D;
 import org.apache.commons.geometry.euclidean.threed.line.LineConvexSubset3D;
 import org.apache.commons.geometry.euclidean.threed.line.LinecastPoint3D;
 import org.apache.commons.geometry.euclidean.threed.line.Linecastable3D;
+import org.apache.commons.geometry.euclidean.threed.line.Segment3D;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
 import org.apache.commons.numbers.core.Precision;
 
@@ -129,16 +131,38 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
         return null; // no intersection
     }
 
+    /** Return {@code true} if the region represented by this instance intersects
+     * the given line convex subset.
+     * @param subset line convex subset
+     * @return {@code true} if the region represented by this instance intersects
+     *      the given line convex subset
+     */
+    public boolean intersects(final LineConvexSubset3D subset) {
+        return new Linecaster(subset).intersectsRegion();
+    }
+
+    /** Return a {@link Segment3D} representing the intersection of the region
+     * represented by this instance with the given line convex subset or {@code null}
+     * if no such intersection exists.
+     * @param subset line convex subset to intersect with
+     * @return {@link Segment3D} representing the intersection of the region
+     *      represented by this instance with the given line convex subset or {@code null}
+     *      if no such intersection exists
+     */
+    public Segment3D intersection(final LineConvexSubset3D subset) {
+        return new Linecaster(subset).getRegionIntersection();
+    }
+
     /** {@inheritDoc} */
     @Override
     public List<LinecastPoint3D> linecast(final LineConvexSubset3D subset) {
-        return new Linecaster(subset).getIntersections();
+        return new Linecaster(subset).getBoundaryIntersections();
     }
 
     /** {@inheritDoc} */
     @Override
     public LinecastPoint3D linecastFirst(final LineConvexSubset3D subset) {
-        return new Linecaster(subset).getFirstIntersection();
+        return new Linecaster(subset).getFirstBoundaryIntersection();
     }
 
     /** {@inheritDoc}
@@ -331,13 +355,25 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
             this.precision = line.getPrecision();
         }
 
-        public List<LinecastPoint3D> getIntersections() {
+        public boolean intersectsRegion() {
+            return computeNearFar() &&
+                    precision.gte(near, subset.getSubspaceStart()) &&
+                    precision.lte(far, subset.getSubspaceEnd());
+        }
+
+        public Segment3D getRegionIntersection() {
+            return intersectsRegion() ?
+                    line.segment(near, far) :
+                    null;
+        }
+
+        public List<LinecastPoint3D> getBoundaryIntersections() {
             if (computeNearFar()) {
                 final List<LinecastPoint3D> results = new ArrayList<>(2);
-                if (subset.containsAbscissa(near)) {
+                if (containsAbscissa(near)) {
                     results.add(new LinecastPoint3D(line.pointAt(near), nearNormal, line));
                 }
-                if (subset.containsAbscissa(far)) {
+                if (containsAbscissa(far)) {
                     results.add(new LinecastPoint3D(line.pointAt(far), farNormal, line));
                 }
 
@@ -347,8 +383,8 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
             return Collections.emptyList();
         }
 
-        public LinecastPoint3D getFirstIntersection() {
-            if (computeNearFar() && subset.containsAbscissa(near)) {
+        public LinecastPoint3D getFirstBoundaryIntersection() {
+            if (computeNearFar() && containsAbscissa(near)) {
                 return new LinecastPoint3D(line.pointAt(near), nearNormal, line);
             }
             return null;
@@ -400,6 +436,10 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
             }
 
             return true;
+        }
+
+        private boolean containsAbscissa(final double abscissa) {
+            return subset.classifyAbscissa(abscissa) != RegionLocation.OUTSIDE;
         }
     }
 }

@@ -19,6 +19,7 @@ package org.apache.commons.geometry.euclidean.threed;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.ToDoubleFunction;
 import java.util.regex.Pattern;
@@ -442,12 +443,21 @@ class Bounds3DTest {
                     .add(offset);
             final Line3D line = Lines3D.fromPoints(otherPt, facePt, TEST_PRECISION);
 
-            System.out.println();
-            System.out.println(otherPt + " " + facePt);
-            System.out.println(bounds.linecastFirst(line));
+            final LinecastPoint3D forwardPt = bounds.linecastFirst(line);
+            final List<LinecastPoint3D> forwardPts = bounds.linecast(line);
 
-            assertLinecast(bounds.linecastFirst(line), facePt, normal);
-            assertLinecast(bounds.linecastFirst(line.reverse()), facePt, normal);
+            final LinecastPoint3D reversePt = bounds.linecastFirst(line.reverse());
+            final List<LinecastPoint3D> reversePts = bounds.linecast(line.reverse());
+
+            assertLinecast(forwardPt, facePt, normal);
+
+            Assertions.assertEquals(2, forwardPts.size());
+            assertLinecast(forwardPts.get(0), facePt, normal);
+            assertLinecast(forwardPts.get(1), reversePt.getPoint(), reversePt.getNormal());
+
+            Assertions.assertEquals(2, reversePts.size());
+            assertLinecast(reversePts.get(0), reversePt.getPoint(), reversePt.getNormal());
+            assertLinecast(reversePts.get(1), facePt, normal);
         });
     }
 

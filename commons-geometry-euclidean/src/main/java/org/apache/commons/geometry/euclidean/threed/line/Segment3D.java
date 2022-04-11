@@ -16,6 +16,7 @@
  */
 package org.apache.commons.geometry.euclidean.threed.line;
 
+import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.core.Transform;
 import org.apache.commons.geometry.euclidean.threed.Bounds3D;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
@@ -124,10 +125,22 @@ public final class Segment3D extends LineConvexSubset3D {
 
     /** {@inheritDoc} */
     @Override
-    public boolean containsAbscissa(final double abscissa) {
+    public RegionLocation classifyAbscissa(final double abscissa) {
         final Precision.DoubleEquivalence precision = getLine().getPrecision();
-        return precision.gte(abscissa, start) &&
-                precision.lte(abscissa, end);
+        final int startCmp = precision.compare(abscissa, start);
+        if (startCmp < 0) {
+            return RegionLocation.OUTSIDE;
+        } else if (startCmp == 0) {
+            return RegionLocation.BOUNDARY;
+        } else {
+            final int endCmp = precision.compare(abscissa, end);
+            if (endCmp > 0) {
+                return RegionLocation.OUTSIDE;
+            } else if (endCmp == 0) {
+                return RegionLocation.BOUNDARY;
+            }
+            return RegionLocation.INSIDE;
+        }
     }
 
     /** {@inheritDoc} */
