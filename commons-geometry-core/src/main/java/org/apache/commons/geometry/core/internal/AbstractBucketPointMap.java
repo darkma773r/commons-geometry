@@ -31,7 +31,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
@@ -244,14 +243,34 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     @Override
     public Collection<Entry<P, V>> entriesNearToFar(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
-        return new DistanceOrderCollection(() -> new NearToFarIterator<>(this, pt));
+        return new AbstractCollection<Entry<P, V>>() {
+            @Override
+            public int size() {
+                return AbstractBucketPointMap.this.size();
+            }
+
+            @Override
+            public Iterator<Entry<P, V>> iterator() {
+                return new NearToFarIterator<>(AbstractBucketPointMap.this, pt);
+            }
+        };
     }
 
     /** {@inheritDoc} */
     @Override
     public Collection<Entry<P, V>> entriesFarToNear(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
-        return new DistanceOrderCollection(() -> new FarToNearIterator<>(this, pt));
+        return new AbstractCollection<Entry<P, V>>() {
+            @Override
+            public int size() {
+                return AbstractBucketPointMap.this.size();
+            }
+
+            @Override
+            public Iterator<Entry<P, V>> iterator() {
+                return new FarToNearIterator<>(AbstractBucketPointMap.this, pt);
+            }
+        };
     }
 
     /** {@inheritDoc} */
@@ -306,7 +325,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         }
 
         migrateSecondaryEntry();
-        checkSecondaryRoot();
+        checkRemoveSecondaryRoot();
     }
 
     /** Method called when an entry is removed from the tree.
@@ -314,7 +333,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     private void entryRemoved() {
         ++version;
 
-        checkSecondaryRoot();
+        checkRemoveSecondaryRoot();
     }
 
     /** Create a list for storing map entries.
@@ -395,7 +414,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** Remove the secondary root if empty.
      */
-    private void checkSecondaryRoot() {
+    private void checkRemoveSecondaryRoot() {
         if (secondaryRoot != null && secondaryRoot.isEmpty()) {
             secondaryRoot.destroy();
             secondaryRoot = null;
@@ -1340,28 +1359,6 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         private void updateExpectedVersion() {
             expectedVersion = version;
-        }
-    }
-
-    private class DistanceOrderCollection extends AbstractCollection<Entry<P, V>> {
-
-        /** Factory used to produce iterator instances. */
-        private final Supplier<Iterator<Entry<P, V>>> iteratorSupplier;
-
-        DistanceOrderCollection(final Supplier<Iterator<Entry<P, V>>> iteratorSupplier) {
-            this.iteratorSupplier = iteratorSupplier;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public int size() {
-            return AbstractBucketPointMap.this.size();
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public Iterator<Entry<P, V>> iterator() {
-            return iteratorSupplier.get();
         }
     }
 
