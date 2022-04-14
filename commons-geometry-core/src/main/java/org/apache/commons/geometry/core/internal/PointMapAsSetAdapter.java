@@ -16,15 +16,16 @@
  */
 package org.apache.commons.geometry.core.internal;
 
+import java.util.AbstractCollection;
 import java.util.AbstractSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
-import org.apache.commons.geometry.core.collection.DistanceOrdering;
 import org.apache.commons.geometry.core.collection.PointMap;
 import org.apache.commons.geometry.core.collection.PointSet;
-import org.apache.commons.geometry.core.collection.StreamingIterable;
 
 /** Internal utility class that exposes a {@link PointMap} as a {@link PointSet}.
  * This class is not intended for direct use by users of this library. Users should
@@ -64,18 +65,6 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
 
     /** {@inheritDoc} */
     @Override
-    public DistanceOrdering<P> from(final P pt) {
-        return new EntryDistanceOrderingWrapper<>(map.entriesFrom(pt));
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public DistanceOrdering<P> withinRadius(final P pt, final double maxDist) {
-        return new EntryDistanceOrderingWrapper<>(map.entriesWithinRadius(pt, maxDist));
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public int size() {
         return map.size();
     }
@@ -105,6 +94,59 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
         map.clear();
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public P nearest(final P pt) {
+        return getKey(map.nearestEntry(pt));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public P farthest(final P pt) {
+        return getKey(map.farthestEntry(pt));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Collection<P> nearToFar(final P pt) {
+        return new AbstractCollection<P>() {
+
+            @Override
+            public int size() {
+                return map.size();
+            }
+
+            @Override
+            public Iterator<P> iterator() {
+                return new EntryIteratorWrapper<P>(map.entriesNearToFar(pt).iterator());
+            }
+        };
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Collection<P> farToNear(final P pt) {
+        return new AbstractCollection<P>() {
+
+            @Override
+            public int size() {
+                return map.size();
+            }
+
+            @Override
+            public Iterator<P> iterator() {
+                return new EntryIteratorWrapper<P>(map.entriesFarToNear(pt).iterator());
+            }
+        };
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Stream<P> neighbors(final P pt, final double maxDist) {
+        return map.neighborEntries(pt, maxDist)
+                .map(Entry::getKey);
+    }
+
     /** Get the entry key or {@code null} if {@code entry} is {@code null}.
      * @param <P> Point type
      * @param entry map entry
@@ -114,58 +156,6 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
         return entry != null ?
                 entry.getKey() :
                 null;
-    }
-
-    /** Class that wraps a {@link DistanceOrdering} view from a map and converts
-     * it to return only the map keys.
-     * @param <P> Point type
-     */
-    private static final class EntryDistanceOrderingWrapper<P extends Point<P>>
-        implements DistanceOrdering<P> {
-
-        /** Underlying map entry view. */
-        private final DistanceOrdering<Entry<P, Object>> ordering;
-
-        /** Construct a new instance that wraps the given map entry view.
-         * @param ordering map entry view
-         */
-        EntryDistanceOrderingWrapper(final DistanceOrdering<Entry<P, Object>> ordering) {
-            this.ordering = ordering;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public P nearest() {
-            return getKey(ordering.nearest());
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public P farthest() {
-            return getKey(ordering.farthest());
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public StreamingIterable<P> nearToFar() {
-            return () -> new EntryIteratorWrapper<>(ordering.nearToFar().iterator());
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public StreamingIterable<P> farToNear() {
-            return () -> new EntryIteratorWrapper<>(ordering.farToNear().iterator());
-        }
-
-        /** Get the key for the given entry or {@code null} if the entry is null.
-         * @param entry entry to get the key for
-         * @return the key for the given entry or {@code null} if the entry is null
-         */
-        private P getKey(final Entry<P, ?> entry) {
-            return entry != null ?
-                    entry.getKey() :
-                    null;
-        }
     }
 
     /** Iterator that converts from a map entry iterator to a key iteration.

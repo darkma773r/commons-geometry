@@ -16,7 +16,9 @@
  */
 package org.apache.commons.geometry.core.collection;
 
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
 
@@ -36,20 +38,13 @@ public interface PointSet<P extends Point<P>> extends Set<P> {
      */
     P get(P pt);
 
-    /** Return a view of all elements in this set with ordering based on distance
-     * from the given reference point.
-     * @param pt reference point
-     * @return a view of the elements in this set with ordering based on distance
-     *      from the given reference point
-     */
-    DistanceOrdering<P> from(P pt);
+    P nearest(P pt);
 
-    /** Return a view of elements in this set within {@code radius} distance from
-     * {@code pt}. Ordering is based on distance from the reference point.
-     * @param pt reference point
-     * @param radius maximum distance from {@code pt}
-     * @return a view of elements in this set within {@code radius} distance from
-     *      {@code pt}
-     */
-    DistanceOrdering<P> withinRadius(P pt, double radius);
+    P farthest(P pt);
+
+    Collection<P> nearToFar(P pt);
+
+    Collection<P> farToNear(P pt);
+
+    Stream<P> neighbors(P pt, double maxDist);
 }

@@ -16,6 +16,7 @@
  */
 package org.apache.commons.geometry.core.internal;
 
+import java.util.AbstractCollection;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.Iterator;
@@ -23,12 +24,12 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
+import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
-import org.apache.commons.geometry.core.collection.DistanceOrdering;
 import org.apache.commons.geometry.core.collection.PointMap;
-import org.apache.commons.geometry.core.collection.StreamingIterable;
 import org.apache.commons.numbers.core.Precision;
 
 /** Abstract base class for 1D {@link PointMap} implementations. This class delegates
@@ -78,7 +79,6 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
         return map.containsValue(value);
     }
 
-
     /** {@inheritDoc} */
     @Override
     public Entry<P, V> getEntry(final P key) {
@@ -108,14 +108,43 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public DistanceOrdering<Entry<P, V>> entriesFrom(final P pt) {
-        return entriesWithinRadius(pt, Double.POSITIVE_INFINITY);
+    public Entry<P, V> nearestEntry(final P pt) {
+        GeometryInternalUtils.requireFinite(pt);
+
+        final Iterator<DistancedValue<Entry<P, V>>> it = nearToFarIterator(pt);
+        return it.hasNext() ?
+                it.next().getValue() :
+                null;
     }
 
     /** {@inheritDoc} */
     @Override
-    public DistanceOrdering<Entry<P, V>> entriesWithinRadius(final P pt, final double radius) {
-        return new DistanceOrderingImpl(pt, radius);
+    public Entry<P, V> farthestEntry(final P pt) {
+        GeometryInternalUtils.requireFinite(pt);
+
+        final Iterator<DistancedValue<Entry<P, V>>> it = farToNearIterator(pt);
+        return it.hasNext() ?
+                it.next().getValue() :
+                null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Collection<Entry<P, V>> entriesNearToFar(final P pt) {
+        return entriesNearToFarInternal(pt, Double.POSITIVE_INFINITY);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Collection<Entry<P, V>> entriesFarToNear(final P pt) {
+        GeometryInternalUtils.requireFinite(pt);
+        return new DistanceOrderCollection(() -> farToNearIterator(pt), Double.POSITIVE_INFINITY);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Stream<Entry<P, V>> neighborEntries(final P pt, final double maxDist) {
+        return entriesNearToFarInternal(pt, maxDist).stream();
     }
 
     /** {@inheritDoc} */
@@ -192,56 +221,17 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
      */
     protected abstract Iterator<DistancedValue<Entry<P, V>>> farToNearIterator(P pt);
 
-    /** Internal implementation of {@link DistanceOrdering}.
+    /** Get a collection containing map entries within {@code maxDist} of {@code pt} ordered
+     * by increasing distance.
+     * @param pt reference point
+     * @param maxDist maximum distance
+     * @return collection containing map entries within {@code maxDist} of {@code pt} ordered
+     *      by increasing distance
      */
-    private class DistanceOrderingImpl implements DistanceOrdering<Entry<P, V>> {
+    private Collection<Entry<P, V>> entriesNearToFarInternal(final P pt, final double maxDist) {
+        GeometryInternalUtils.requireFinite(pt);
 
-        /** Reference point. */
-        private final P refPt;
-
-        /** Maximum distance. */
-        private final double maxDist;
-
-        /** Construct a new ordering instance.
-         * @param refPt reference point
-         * @param maxDist maximum distance
-         * @throws NullPointerException if {@code refPt} is null
-         * @throws IllegalArgumentException if {@code refPt} is not finite
-         */
-        DistanceOrderingImpl(final P refPt, final double maxDist) {
-            this.refPt = GeometryInternalUtils.requireFinite(refPt);
-            this.maxDist = maxDist;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public Entry<P, V> nearest() {
-            final Iterator<DistancedValue<Entry<P, V>>> it = nearToFarIterator(refPt);
-            return it.hasNext() ?
-                    it.next().getValue() :
-                    null;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public Entry<P, V> farthest() {
-            final Iterator<DistancedValue<Entry<P, V>>> it = farToNearIterator(refPt);
-            return it.hasNext() ?
-                    it.next().getValue() :
-                    null;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public StreamingIterable<Entry<P, V>> nearToFar() {
-            return () -> new DistanceOrderIterator(nearToFarIterator(refPt), maxDist);
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public StreamingIterable<Entry<P, V>> farToNear() {
-            return () -> new DistanceOrderIterator(farToNearIterator(refPt), maxDist);
-        }
+        return new DistanceOrderCollection(() -> farToNearIterator(pt), maxDist);
     }
 
     /** {@link Map.Entry} subclass that adds support for the {@link Map.Entry#setValue(Object)}.
@@ -269,13 +259,44 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
         }
     }
 
+    private final class DistanceOrderCollection extends AbstractCollection<Entry<P, V>> {
+
+        /** Factory used to produce iterator instances. */
+        private final Supplier<Iterator<DistancedValue<Entry<P, V>>>> iteratorSupplier;
+
+        /** Maximum distance for included entries. */
+        private final double maxDist;
+
+        DistanceOrderCollection(
+                final Supplier<Iterator<DistancedValue<Entry<P, V>>>> iteratorSupplier,
+                final double maxDist) {
+            this.iteratorSupplier = iteratorSupplier;
+            this.maxDist = maxDist;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public int size() {
+            return AbstractPointMap1D.this.size();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Iterator<Entry<P, V>> iterator() {
+            return new DistanceOrderIterator(iteratorSupplier.get(), maxDist);
+        }
+    }
+
     private final class DistanceOrderIterator
         implements Iterator<Entry<P, V>> {
 
+        /** Iterator instance. */
         private final Iterator<DistancedValue<Entry<P, V>>> iterator;
 
+        /** Maximum distance for included entries. */
         private final double maxDist;
 
+        /** Next entry to be returned. */
         private DistancedValue<Entry<P, V>> nextEntry;
 
         DistanceOrderIterator(

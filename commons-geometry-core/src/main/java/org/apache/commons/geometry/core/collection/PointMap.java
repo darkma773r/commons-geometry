@@ -16,7 +16,9 @@
  */
 package org.apache.commons.geometry.core.collection;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
 
@@ -39,20 +41,13 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      */
     Entry<P, V> getEntry(P pt);
 
-    /** Return a view of all entries in this map with ordering based on distance
-     * from the given reference point.
-     * @param pt reference point
-     * @return a view of the entries in this map with ordering based on distance
-     *      from the given reference point
-     */
-    DistanceOrdering<Entry<P, V>> entriesFrom(P pt);
+    Entry<P, V> nearestEntry(P pt);
 
-    /** Return a view of entries in this map within {@code radius} distance from
-     * {@code pt}. Ordering is based on distance from the reference point.
-     * @param pt reference point
-     * @param radius maximum distance from {@code pt}
-     * @return a view of entries in this map within {@code radius} distance from
-     *      {@code pt}
-     */
-    DistanceOrdering<Entry<P, V>> entriesWithinRadius(P pt, double radius);
+    Entry<P, V> farthestEntry(P pt);
+
+    Collection<Entry<P, V>> entriesNearToFar(P pt);
+
+    Collection<Entry<P, V>> entriesFarToNear(P pt);
+
+    Stream<Entry<P, V>> neighborEntries(P pt, double maxDist);
 }

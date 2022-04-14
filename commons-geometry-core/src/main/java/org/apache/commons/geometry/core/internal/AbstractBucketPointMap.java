@@ -16,10 +16,12 @@
  */
 package org.apache.commons.geometry.core.internal;
 
+import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
@@ -29,11 +31,11 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
-import org.apache.commons.geometry.core.collection.DistanceOrdering;
 import org.apache.commons.geometry.core.collection.PointMap;
-import org.apache.commons.geometry.core.collection.StreamingIterable;
 import org.apache.commons.numbers.core.Precision;
 
 /** Abstract tree-based {@link PointMap} implementation that stores entries in bucket nodes
@@ -206,14 +208,59 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
 
     /** {@inheritDoc} */
     @Override
-    public DistanceOrdering<Entry<P, V>> entriesFrom(final P pt) {
-        return entriesWithinRadius(pt, Double.POSITIVE_INFINITY);
+    public Entry<P, V> nearestEntry(final P pt) {
+        GeometryInternalUtils.requireFinite(pt);
+
+        DistancedValue<Entry<P, V>> result = root.findNearestEntry(pt);
+
+        if (secondaryRoot != null) {
+            final DistancedValue<Entry<P, V>> secondaryResult = secondaryRoot.findNearestEntry(pt);
+            result = getNearest(secondaryResult, result);
+        }
+
+        return result != null ?
+                result.getValue() :
+                null;
     }
 
     /** {@inheritDoc} */
     @Override
-    public DistanceOrdering<Entry<P, V>> entriesWithinRadius(final P pt, final double radius) {
-        return new DistanceOrderingImpl(pt, radius);
+    public Entry<P, V> farthestEntry(final P pt) {
+        GeometryInternalUtils.requireFinite(pt);
+
+        DistancedValue<Entry<P, V>> result = root.findFarthestEntry(pt);
+
+        if (secondaryRoot != null) {
+            final DistancedValue<Entry<P, V>> secondaryResult = secondaryRoot.findFarthestEntry(pt);
+            result = getFarthest(secondaryResult, result);
+        }
+
+        return result != null ?
+                result.getValue() :
+                null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Collection<Entry<P, V>> entriesNearToFar(final P pt) {
+        GeometryInternalUtils.requireFinite(pt);
+        return new DistanceOrderCollection(() -> new NearToFarIterator<>(this, pt));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Collection<Entry<P, V>> entriesFarToNear(final P pt) {
+        GeometryInternalUtils.requireFinite(pt);
+        return new DistanceOrderCollection(() -> new FarToNearIterator<>(this, pt));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Stream<Entry<P, V>> neighborEntries(final P pt, final double maxDist) {
+        GeometryInternalUtils.requireFinite(pt);
+
+        // TODO
+        return null;
     }
 
     /** Get the configured precision for the instance.
@@ -640,14 +687,24 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
             return null;
         }
 
+        /** Find the nearest entry to {@code refPt} in the subtree rooted at this node, or null if
+         * the subtree is empty.
+         * @param refPt reference point
+         * @return nearest entry to {@code refPt} in the subtree rooted at this node, or null if no
+         *      such entry exists
+         */
+        public DistancedValue<Entry<P, V>> findNearestEntry(final P refPt) {
+            return findNearestEntry(refPt, Double.POSITIVE_INFINITY);
+        }
+
         /** Find the nearest entry to {@code refPt} within the maximum distance specified in the subtree
          * rooted at this node, or null if no such entry exists.
          * @param refPt reference point
          * @param maxDist maximum search distance
-         * @return closest entry to {@code refPt} within the maximum distance specified in the subtree
+         * @return nearest entry to {@code refPt} within the maximum distance specified in the subtree
          *      rooted at this node, or null if no such entry exists.
          */
-        public DistancedValue<Entry<P, V>> findNearestEntry(final P refPt, final double maxDist) {
+        private DistancedValue<Entry<P, V>> findNearestEntry(final P refPt, final double maxDist) {
             if (isLeaf()) {
                 // leaf node; look through the stored entries
                 DistancedValue<Entry<P, V>> closest = null;
@@ -698,14 +755,12 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
             }
         }
 
-        /** Find the farthest entry from {@code refPt} within the specified radius in the subtree
-         * rooted at this node, or null if no such entry exists.
+        /** Find the farthest entry from {@code refPt} within the subtree rooted at this node..
          * @param refPt reference point
-         * @param maxDist maximum search distance
-         * @return farthest entry from {@code refPt} within the specified radius in the subtree
-         *      rooted at this node, or null if no such entry exists.
+         * @return farthest entry from {@code refPt} in the subtree rooted at this node, or null
+         *      if no such entry exists.
          */
-        public DistancedValue<Entry<P, V>> findFarthestEntry(final P refPt, final double maxDist) {
+        public DistancedValue<Entry<P, V>> findFarthestEntry(final P refPt) {
             if (isLeaf()) {
                 // leaf node; look through the stored entries
                 DistancedValue<Entry<P, V>> farthest = null;
@@ -715,9 +770,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                             entry,
                             entry.getKey().distance(refPt));
 
-                    if (map.distanceIsWithinMax(entryWithDist.getDistance(), maxDist)) {
-                        farthest = map.getFarthest(entryWithDist, farthest);
-                    }
+                    farthest = map.getFarthest(entryWithDist, farthest);
                 }
 
                 return farthest;
@@ -731,9 +784,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     final BucketNode<P, V> child = children.get(i);
                     if (child != null) {
                         final double maxChildDist = getMaxChildDistance(i, refPt, loc);
-                        if (map.distanceIsWithinMax(maxChildDist, maxDist)) {
-                            sortedNodeList.add(DistancedValue.of(child, maxChildDist));
-                        }
+                        sortedNodeList.add(DistancedValue.of(child, maxChildDist));
                     }
                 }
 
@@ -747,7 +798,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
                     }
 
                     final DistancedValue<Entry<P, V>> entry = nodeValue.getValue()
-                            .findFarthestEntry(refPt, maxDist);
+                            .findFarthestEntry(refPt);
                     farthest = map.getFarthest(entry, farthest);
                 }
 
@@ -1292,68 +1343,25 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
         }
     }
 
-    /** Internal implementation of {@link DistanceOrdering}.
-     */
-    private final class DistanceOrderingImpl implements DistanceOrdering<Entry<P, V>> {
+    private class DistanceOrderCollection extends AbstractCollection<Entry<P, V>> {
 
-        /** Reference point. */
-        private final P refPt;
+        /** Factory used to produce iterator instances. */
+        private final Supplier<Iterator<Entry<P, V>>> iteratorSupplier;
 
-        /** Maximum distance from {@code maxDist} to search. */
-        private final double maxDist;
-
-        /** Construct a new instance with distances relative to {@code refPt}.
-         * @param refPt reference point
-         * @param maxDist maximum distance from {@code refPt} to include in the search
-         * @throws NullPointerException if {@code refPt} is null
-         * @throws IllegalArgumentException if {@code refPt} is not finite
-         */
-        DistanceOrderingImpl(final P refPt, final double maxDist) {
-            this.refPt = GeometryInternalUtils.requireFinite(refPt);
-            this.maxDist = maxDist;
+        DistanceOrderCollection(final Supplier<Iterator<Entry<P, V>>> iteratorSupplier) {
+            this.iteratorSupplier = iteratorSupplier;
         }
 
         /** {@inheritDoc} */
         @Override
-        public Entry<P, V> nearest() {
-            DistancedValue<Entry<P, V>> result = root.findNearestEntry(refPt, maxDist);
-
-            if (secondaryRoot != null) {
-                final DistancedValue<Entry<P, V>> secondaryResult = secondaryRoot.findNearestEntry(refPt, maxDist);
-                result = getNearest(secondaryResult, result);
-            }
-
-            return result != null ?
-                    result.getValue() :
-                    null;
+        public int size() {
+            return AbstractBucketPointMap.this.size();
         }
 
         /** {@inheritDoc} */
         @Override
-        public Entry<P, V> farthest() {
-            DistancedValue<Entry<P, V>> result = root.findFarthestEntry(refPt, maxDist);
-
-            if (secondaryRoot != null) {
-                final DistancedValue<Entry<P, V>> secondaryResult =
-                        secondaryRoot.findFarthestEntry(refPt, maxDist);
-                result = getFarthest(secondaryResult, result);
-            }
-
-            return result != null ?
-                    result.getValue() :
-                    null;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public StreamingIterable<Entry<P, V>> nearToFar() {
-            return () -> new NearToFarIterator<>(AbstractBucketPointMap.this, refPt);
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public StreamingIterable<Entry<P, V>> farToNear() {
-            return () -> new FarToNearIterator<>(AbstractBucketPointMap.this, refPt);
+        public Iterator<Entry<P, V>> iterator() {
+            return iteratorSupplier.get();
         }
     }
 

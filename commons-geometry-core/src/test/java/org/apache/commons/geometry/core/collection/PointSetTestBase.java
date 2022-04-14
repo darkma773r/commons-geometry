@@ -645,7 +645,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
     }
 
     @Test
-    void testClosestFirst_empty() {
+    void testNearToFar_empty() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -653,8 +653,8 @@ public abstract class PointSetTestBase<P extends Point<P>>
         final List<P> ordered = new ArrayList<>();
 
         // act
-        for (final P closest : set.nearToFar(pt)) {
-            ordered.add(closest);
+        for (final P nearest : set.nearToFar(pt)) {
+            ordered.add(nearest);
         }
 
         // assert
@@ -662,7 +662,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
     }
 
     @Test
-    void testClosestFirst_small() {
+    void testNearToFar_small() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -679,7 +679,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
 
                     assertIterableOrder(
                             pts,
-                            createClosestFirstComparator(refPt),
+                            createNearToFarComparator(refPt),
                             set.nearToFar(refPt));
                 }
             }
@@ -687,7 +687,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
     }
 
     @Test
-    void testClosestFirst_large() {
+    void testNearToFar_large() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -700,14 +700,14 @@ public abstract class PointSetTestBase<P extends Point<P>>
             for (final P refPt : getTestPointsAtDistance(pts.get(i), 2 * EPS)) {
                 assertIterableOrder(
                         pts,
-                        createClosestFirstComparator(refPt),
+                        createNearToFarComparator(refPt),
                         set.nearToFar(refPt));
             }
         }
     }
 
     @Test
-    void testClosestFirst_iteratorBehavior() {
+    void testNearToFar_iteratorBehavior() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -729,7 +729,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
     }
 
     @Test
-    void testClosestFirst_concurrentModification() {
+    void testNearToFar_concurrentModification() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -745,7 +745,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
     }
 
     @Test
-    void testClosest_empty() {
+    void testNearest_empty() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -753,18 +753,15 @@ public abstract class PointSetTestBase<P extends Point<P>>
 
         // act/assert
         Assertions.assertNull(set.nearest(pt));
-        Assertions.assertNull(set.nearestWithinRadius(pt, 100d));
     }
 
     @Test
-    void testClosest_small() {
+    void testNearest_small() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
         final double keySpacing = 7 * EPS;
         final double testPointSpacing = 3 * EPS;
-        final double closestWithinFoundSpacing = 4 * EPS;
-        final double closestWithinNotFoundSpacing = 1.5 * EPS;
 
         int maxCnt = 5;
         for (int cnt = 1; cnt <= maxCnt; ++cnt) {
@@ -780,26 +777,21 @@ public abstract class PointSetTestBase<P extends Point<P>>
                 for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
                     Assertions.assertNull(set.get(refPt));
 
-                    final P closest = set.nearest(refPt);
+                    final P nearest = set.nearest(refPt);
 
-                    Assertions.assertEquals(pt, closest);
-
-                    Assertions.assertEquals(pt, set.nearestWithinRadius(refPt, closestWithinFoundSpacing));
-                    Assertions.assertNull(set.nearestWithinRadius(refPt, closestWithinNotFoundSpacing));
+                    Assertions.assertEquals(pt, nearest);
                 }
             }
         }
     }
 
     @Test
-    void testClosest_large() {
+    void testNearest_large() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
         final double keySpacing = 7 * EPS;
         final double testPointSpacing = 3 * EPS;
-        final double closestWithinFoundSpacing = 4 * EPS;
-        final double closestWithinNotFoundSpacing = 1.5 * EPS;
 
         final int cnt = 1000;
         final List<P> pts = getTestPoints(cnt, keySpacing, new Random(5L));
@@ -812,18 +804,15 @@ public abstract class PointSetTestBase<P extends Point<P>>
             for (final P refPt : getTestPointsAtDistance(pt, testPointSpacing)) {
                 Assertions.assertNull(set.get(refPt));
 
-                final P closest = set.nearest(refPt);
+                final P nearest = set.nearest(refPt);
 
-                Assertions.assertEquals(pt, closest);
-
-                Assertions.assertEquals(pt, set.nearestWithinRadius(refPt, closestWithinFoundSpacing));
-                Assertions.assertNull(set.nearestWithinRadius(refPt, closestWithinNotFoundSpacing));
+                Assertions.assertEquals(pt, nearest);
             }
         }
     }
 
     @Test
-    void testFarthestFirst_empty() {
+    void testFarToNear_empty() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -840,7 +829,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
     }
 
     @Test
-    void testFarthestFirst_small() {
+    void testFarToNear_small() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -856,7 +845,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
                 for (final P refPt : getTestPointsAtDistance(pts.get(i), 2.1 * EPS)) {
                     assertIterableOrder(
                             pts,
-                            createFarthestFirstComparator(refPt),
+                            createFarToNearComparator(refPt),
                             set.farToNear(refPt));
                 }
             }
@@ -864,7 +853,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
     }
 
     @Test
-    void testFarthestFirst_large() {
+    void testFarToNear_large() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -877,14 +866,14 @@ public abstract class PointSetTestBase<P extends Point<P>>
             for (final P refPt : getTestPointsAtDistance(pts.get(i), 2.1 * EPS)) {
                 assertIterableOrder(
                         pts,
-                        createFarthestFirstComparator(refPt),
+                        createFarToNearComparator(refPt),
                         set.farToNear(refPt));
             }
         }
     }
 
     @Test
-    void testFarthestFirst_iteratorBehavior() {
+    void testFarToNear_iteratorBehavior() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 
@@ -906,7 +895,7 @@ public abstract class PointSetTestBase<P extends Point<P>>
     }
 
     @Test
-    void testFarthestFirst_concurrentModification() {
+    void testFarToNear_concurrentModification() {
         // arrange
         final PointSet<P> set = getSet(PRECISION);
 

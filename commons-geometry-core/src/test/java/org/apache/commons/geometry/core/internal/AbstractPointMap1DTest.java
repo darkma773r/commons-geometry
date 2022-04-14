@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -100,7 +99,7 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
     private static final class TestPointMap1D<V> extends AbstractPointMap1D<TestPoint1D, V> {
 
         TestPointMap1D(final Precision.DoubleEquivalence precision) {
-            super((a, b) -> precision.compare(a.getX(), b.getX()));
+            super(precision, TestPoint1D::getX);
         }
 
         /** {@inheritDoc} */
@@ -143,7 +142,7 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
         @Override
         protected Entry<TestPoint1D, V> getEntryInternal(final TestPoint1D key) {
             final NavigableMap<TestPoint1D, V> map = getMap();
-            final Map.Entry<TestPoint1D, V> floor = map.floorEntry(key);
+            final Entry<TestPoint1D, V> floor = map.floorEntry(key);
             if (floor != null &&
                     map.comparator().compare(floor.getKey(), key) == 0) {
                 return floor;
@@ -159,32 +158,30 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
 
         /** {@inheritDoc} */
         @Override
-        public Iterable<Entry<TestPoint1D, V>> entriesNearToFar(final TestPoint1D pt) {
-            GeometryInternalUtils.requireFinite(pt);
-            return () -> new ClosestFirstIterator(pt);
+        protected Iterator<DistancedValue<Entry<TestPoint1D, V>>> nearToFarIterator(final TestPoint1D pt) {
+            return new NearToFarIterator(pt);
         }
 
         /** {@inheritDoc} */
         @Override
-        public Iterable<Entry<TestPoint1D, V>> entriesFarToNear(final TestPoint1D pt) {
-            GeometryInternalUtils.requireFinite(pt);
-            return () -> new FarthestFirstIterator(pt);
+        protected Iterator<DistancedValue<Entry<TestPoint1D, V>>> farToNearIterator(final TestPoint1D pt) {
+            return new FarToNearIterator(pt);
         }
 
-        private final class ClosestFirstIterator
-            implements Iterator<Map.Entry<TestPoint1D, V>> {
+        private final class NearToFarIterator
+            implements Iterator<DistancedValue<Entry<TestPoint1D, V>>> {
 
             private final TestPoint1D refPt;
 
-            private final Iterator<Map.Entry<TestPoint1D, V>> low;
+            private final Iterator<Entry<TestPoint1D, V>> low;
 
-            private final Iterator<Map.Entry<TestPoint1D, V>> high;
+            private final Iterator<Entry<TestPoint1D, V>> high;
 
-            private DistancedValue<Map.Entry<TestPoint1D, V>> lowEntry;
+            private DistancedValue<Entry<TestPoint1D, V>> lowEntry;
 
-            private DistancedValue<Map.Entry<TestPoint1D, V>> highEntry;
+            private DistancedValue<Entry<TestPoint1D, V>> highEntry;
 
-            ClosestFirstIterator(final TestPoint1D refPt) {
+            NearToFarIterator(final TestPoint1D refPt) {
                 this.refPt = refPt;
 
                 this.low = getMap().descendingMap().tailMap(refPt, false)
@@ -207,18 +204,18 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
 
             /** {@inheritDoc} */
             @Override
-            public Entry<TestPoint1D, V> next() {
+            public DistancedValue<Entry<TestPoint1D, V>> next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException();
                 }
 
-                final Entry<TestPoint1D, V> result;
+                final DistancedValue<Entry<TestPoint1D, V>> result;
                 if (lowEntry != null &&
                         (highEntry == null || lowEntry.getDistance() <= highEntry.getDistance())) {
-                    result = lowEntry.getValue();
+                    result = lowEntry;
                     lowEntry = null;
                 } else {
-                    result = highEntry.getValue();
+                    result = highEntry;
                     highEntry = null;
                 }
 
@@ -234,24 +231,24 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
             }
         }
 
-        private final class FarthestFirstIterator
-            implements Iterator<Map.Entry<TestPoint1D, V>> {
+        private final class FarToNearIterator
+            implements Iterator<DistancedValue<Entry<TestPoint1D, V>>> {
 
             private final TestPoint1D refPt;
 
-            private Iterator<Map.Entry<TestPoint1D, V>> low;
+            private Iterator<Entry<TestPoint1D, V>> low;
 
-            private Iterator<Map.Entry<TestPoint1D, V>> high;
+            private Iterator<Entry<TestPoint1D, V>> high;
 
-            private DistancedValue<Map.Entry<TestPoint1D, V>> lowEntry;
+            private DistancedValue<Entry<TestPoint1D, V>> lowEntry;
 
-            private DistancedValue<Map.Entry<TestPoint1D, V>> highEntry;
+            private DistancedValue<Entry<TestPoint1D, V>> highEntry;
 
             private double lastLowValue = Double.NEGATIVE_INFINITY;
 
             private double lastHighValue = Double.POSITIVE_INFINITY;
 
-            FarthestFirstIterator(final TestPoint1D refPt) {
+            FarToNearIterator(final TestPoint1D refPt) {
                 this.refPt = refPt;
 
                 this.low = getMap().entrySet().iterator();
@@ -289,18 +286,18 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
 
             /** {@inheritDoc} */
             @Override
-            public Entry<TestPoint1D, V> next() {
+            public DistancedValue<Entry<TestPoint1D, V>> next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException();
                 }
 
-                final Entry<TestPoint1D, V> result;
+                final DistancedValue<Entry<TestPoint1D, V>> result;
                 if (lowEntry != null &&
                         (highEntry == null || lowEntry.getDistance() >= highEntry.getDistance())) {
-                    result = lowEntry.getValue();
+                    result = lowEntry;
                     lowEntry = null;
                 } else {
-                    result = highEntry.getValue();
+                    result = highEntry;
                     highEntry = null;
                 }
 

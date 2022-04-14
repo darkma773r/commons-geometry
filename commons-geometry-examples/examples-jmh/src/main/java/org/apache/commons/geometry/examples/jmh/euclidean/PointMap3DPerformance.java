@@ -498,7 +498,7 @@ public class PointMap3DPerformance {
      * @return input instance
      */
     @Benchmark
-    public Object closestEntriesFirst(final PreInsertedPointMapInput input, final Blackhole bh) {
+    public Object entriesNearToFar(final PreInsertedPointMapInput input, final Blackhole bh) {
         return doDistanceIteration(
                 input,
                 bh,
@@ -513,7 +513,7 @@ public class PointMap3DPerformance {
      * @return input instance
      */
     @Benchmark
-    public Object closestEntriesFirstPartial(final PreInsertedPointMapInput input, final Blackhole bh) {
+    public Object entriesNearToFarPartial(final PreInsertedPointMapInput input, final Blackhole bh) {
         final int cnt = input.getPoints().size() / 2;
 
         return doDistanceIteration(
@@ -529,7 +529,7 @@ public class PointMap3DPerformance {
      * @return input instance
      */
     @Benchmark
-    public Object closestEntry(final PreInsertedPointMapInput input, final Blackhole bh) {
+    public Object nearestEntry(final PreInsertedPointMapInput input, final Blackhole bh) {
         return doDistanceSelect(
                 input,
                 bh,
@@ -542,7 +542,7 @@ public class PointMap3DPerformance {
      * @return input instance
      */
     @Benchmark
-    public Object farthestEntriesFirst(final PreInsertedPointMapInput input, final Blackhole bh) {
+    public Object entriesFarToNear(final PreInsertedPointMapInput input, final Blackhole bh) {
         return doDistanceIteration(
                 input,
                 bh,
@@ -557,7 +557,7 @@ public class PointMap3DPerformance {
      * @return input instance
      */
     @Benchmark
-    public Object farthestEntriesFirstPartial(final PreInsertedPointMapInput input, final Blackhole bh) {
+    public Object entriesFarToNearPartial(final PreInsertedPointMapInput input, final Blackhole bh) {
         final int cnt = input.getPoints().size() / 2;
 
         return doDistanceIteration(
@@ -579,5 +579,4 @@ public class PointMap3DPerformance {
                 bh,
                 PointMap::farthestEntry);
     }
-
 }
