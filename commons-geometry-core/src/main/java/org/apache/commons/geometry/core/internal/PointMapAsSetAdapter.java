@@ -109,13 +109,9 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
     /** {@inheritDoc} */
     @Override
     public Collection<P> nearToFar(final P pt) {
-        return new AbstractCollection<P>() {
+        GeometryInternalUtils.requireFinite(pt);
 
-            @Override
-            public int size() {
-                return map.size();
-            }
-
+        return new AbstractElementCollection() {
             @Override
             public Iterator<P> iterator() {
                 return new EntryIteratorWrapper<P>(map.entriesNearToFar(pt).iterator());
@@ -126,13 +122,9 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
     /** {@inheritDoc} */
     @Override
     public Collection<P> farToNear(final P pt) {
-        return new AbstractCollection<P>() {
+        GeometryInternalUtils.requireFinite(pt);
 
-            @Override
-            public int size() {
-                return map.size();
-            }
-
+        return new AbstractElementCollection() {
             @Override
             public Iterator<P> iterator() {
                 return new EntryIteratorWrapper<P>(map.entriesFarToNear(pt).iterator());
@@ -156,6 +148,17 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
         return entry != null ?
                 entry.getKey() :
                 null;
+    }
+
+    /** Abstract type representing a collection over the elements in the set.
+     */
+    private abstract class AbstractElementCollection extends AbstractCollection<P> {
+
+        /** {@inheritDoc} */
+        @Override
+        public int size() {
+            return map.size();
+        }
     }
 
     /** Iterator that converts from a map entry iterator to a key iteration.

@@ -84,7 +84,7 @@ class PointSet1STest extends PointSetTestBase<Point1S> {
 
     /** {@inheritDoc} */
     @Override
-    protected int disambiguateClosestFirstOrder(final Point1S a, final Point1S b) {
+    protected int disambiguateNearToFarOrder(final Point1S a, final Point1S b) {
         return Point1S.NORMALIZED_AZIMUTH_ASCENDING_ORDER.compare(a, b);
     }
 }

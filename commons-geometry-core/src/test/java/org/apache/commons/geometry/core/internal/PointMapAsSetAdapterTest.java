@@ -77,7 +77,7 @@ class PointMapAsSetAdapterTest extends PointSetTestBase<TestPoint1D> {
 
     /** {@inheritDoc} */
     @Override
-    protected int disambiguateClosestFirstOrder(final TestPoint1D a, final TestPoint1D b) {
+    protected int disambiguateNearToFarOrder(final TestPoint1D a, final TestPoint1D b) {
         return Double.compare(a.getX(), b.getX());
     }
 

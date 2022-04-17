@@ -19,12 +19,14 @@ package org.apache.commons.geometry.core.internal;
 import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -32,6 +34,7 @@ import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.geometry.core.Point;
 import org.apache.commons.geometry.core.collection.PointMap;
@@ -243,12 +246,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     @Override
     public Collection<Entry<P, V>> entriesNearToFar(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
-        return new AbstractCollection<Entry<P, V>>() {
-            @Override
-            public int size() {
-                return AbstractBucketPointMap.this.size();
-            }
-
+        return new AbstractEntryCollection() {
             @Override
             public Iterator<Entry<P, V>> iterator() {
                 return new NearToFarIterator<>(AbstractBucketPointMap.this, pt);
@@ -260,12 +258,7 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     @Override
     public Collection<Entry<P, V>> entriesFarToNear(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
-        return new AbstractCollection<Entry<P, V>>() {
-            @Override
-            public int size() {
-                return AbstractBucketPointMap.this.size();
-            }
-
+        return new AbstractEntryCollection() {
             @Override
             public Iterator<Entry<P, V>> iterator() {
                 return new FarToNearIterator<>(AbstractBucketPointMap.this, pt);
@@ -278,8 +271,8 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
     public Stream<Entry<P, V>> neighborEntries(final P pt, final double maxDist) {
         GeometryInternalUtils.requireFinite(pt);
 
-        // TODO
-        return null;
+        final Iterable<Entry<P, V>> it = () -> new NeighborIterator(pt, maxDist);
+        return StreamSupport.stream(it.spliterator(), false);
     }
 
     /** Get the configured precision for the instance.
@@ -1359,6 +1352,150 @@ public abstract class AbstractBucketPointMap<P extends Point<P>, V>
          */
         private void updateExpectedVersion() {
             expectedVersion = version;
+        }
+    }
+
+    /** Abstract type representing a collection over the entries in this map.
+     */
+    private abstract class AbstractEntryCollection extends AbstractCollection<Entry<P, V>> {
+
+        /** {@inheritDoc} */
+        @Override
+        public int size() {
+            return AbstractBucketPointMap.this.size();
+        }
+    }
+
+    /** Iterator returning map entries within {@code maxDist} distance of a specified
+     * reference point.
+     */
+    private final class NeighborIterator implements Iterator<Entry<P, V>> {
+
+        /** Distance order reference point. */
+        private final P refPt;
+
+        /** Maximum distance of returned entries. */
+        private final double maxDist;
+
+        /** The expected modification version of the map. */
+        private final int expectedVersion;
+
+        /** Queue of nodes to visit. */
+        private final Deque<BucketNode<P, V>> nodes = new ArrayDeque<>();
+
+        /** Iterator through leaf node entries. */
+        private Iterator<Entry<P, V>> leafIterator;
+
+        /** Next entry to be returned by the iterator. */
+        private Entry<P, V> nextEntry;
+
+        /** Construct a new instance that returns entries within {@code maxDist} of
+         * {@code refPt}.
+         * @param refPt reference point
+         * @param maxDist maximum distance of entries to return
+         */
+        NeighborIterator(final P refPt, final double maxDist) {
+            this.refPt = refPt;
+            this.maxDist = maxDist;
+
+            this.expectedVersion = version;
+
+            this.nodes.add(root);
+            if (secondaryRoot != null) {
+                this.nodes.add(secondaryRoot);
+            }
+
+            queueNextEntry();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public boolean hasNext() {
+            return nextEntry != null;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Entry<P, V> next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            checkVersion();
+
+            final Entry<P, V> result = nextEntry;
+            queueNextEntry();
+
+            return result;
+        }
+
+        /** Queue the next entry to be returned.
+         */
+        private void queueNextEntry() {
+            nextEntry = null;
+
+            while (!queueNextLeafEntry() && !nodes.isEmpty()) {
+                final BucketNode<P, V> node = nodes.remove();
+                if (node.isLeaf()) {
+                    leafIterator = node.iterator();
+                } else {
+                    queueChildren(node);
+                }
+            }
+        }
+
+        /** Queue the next entry from the current leaf iterator if possible.
+         * @return true if an entry was queued
+         */
+        private boolean queueNextLeafEntry() {
+            while (leafIterator != null && leafIterator.hasNext()) {
+                final Entry<P, V> entry = leafIterator.next();
+                if (testDistance(entry.getKey().distance(refPt))) {
+                    nextEntry = entry;
+                    break;
+                }
+            }
+            return nextEntry != null;
+        }
+
+        /** Queue all child nodes of {@code node} that could possibly contain entries
+         * within {@code maxDist} of the reference point.
+         * @param node node to queue the children of
+         */
+        private void queueChildren(final BucketNode<P, V> node) {
+            final int loc = node.getInsertLocation(refPt);
+
+            final int childCount = node.children.size();
+            for (int i = 0; i < childCount; ++i) {
+                final BucketNode<P, V> child = node.children.get(i);
+                if (child != null) {
+                    // only add the child if there is a chance that it could contain
+                    // an entry within the max distance
+                    final double childDist = node.getMinChildDistance(i, refPt, loc);
+                    if (testDistance(childDist)) {
+                        nodes.add(child);
+                    }
+                }
+            }
+        }
+
+        /** Return {@code true} if {@code dist} is within the maximum distance configured
+         * for this instance.
+         * @param dist distance to test
+         * @return {@code true} if {@code dist} is within the maximum distance configured
+         *      for this instance
+         */
+        private boolean testDistance(final double dist) {
+            return precision.lte(dist, maxDist);
+        }
+
+        /** Throw a {@link ConcurrentModificationException} if the map version does
+         * not match the expected version.
+         */
+        private void checkVersion() {
+            if (expectedVersion != version) {
+                throw new ConcurrentModificationException();
+            }
         }
     }
 

@@ -189,7 +189,7 @@ class PointMap2STest extends PointMapTestBase<Point2S> {
 
     /** {@inheritDoc} */
     @Override
-    protected int disambiguateClosestFirstOrder(final Point2S a, final Point2S b) {
+    protected int disambiguateNearToFarOrder(final Point2S a, final Point2S b) {
         return Point2S.POLAR_AZIMUTH_ASCENDING_ORDER.compare(a, b);
     }
 }

@@ -118,7 +118,7 @@ class PointSet3DTest extends PointSetTestBase<Vector3D> {
 
     /** {@inheritDoc} */
     @Override
-    protected int disambiguateClosestFirstOrder(final Vector3D a, final Vector3D b) {
+    protected int disambiguateNearToFarOrder(final Vector3D a, final Vector3D b) {
         return Vector3D.COORDINATE_ASCENDING_ORDER.compare(a, b);
     }
 }

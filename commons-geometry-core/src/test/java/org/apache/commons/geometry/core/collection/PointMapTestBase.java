@@ -32,6 +32,7 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
 import org.apache.commons.geometry.core.Point;
@@ -609,134 +610,6 @@ public abstract class PointMapTestBase<P extends Point<P>>
         checker.check();
     }
 
-//    @Test
-//    void testFrom_empty() {
-//        // arrange
-//        final PointMap<P, Integer> map = getMap(PRECISION);
-//
-//        final P pt = getTestPoints(1, EPS).get(0);
-//
-//        // act
-//        final DistanceOrdering<Entry<P, Integer>> view = map.entriesFrom(pt);
-//
-//        // assert
-//        checkDistanceOrdering(
-//                view,
-//                Collections.emptyList(),
-//                createNearToFarEntryComparator(pt));
-//    }
-//
-//    @Test
-//    void testFrom_small() {
-//        // arrange
-//        final PointMap<P, Integer> map = getMap(PRECISION);
-//
-//        final int maxCnt = 5;
-//        for (int cnt = 1; cnt <= maxCnt; ++cnt) {
-//            final List<P> pts = getTestPoints(cnt, EPS, new Random(cnt));
-//
-//            map.clear();
-//            insertPoints(pts, map);
-//
-//            final List<Entry<P, Integer>> entries = new ArrayList<>(map.entrySet());
-//
-//            // act/ assert
-//            for (int i = 0; i < cnt; ++i) {
-//                for (final P refPt : getTestPointsAtDistance(pts.get(i), 2 * EPS)) {
-//
-//                    checkDistanceOrdering(
-//                            map.entriesFrom(refPt),
-//                            entries,
-//                            createNearToFarEntryComparator(refPt));
-//                }
-//            }
-//        }
-//    }
-//
-//    @Test
-//    void testFrom_large() {
-//        // arrange
-//        final PointMap<P, Integer> map = getMap(PRECISION);
-//
-//        int cnt = 1000;
-//        final List<P> pts = getTestPoints(cnt, EPS, new Random(5L));
-//        insertPoints(pts, map);
-//
-//        final List<Entry<P, Integer>> entries = new ArrayList<>(map.entrySet());
-//
-//        // act/ assert
-//        for (int i = 0; i < cnt; ++i) {
-//            for (final P refPt : getTestPointsAtDistance(pts.get(i), 2 * EPS)) {
-//                checkDistanceOrdering(
-//                        map.entriesFrom(refPt),
-//                        entries,
-//                        createNearToFarEntryComparator(refPt));
-//            }
-//        }
-//    }
-//
-//    @Test
-//    void testDistanceOrdering_iteratorBehavior_nearToFar() {
-//        // arrange
-//        final PointMap<P, Integer> map = getMap(PRECISION);
-//
-//        final List<P> pts = getTestPoints(2, EPS);
-//        insertPoints(pts, map);
-//
-//        // act/assert
-//        final Iterator<Entry<P, Integer>> it = map.entriesFrom(pts.get(0)).nearToFar().iterator();
-//        Assertions.assertTrue(it.hasNext());
-//        Assertions.assertEquals(new SimpleEntry<>(pts.get(0), 0), it.next());
-//        Assertions.assertThrows(UnsupportedOperationException.class, () -> it.remove());
-//
-//        Assertions.assertTrue(it.hasNext());
-//        Assertions.assertEquals(new SimpleEntry<>(pts.get(1), 1), it.next());
-//
-//        Assertions.assertFalse(it.hasNext());
-//
-//        Assertions.assertThrows(NoSuchElementException.class, () -> it.next());
-//    }
-//
-//    @Test
-//    void testDistanceOrdering_iteratorBehavior_farToNear() {
-//        // arrange
-//        final PointMap<P, Integer> map = getMap(PRECISION);
-//
-//        final List<P> pts = getTestPoints(2, EPS);
-//        insertPoints(pts, map);
-//
-//        // act/assert
-//        final Iterator<Entry<P, Integer>> it = map.entriesFrom(pts.get(0)).farToNear().iterator();
-//        Assertions.assertTrue(it.hasNext());
-//        Assertions.assertEquals(new SimpleEntry<>(pts.get(1), 1), it.next());
-//        Assertions.assertThrows(UnsupportedOperationException.class, () -> it.remove());
-//
-//        Assertions.assertTrue(it.hasNext());
-//        Assertions.assertEquals(new SimpleEntry<>(pts.get(0), 0), it.next());
-//
-//        Assertions.assertFalse(it.hasNext());
-//
-//        Assertions.assertThrows(NoSuchElementException.class, () -> it.next());
-//    }
-//
-//    @Test
-//    void testDistanceOrdering_concurrentModification() {
-//        // arrange
-//        final PointMap<P, Integer> map = getMap(PRECISION);
-//
-//        final List<P> pts = getTestPoints(2, EPS);
-//        insertPoints(pts, map);
-//
-//        // act
-//        final Iterator<Entry<P, Integer>> nearIt = map.entriesFrom(pts.get(0)).nearToFar().iterator();
-//        final Iterator<Entry<P, Integer>> farIt = map.entriesFrom(pts.get(0)).farToNear().iterator();
-//        map.remove(pts.get(0));
-//
-//        // assert
-//        Assertions.assertThrows(ConcurrentModificationException.class, () -> nearIt.next());
-//        Assertions.assertThrows(ConcurrentModificationException.class, () -> farIt.next());
-//    }
-
     @Test
     void testNearestEntry_empty() {
         // arrange
@@ -807,6 +680,18 @@ public abstract class PointMapTestBase<P extends Point<P>>
     }
 
     @Test
+    void testNearestEntry_invalidArgs() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final P infPt = getInfPoints().get(0);
+
+        // act/assert
+        Assertions.assertThrows(NullPointerException.class, () -> map.nearestEntry(null));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> map.nearestEntry(infPt));
+    }
+
+    @Test
     void testFarthestEntry_empty() {
         // arrange
         final PointMap<P, Integer> map = getMap(PRECISION);
@@ -871,6 +756,18 @@ public abstract class PointMapTestBase<P extends Point<P>>
                 Assertions.assertEquals(findFarthest(refPt, pts), farthest.getKey());
             }
         }
+    }
+
+    @Test
+    void testFarthestEntry_invalidArgs() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final P infPt = getInfPoints().get(0);
+
+        // act/assert
+        Assertions.assertThrows(NullPointerException.class, () -> map.farthestEntry(null));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> map.farthestEntry(infPt));
     }
 
     @Test
@@ -976,6 +873,18 @@ public abstract class PointMapTestBase<P extends Point<P>>
     }
 
     @Test
+    void testEntriesNearToFar_invalidArgs() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final P infPt = getInfPoints().get(0);
+
+        // act/assert
+        Assertions.assertThrows(NullPointerException.class, () -> map.entriesNearToFar(null));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> map.entriesNearToFar(infPt));
+    }
+
+    @Test
     void testEntriesFarToNear_empty() {
         // arrange
         final PointMap<P, Integer> map = getMap(PRECISION);
@@ -1072,6 +981,167 @@ public abstract class PointMapTestBase<P extends Point<P>>
         // act
         final Iterator<Map.Entry<P, Integer>> it = map.entriesFarToNear(pts.get(0)).iterator();
         map.remove(pts.get(0));
+
+        // assert
+        Assertions.assertThrows(ConcurrentModificationException.class, () -> it.next());
+    }
+
+    @Test
+    void testEntriesFarToNear_invalidArgs() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final P infPt = getInfPoints().get(0);
+
+        // act/assert
+        Assertions.assertThrows(NullPointerException.class, () -> map.entriesFarToNear(null));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> map.entriesFarToNear(infPt));
+    }
+
+    @Test
+    void testNeighborEntries_empty() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+        final P pt = getTestPoints(1, EPS).get(0);
+
+        // act
+        final List<Entry<P, Integer>> result = map.neighborEntries(pt, 1)
+                .collect(Collectors.toList());
+
+        // assert
+        Assertions.assertEquals(0, result.size());
+    }
+
+    @Test
+    void testNeighborEntries_small() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final int cnt = 5;
+        final List<P> pts = getTestPoints(cnt, EPS, new Random(7L));
+        insertPoints(pts, map);
+
+        final int runCnt = 5;
+        final double deltaDist = findMaxDistance(pts.get(0), pts) / runCnt;
+
+        // act/ assert
+        for (int i = 0; i < cnt; ++i) {
+            final P refPt = pts.get(i);
+            for (int r = 0; r < runCnt; ++r) {
+                final double dist = r * deltaDist;
+
+                checkNeighbors(map, pts, refPt, dist);
+            }
+        }
+    }
+
+    @Test
+    void testNeighborEntries_large() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final int cnt = 1000;
+        final List<P> pts = getTestPoints(cnt, EPS, new Random(6L));
+        insertPoints(pts, map);
+
+        final int runCnt = 5;
+        final double deltaDist = findMaxDistance(pts.get(0), pts) / runCnt;
+
+        // act/ assert
+        for (int i = 0; i < cnt; ++i) {
+            final P refPt = pts.get(i);
+            for (int r = 0; r < runCnt; ++r) {
+                final double dist = r * deltaDist;
+
+                checkNeighbors(map, pts, refPt, dist);
+            }
+        }
+    }
+
+    @Test
+    void testNeighborEntries_noneFound() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final double maxDist = 2 * EPS;
+
+        final int cnt = 501;
+        final List<P> pts = getTestPoints(cnt, 2 * maxDist, new Random(6L));
+        insertPoints(pts.subList(0, cnt - 1), map);
+
+        final P refPt = pts.get(cnt - 1);
+
+        // act
+        final List<Entry<P, Integer>> result = map.neighborEntries(refPt, maxDist)
+                .collect(Collectors.toList());
+
+        // assert
+        Assertions.assertEquals(0, result.size());
+    }
+
+    @Test
+    void testNeighborEntries_distanceNegative() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final List<P> pts = getTestPoints(50, EPS);
+        insertPoints(pts, map);
+
+        final P refPt = pts.get(0);
+
+        // act/assert
+        Assertions.assertFalse(map.neighborEntries(refPt, -1).iterator().hasNext());
+    }
+
+    private <V> void checkNeighbors(
+            final PointMap<P, V> map,
+            final List<P> pts,
+            final P refPt,
+            final double maxDist) {
+
+        // act
+        final Set<P> actual = map.neighborEntries(refPt, maxDist)
+                .map(Entry::getKey)
+                .collect(Collectors.toSet());
+
+        // assert
+        final Set<P> expected = pts.stream()
+            .filter(p -> PRECISION.lte(p.distance(refPt), maxDist))
+            .collect(Collectors.toSet());
+
+        Assertions.assertEquals(expected.size(), actual.size());
+
+        for (final P expectedPt : expected) {
+            Assertions.assertTrue(actual.contains(expectedPt), () -> "Neighbor list is missing point " + expectedPt);
+        }
+    }
+
+    @Test
+    void testNeighborEntries_invalidArgs() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final P infPt = getInfPoints().get(0);
+
+        // act/assert
+        Assertions.assertThrows(NullPointerException.class, () -> map.neighborEntries(null, 1d));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> map.neighborEntries(infPt, 1d));
+    }
+
+    @Test
+    void testNeighborEntries_concurrentModification() {
+        // arrange
+        final PointMap<P, Integer> map = getMap(PRECISION);
+
+        final List<P> pts = getTestPoints(10, EPS);
+        insertPoints(pts, map);
+
+        // act
+        final Iterator<Map.Entry<P, Integer>> it = map.neighborEntries(pts.get(0), Double.POSITIVE_INFINITY)
+                .iterator();
+        it.next();
+
+        map.remove(pts.get(5));
 
         // assert
         Assertions.assertThrows(ConcurrentModificationException.class, () -> it.next());
@@ -1833,7 +1903,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
     protected <V> Comparator<Entry<P, V>> createNearToFarEntryComparator(final P refPt) {
         final Comparator<Entry<P, V>> cmp =
                 (a, b) -> Double.compare(a.getKey().distance(refPt), b.getKey().distance(refPt));
-        return cmp.thenComparing((a, b) -> disambiguateClosestFirstOrder(a.getKey(), b.getKey()));
+        return cmp.thenComparing((a, b) -> disambiguateNearToFarOrder(a.getKey(), b.getKey()));
     }
 
     private <V> void assertCollectionAddUnsupported(final Collection<V> coll, final V value) {
@@ -2108,15 +2178,15 @@ public abstract class PointMapTestBase<P extends Point<P>>
         final List<P> expected = new ArrayList<>(list);
         Collections.sort(expected, cmp);
 
-        int i = 0;
+        int i = -1;
         for (final Map.Entry<P, V> actualEntry : collection) {
-            final P expectedKey = expected.get(i++);
+            final P expectedKey = expected.get(++i);
             final P actualKey = actualEntry.getKey();
 
             Assertions.assertEquals(expectedKey, actualKey, "Unexpected point at index " + i);
         }
 
-        Assertions.assertEquals(i, expected.size(), "Unexpected iteration count");
+        Assertions.assertEquals(i, expected.size() - 1, "Unexpected iteration count");
     }
 
     /** Assert that {@code iterable} returns entries with the same keys in the same order as

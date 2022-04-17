@@ -166,7 +166,7 @@ class PointMap2DTest extends PointMapTestBase<Vector2D> {
 
     /** {@inheritDoc} */
     @Override
-    protected int disambiguateClosestFirstOrder(final Vector2D a, final Vector2D b) {
+    protected int disambiguateNearToFarOrder(final Vector2D a, final Vector2D b) {
         return Vector2D.COORDINATE_ASCENDING_ORDER.compare(a, b);
     }
 }
