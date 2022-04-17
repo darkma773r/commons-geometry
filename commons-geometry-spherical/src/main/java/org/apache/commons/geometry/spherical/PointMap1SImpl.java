@@ -17,6 +17,7 @@
 package org.apache.commons.geometry.spherical;
 
 import java.util.AbstractSet;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.NoSuchElementException;
@@ -42,6 +43,9 @@ final class PointMap1SImpl<V>
 
     /** Maximum key in the map, or null if not known. */
     private Point1S maxKey;
+
+    /** Modification version of the map. */
+    private int version;
 
     /** Construct a new instance using the given precision object to determine
      * floating point equality.
@@ -150,6 +154,8 @@ final class PointMap1SImpl<V>
     private void mapUpdated() {
         minKey = null;
         maxKey = null;
+
+        ++version;
     }
 
     /** Return true if {@code pt} is directly equivalent to the key for {@code entry},
@@ -330,6 +336,9 @@ final class PointMap1SImpl<V>
         /** Number of entries remaining to retrieve from each iterator. */
         private int remaining;
 
+        /** Expected modification version of the map. */
+        private int expectedVersion;
+
         /** Construct a new instance with the given reference point.
          * @param refPt reference point
          */
@@ -341,6 +350,8 @@ final class PointMap1SImpl<V>
             this.high = getMap().tailMap(refPt).entrySet().iterator();
 
             this.remaining = getMap().size();
+
+            this.expectedVersion = version;
         }
 
         /** {@inheritDoc} */
@@ -375,6 +386,8 @@ final class PointMap1SImpl<V>
                 throw new NoSuchElementException();
             }
 
+            checkVersion();
+
             final DistancedValue<Entry<Point1S, V>> result;
             if (lowEntry != null &&
                     (highEntry == null || lowEntry.getDistance() <= highEntry.getDistance())) {
@@ -402,6 +415,15 @@ final class PointMap1SImpl<V>
                 return DistancedValue.of(entry, refPt.distance(entry.getKey()));
             }
             return null;
+        }
+
+        /** Throw a {@link ConcurrentModificationException} if the map version does
+         * not match the expected version.
+         */
+        private void checkVersion() {
+            if (expectedVersion != version) {
+                throw new ConcurrentModificationException();
+            }
         }
     }
 }

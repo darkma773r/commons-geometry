@@ -975,7 +975,7 @@ public abstract class PointMapTestBase<P extends Point<P>>
         // arrange
         final PointMap<P, Integer> map = getMap(PRECISION);
 
-        final List<P> pts = getTestPoints(2, EPS);
+        final List<P> pts = getTestPoints(3, EPS);
         insertPoints(pts, map);
 
         // act
