@@ -22,10 +22,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.function.ToDoubleFunction;
-import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
 import org.apache.commons.geometry.core.collection.PointMap;
@@ -110,9 +108,9 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
     public Entry<P, V> nearestEntry(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
 
-        final Iterator<DistancedValue<Entry<P, V>>> it = nearToFarIterator(pt);
+        final Iterator<Entry<P, V>> it = nearToFarIterator(pt);
         return it.hasNext() ?
-                it.next().getValue() :
+                it.next() :
                 null;
     }
 
@@ -121,16 +119,23 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
     public Entry<P, V> farthestEntry(final P pt) {
         GeometryInternalUtils.requireFinite(pt);
 
-        final Iterator<DistancedValue<Entry<P, V>>> it = farToNearIterator(pt);
+        final Iterator<Entry<P, V>> it = farToNearIterator(pt);
         return it.hasNext() ?
-                it.next().getValue() :
+                it.next() :
                 null;
     }
 
     /** {@inheritDoc} */
     @Override
     public Collection<Entry<P, V>> entriesNearToFar(final P pt) {
-        return entriesNearToFarInternal(pt, Double.POSITIVE_INFINITY);
+        GeometryInternalUtils.requireFinite(pt);
+
+        return new AbstractEntryCollection() {
+            @Override
+            public Iterator<Entry<P, V>> iterator() {
+                return nearToFarIterator(pt);
+            }
+        };
     }
 
     /** {@inheritDoc} */
@@ -141,15 +146,9 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
         return new AbstractEntryCollection() {
             @Override
             public Iterator<Entry<P, V>> iterator() {
-                return new DistanceOrderIterator(farToNearIterator(pt), Double.POSITIVE_INFINITY);
+                return farToNearIterator(pt);
             }
         };
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Stream<Entry<P, V>> neighborEntries(final P pt, final double maxDist) {
-        return entriesNearToFarInternal(pt, maxDist).stream();
     }
 
     /** {@inheritDoc} */
@@ -216,7 +215,7 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
      * @return iterator for accessing map entries in order of nearest to farthest
      * f        from {@code pt}.
      */
-    protected abstract Iterator<DistancedValue<Entry<P, V>>> nearToFarIterator(P pt);
+    protected abstract Iterator<Entry<P, V>> nearToFarIterator(P pt);
 
     /** Get an iterator for accessing map entries in order of farthest to nearest
      * from {@code pt}.
@@ -224,25 +223,7 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
      * @return iterator for accessing map entries in order of farthest to nearest
      * f        from {@code pt}.
      */
-    protected abstract Iterator<DistancedValue<Entry<P, V>>> farToNearIterator(P pt);
-
-    /** Get a collection containing map entries within {@code maxDist} of {@code pt} ordered
-     * by increasing distance.
-     * @param pt reference point
-     * @param maxDist maximum distance
-     * @return collection containing map entries within {@code maxDist} of {@code pt} ordered
-     *      by increasing distance
-     */
-    private Collection<Entry<P, V>> entriesNearToFarInternal(final P pt, final double maxDist) {
-        GeometryInternalUtils.requireFinite(pt);
-
-        return new AbstractEntryCollection() {
-            @Override
-            public Iterator<Entry<P, V>> iterator() {
-                return new DistanceOrderIterator(nearToFarIterator(pt), maxDist);
-            }
-        };
-    }
+    protected abstract Iterator<Entry<P, V>> farToNearIterator(P pt);
 
     /** {@link Map.Entry} subclass that adds support for the {@link Map.Entry#setValue(Object)}.
      */
@@ -277,70 +258,6 @@ public abstract class AbstractPointMap1D<P extends Point<P>, V>
         @Override
         public int size() {
             return AbstractPointMap1D.this.size();
-        }
-    }
-
-    /** Iterator wrapper that stops iteration once an element is returned with a distance
-     * value greater than {@code maxDist}.
-     */
-    private final class DistanceOrderIterator
-        implements Iterator<Entry<P, V>> {
-
-        /** Iterator instance. */
-        private final Iterator<DistancedValue<Entry<P, V>>> iterator;
-
-        /** Maximum distance for included entries. */
-        private final double maxDist;
-
-        /** Next entry to be returned. */
-        private DistancedValue<Entry<P, V>> nextEntry;
-
-        /** Construct a new instance that wraps the given iterator.
-         * @param iterator iterator to wrap
-         * @param maxDist maximum distance of elements; iteration stops when
-         *      an element is found that exceeds this distance
-         */
-        DistanceOrderIterator(
-                final Iterator<DistancedValue<Entry<P, V>>> iterator,
-                final double maxDist) {
-            this.iterator = iterator;
-            this.maxDist = maxDist;
-
-            queueNext();
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public boolean hasNext() {
-            return nextEntry != null;
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public Entry<P, V> next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-
-            final Entry<P, V> result = nextEntry.getValue();
-
-            queueNext();
-
-            return result;
-        }
-
-        /** Queue the next entry in the iteration.
-         */
-        private void queueNext() {
-            nextEntry = null;
-
-            if (iterator.hasNext()) {
-                // continue getting entries until we pass the maximum distance
-                final DistancedValue<Entry<P, V>> entry = iterator.next();
-                if (getPrecision().lte(entry.getDistance(), maxDist)) {
-                    nextEntry = entry;
-                }
-            }
         }
     }
 }

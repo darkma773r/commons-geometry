@@ -158,18 +158,18 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
 
         /** {@inheritDoc} */
         @Override
-        protected Iterator<DistancedValue<Entry<TestPoint1D, V>>> nearToFarIterator(final TestPoint1D pt) {
+        protected Iterator<Entry<TestPoint1D, V>> nearToFarIterator(final TestPoint1D pt) {
             return new NearToFarIterator(pt);
         }
 
         /** {@inheritDoc} */
         @Override
-        protected Iterator<DistancedValue<Entry<TestPoint1D, V>>> farToNearIterator(final TestPoint1D pt) {
+        protected Iterator<Entry<TestPoint1D, V>> farToNearIterator(final TestPoint1D pt) {
             return new FarToNearIterator(pt);
         }
 
         private final class NearToFarIterator
-            implements Iterator<DistancedValue<Entry<TestPoint1D, V>>> {
+            implements Iterator<Entry<TestPoint1D, V>> {
 
             private final TestPoint1D refPt;
 
@@ -204,7 +204,7 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
 
             /** {@inheritDoc} */
             @Override
-            public DistancedValue<Entry<TestPoint1D, V>> next() {
+            public Entry<TestPoint1D, V> next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException();
                 }
@@ -219,7 +219,9 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
                     highEntry = null;
                 }
 
-                return result;
+                return result != null ?
+                        result.getValue() :
+                        null;
             }
 
             private DistancedValue<Entry<TestPoint1D, V>> getNextEntry(final Iterator<Entry<TestPoint1D, V>> it) {
@@ -232,7 +234,7 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
         }
 
         private final class FarToNearIterator
-            implements Iterator<DistancedValue<Entry<TestPoint1D, V>>> {
+            implements Iterator<Entry<TestPoint1D, V>> {
 
             private final TestPoint1D refPt;
 
@@ -286,7 +288,7 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
 
             /** {@inheritDoc} */
             @Override
-            public DistancedValue<Entry<TestPoint1D, V>> next() {
+            public Entry<TestPoint1D, V> next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException();
                 }
@@ -301,7 +303,9 @@ class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
                     highEntry = null;
                 }
 
-                return result;
+                return result != null ?
+                        result.getValue() :
+                        null;
             }
         }
     }

@@ -21,7 +21,6 @@ import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
 import org.apache.commons.geometry.core.collection.PointMap;
@@ -130,13 +129,6 @@ public class PointMapAsSetAdapter<P extends Point<P>, M extends PointMap<P, Obje
                 return new EntryIteratorWrapper<P>(map.entriesFarToNear(pt).iterator());
             }
         };
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Stream<P> neighbors(final P pt, final double maxDist) {
-        return map.neighborEntries(pt, maxDist)
-                .map(Entry::getKey);
     }
 
     /** Get the entry key or {@code null} if {@code entry} is {@code null}.

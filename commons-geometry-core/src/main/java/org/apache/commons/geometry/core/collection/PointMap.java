@@ -18,7 +18,6 @@ package org.apache.commons.geometry.core.collection;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
 
@@ -48,6 +47,4 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
     Collection<Entry<P, V>> entriesNearToFar(P pt);
 
     Collection<Entry<P, V>> entriesFarToNear(P pt);
-
-    Stream<Entry<P, V>> neighborEntries(P pt, double maxDist);
 }

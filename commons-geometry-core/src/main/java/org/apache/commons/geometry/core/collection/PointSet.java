@@ -18,7 +18,6 @@ package org.apache.commons.geometry.core.collection;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.apache.commons.geometry.core.Point;
 
@@ -45,6 +44,4 @@ public interface PointSet<P extends Point<P>> extends Set<P> {
     Collection<P> nearToFar(P pt);
 
     Collection<P> farToNear(P pt);
-
-    Stream<P> neighbors(P pt, double maxDist);
 }

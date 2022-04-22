@@ -98,13 +98,13 @@ final class PointMap1DImpl<V>
 
     /** {@inheritDoc} */
     @Override
-    protected Iterator<DistancedValue<Entry<Vector1D, V>>> nearToFarIterator(final Vector1D pt) {
+    protected Iterator<Entry<Vector1D, V>> nearToFarIterator(final Vector1D pt) {
         return new NearToFarIterator(pt);
     }
 
     /** {@inheritDoc} */
     @Override
-    protected Iterator<DistancedValue<Entry<Vector1D, V>>> farToNearIterator(final Vector1D pt) {
+    protected Iterator<Entry<Vector1D, V>> farToNearIterator(final Vector1D pt) {
         return new FarToNearIterator(pt);
     }
 
@@ -112,7 +112,7 @@ final class PointMap1DImpl<V>
      * a given reference point.
      */
     private final class NearToFarIterator
-        implements Iterator<DistancedValue<Entry<Vector1D, V>>> {
+        implements Iterator<Entry<Vector1D, V>> {
 
         /** Reference point to measure distances against. */
         private final Vector1D refPt;
@@ -155,7 +155,7 @@ final class PointMap1DImpl<V>
 
         /** {@inheritDoc} */
         @Override
-        public DistancedValue<Entry<Vector1D, V>> next() {
+        public Entry<Vector1D, V> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
@@ -170,7 +170,9 @@ final class PointMap1DImpl<V>
                 highEntry = null;
             }
 
-            return result;
+            return result != null ?
+                    result.getValue() :
+                    null;
         }
 
         /** Get a {@link DistancedValue} instance containing the next entry from the given
@@ -192,7 +194,7 @@ final class PointMap1DImpl<V>
      * a given reference point.
      */
     private final class FarToNearIterator
-        implements Iterator<DistancedValue<Entry<Vector1D, V>>> {
+        implements Iterator<Entry<Vector1D, V>> {
 
         /** Reference point to measure distances against. */
         private final Vector1D refPt;
@@ -257,7 +259,7 @@ final class PointMap1DImpl<V>
 
         /** {@inheritDoc} */
         @Override
-        public DistancedValue<Entry<Vector1D, V>> next() {
+        public Entry<Vector1D, V> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
@@ -272,7 +274,9 @@ final class PointMap1DImpl<V>
                 highEntry = null;
             }
 
-            return result;
+            return result != null ?
+                    result.getValue() :
+                    null;
         }
     }
 }

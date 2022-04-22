@@ -103,13 +103,13 @@ final class PointMap1SImpl<V>
 
     /** {@inheritDoc} */
     @Override
-    protected Iterator<DistancedValue<Entry<Point1S, V>>> nearToFarIterator(final Point1S pt) {
+    protected Iterator<Entry<Point1S, V>> nearToFarIterator(final Point1S pt) {
         return new NearToFarIterator(pt);
     }
 
     /** {@inheritDoc} */
     @Override
-    protected Iterator<DistancedValue<Entry<Point1S, V>>> farToNearIterator(final Point1S pt) {
+    protected Iterator<Entry<Point1S, V>> farToNearIterator(final Point1S pt) {
         return new NearToFarIterator(pt.antipodal());
     }
 
@@ -316,7 +316,7 @@ final class PointMap1SImpl<V>
      * a given reference point.
      */
     private final class NearToFarIterator
-        implements Iterator<DistancedValue<Entry<Point1S, V>>> {
+        implements Iterator<Entry<Point1S, V>> {
 
         /** Reference point to measure distances against. */
         private final Point1S refPt;
@@ -381,7 +381,7 @@ final class PointMap1SImpl<V>
 
         /** {@inheritDoc} */
         @Override
-        public DistancedValue<Entry<Point1S, V>> next() {
+        public Entry<Point1S, V> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
@@ -398,7 +398,9 @@ final class PointMap1SImpl<V>
                 highEntry = null;
             }
 
-            return result;
+            return result != null ?
+                    result.getValue() :
+                    null;
         }
 
         /** Get a {@link DistancedValue} instance containing the next entry from the given
