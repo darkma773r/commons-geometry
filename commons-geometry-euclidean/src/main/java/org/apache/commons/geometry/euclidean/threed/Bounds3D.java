@@ -356,9 +356,11 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
     }
 
     private enum Dimension {
-        X(Vector3D.Unit.MINUS_X, Vector3D.Unit.PLUS_X, Vector3D::getX),
-        Y(Vector3D.Unit.MINUS_Y, Vector3D.Unit.PLUS_Y, Vector3D::getY),
-        Z(Vector3D.Unit.MINUS_Z, Vector3D.Unit.PLUS_Z, Vector3D::getZ);
+        X(1, Vector3D::getX, Vector3D.Unit.MINUS_X, Vector3D.Unit.PLUS_X),
+        Y(1 << 1, Vector3D::getY, Vector3D.Unit.MINUS_Y, Vector3D.Unit.PLUS_Y),
+        Z(1 << 2, Vector3D::getZ, Vector3D.Unit.MINUS_Z, Vector3D.Unit.PLUS_Z);
+
+        private final int id;
 
         private final ToDoubleFunction<Vector3D> coordinateFn;
 
@@ -367,12 +369,18 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
         private final Vector3D plus;
 
         Dimension(
+                final int id,
+                final ToDoubleFunction<Vector3D> coordinateFn,
                 final Vector3D minus,
-                final Vector3D plus,
-                final ToDoubleFunction<Vector3D> coordinateFn) {
+                final Vector3D plus) {
+            this.id = id;
+            this.coordinateFn = coordinateFn;
             this.minus = minus;
             this.plus = plus;
-            this.coordinateFn = coordinateFn;
+        }
+
+        public int getId() {
+            return id;
         }
 
         public Vector3D getMinus() {
@@ -385,6 +393,10 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
 
         public double get(final Vector3D pt) {
             return coordinateFn.applyAsDouble(pt);
+        }
+
+        public boolean matches(final int val) {
+            return (id & val) > 0;
         }
     }
 
@@ -402,7 +414,7 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
 
         private double far = Double.POSITIVE_INFINITY;
 
-        private Dimension parallelDimension;
+        private int parallelDimensions;
 
         Linecaster(final LineConvexSubset3D subset) {
             this.subset = subset;
@@ -431,6 +443,8 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
                     addIntersections(far, results);
                 }
 
+                results.sort(LinecastPoint3D.ABSCISSA_ORDER);
+
                 return results;
             }
 
@@ -458,7 +472,8 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
                 final Vector3D pt,
                 final Dimension dim,
                 final List<LinecastPoint3D> results) {
-            if (dim != parallelDimension) {
+
+            if (!dim.matches(parallelDimensions)) {
                 final double coordinate = dim.get(pt);
                 final double dimMin = dim.get(getMin());
                 final double dimMax = dim.get(getMax());
@@ -489,7 +504,7 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
             if (precision.eqZero(dir)) {
                 // the line is parallel to this dimension; store this fact for
                 // use when creating the line cast points
-                parallelDimension = dim;
+                parallelDimensions |= dim.getId();
 
                 return precision.gte(origin, min) && precision.lte(origin, max);
             }
