@@ -132,13 +132,35 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
     }
 
     /** Return {@code true} if the region represented by this instance intersects
+     * the given line.
+     * @param line line to determine intersection with
+     * @return {@code true} if the region represented by this instance intersects
+     *      the given line
+     */
+    public boolean intersects(final Line3D line) {
+        return intersects(line.span());
+    }
+
+    /** Return {@code true} if the region represented by this instance intersects
      * the given line convex subset.
-     * @param subset line convex subset
+     * @param subset line convex subset to determine intersection with
      * @return {@code true} if the region represented by this instance intersects
      *      the given line convex subset
      */
     public boolean intersects(final LineConvexSubset3D subset) {
         return new Linecaster(subset).intersectsRegion();
+    }
+
+    /** Return a {@link Segment3D} representing the intersection of the region
+     * represented by this instance with the given line or {@code null} if no such
+     * intersection exists.
+     * @param line line to intersect with
+     * @return {@link Segment3D} representing the intersection of the region
+     *      represented by this instance with the given line or {@code null}
+     *      if no such intersection exists
+     */
+    public Segment3D intersection(final Line3D line) {
+        return intersection(line.span());
     }
 
     /** Return a {@link Segment3D} representing the intersection of the region
@@ -333,7 +355,42 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
         }
     }
 
+    private enum Dimension {
+        X(Vector3D.Unit.MINUS_X, Vector3D.Unit.PLUS_X, Vector3D::getX),
+        Y(Vector3D.Unit.MINUS_Y, Vector3D.Unit.PLUS_Y, Vector3D::getY),
+        Z(Vector3D.Unit.MINUS_Z, Vector3D.Unit.PLUS_Z, Vector3D::getZ);
+
+        private final ToDoubleFunction<Vector3D> coordinateFn;
+
+        private final Vector3D minus;
+
+        private final Vector3D plus;
+
+        Dimension(
+                final Vector3D minus,
+                final Vector3D plus,
+                final ToDoubleFunction<Vector3D> coordinateFn) {
+            this.minus = minus;
+            this.plus = plus;
+            this.coordinateFn = coordinateFn;
+        }
+
+        public Vector3D getMinus() {
+            return minus;
+        }
+
+        public Vector3D getPlus() {
+            return plus;
+        }
+
+        public double get(final Vector3D pt) {
+            return coordinateFn.applyAsDouble(pt);
+        }
+    }
+
     private final class Linecaster {
+
+        private static final int MAX_INTERSECTIONS = 6;
 
         private final LineConvexSubset3D subset;
 
@@ -345,9 +402,7 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
 
         private double far = Double.POSITIVE_INFINITY;
 
-        private Vector3D nearNormal;
-
-        private Vector3D farNormal;
+        private Dimension parallelDimension;
 
         Linecaster(final LineConvexSubset3D subset) {
             this.subset = subset;
@@ -369,12 +424,11 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
 
         public List<LinecastPoint3D> getBoundaryIntersections() {
             if (computeNearFar()) {
-                final List<LinecastPoint3D> results = new ArrayList<>(2);
-                if (containsAbscissa(near)) {
-                    results.add(new LinecastPoint3D(line.pointAt(near), nearNormal, line));
-                }
-                if (containsAbscissa(far)) {
-                    results.add(new LinecastPoint3D(line.pointAt(far), farNormal, line));
+                final List<LinecastPoint3D> results = new ArrayList<>(MAX_INTERSECTIONS);
+
+                addIntersections(near, results);
+                if (!precision.eq(near, far)) {
+                    addIntersections(far, results);
                 }
 
                 return results;
@@ -384,51 +438,77 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
         }
 
         public LinecastPoint3D getFirstBoundaryIntersection() {
-            if (computeNearFar() && containsAbscissa(near)) {
-                return new LinecastPoint3D(line.pointAt(near), nearNormal, line);
+            final List<LinecastPoint3D> results = getBoundaryIntersections();
+            return results.isEmpty() ?
+                    null :
+                    results.get(0);
+        }
+
+        private void addIntersections(final double abscissa, final List<LinecastPoint3D> results) {
+            if (containsAbscissa(abscissa)) {
+                final Vector3D pt = line.toSpace(abscissa);
+
+                addIntersectionIfPresent(pt, Dimension.X, results);
+                addIntersectionIfPresent(pt, Dimension.Y, results);
+                addIntersectionIfPresent(pt, Dimension.Z, results);
             }
-            return null;
+        }
+
+        private void addIntersectionIfPresent(
+                final Vector3D pt,
+                final Dimension dim,
+                final List<LinecastPoint3D> results) {
+            if (dim != parallelDimension) {
+                final double coordinate = dim.get(pt);
+                final double dimMin = dim.get(getMin());
+                final double dimMax = dim.get(getMax());
+
+                if (precision.eq(coordinate, dimMin)) {
+                    results.add(new LinecastPoint3D(pt, dim.getMinus(), line));
+                }
+
+                if (precision.eq(coordinate, dimMax)) {
+                    results.add(new LinecastPoint3D(pt, dim.getPlus(), line));
+                }
+            }
         }
 
         private boolean computeNearFar() {
-            return computeNearFar(Vector3D::getX, Vector3D.Unit.PLUS_X) &&
-                    computeNearFar(Vector3D::getY, Vector3D.Unit.PLUS_Y) &&
-                    computeNearFar(Vector3D::getZ, Vector3D.Unit.PLUS_Z);
+            return computeNearFar(Dimension.X) &&
+                    computeNearFar(Dimension.Y) &&
+                    computeNearFar(Dimension.Z);
         }
 
-        private boolean computeNearFar(
-                final ToDoubleFunction<Vector3D> coordinateFn,
-                final Vector3D positiveNormal) {
-            final double dir = coordinateFn.applyAsDouble(line.getDirection());
-            final double origin = coordinateFn.applyAsDouble(line.getOrigin());
+        private boolean computeNearFar(final Dimension dim) {
+            final double dir = dim.get(line.getDirection());
+            final double origin = dim.get(line.getOrigin());
 
-            final double min = coordinateFn.applyAsDouble(getMin());
-            final double max = coordinateFn.applyAsDouble(getMax());
+            final double min = dim.get(getMin());
+            final double max = dim.get(getMax());
 
-            if (line.getPrecision().eqZero(dir) &&
-                    (precision.lt(origin, min) || precision.gt(origin, max))) {
-                return false;
+            if (precision.eqZero(dir)) {
+                // the line is parallel to this dimension; store this fact for
+                // use when creating the line cast points
+                parallelDimension = dim;
+
+                return precision.gte(origin, min) && precision.lte(origin, max);
             }
 
             double t1 = (min - origin) / dir;
             double t2 = (max - origin) / dir;
-            double normalFactor = -1d;
 
             if (t1 > t2) {
                 final double temp = t1;
                 t1 = t2;
                 t2 = temp;
-                normalFactor = 1d;
             }
 
             if (t1 > near) {
                 near = t1;
-                nearNormal = positiveNormal.multiply(normalFactor);
             }
 
             if (t2 < far) {
                 far = t2;
-                farNormal = positiveNormal.multiply(-1 * normalFactor);
             }
 
             if (precision.gt(near, far)) {
