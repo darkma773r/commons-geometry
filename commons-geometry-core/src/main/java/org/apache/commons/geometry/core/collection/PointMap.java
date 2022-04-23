@@ -25,6 +25,14 @@ import org.apache.commons.geometry.core.Point;
  * use in cases where effectively equivalent (but not necessarily equal) points must
  * map to the same entry. As such, this interface breaks the strict contract for
  * {@link Map} where key equality is consistent with {@link Object#equals(Object)}.
+ *
+ * <p><strong>Distance Ordering</strong></p>
+ * <p>For methods such as {@link #nearestEntry(Point)} and {@link #entriesNearToFar(Point)}
+ * that order entries by distance, implementations are free to choose the criteria used to
+ * break ties in distance. For example, if entries {@code A} and {@code B} have keys at equal
+ * distances from point {@code P}, implementations may choose to return either {@code A} or
+ * {@code B} for {@code map.nearestEntry(P)}.
+ * </p>
  * @param <P> Point type
  * @param <V> Value type
  */
@@ -40,11 +48,35 @@ public interface PointMap<P extends Point<P>, V> extends Map<P, V> {
      */
     Entry<P, V> getEntry(P pt);
 
+    /** Get the entry from the map with the key nearest to {@code pt} or
+     * {@code null} if the map is empty.
+     * @param pt reference point
+     * @return entry from the map with the key nearest to {@code pt} or
+     *      {@code null} if the map is entry
+     */
     Entry<P, V> nearestEntry(P pt);
 
+    /** Get the entry from the map with the key farthest from {@code pt} or
+     * {@code null} if the map is empty.
+     * @param pt reference point
+     * @return entry from the map with the key farthest to {@code pt} or
+     *      {@code null} if the map is entry
+     */
     Entry<P, V> farthestEntry(P pt);
 
+    /** Get a collection containing the map entries in order of increasing
+     * distance from {@code pt}.
+     * @param pt reference point
+     * @return collection containing the map entries in order of increasing
+     *      distance from {@code pt}
+     */
     Collection<Entry<P, V>> entriesNearToFar(P pt);
 
+    /** Get a collection containing the map entries in order of decreasing
+     * distance from {@code pt}.
+     * @param pt reference point
+     * @return collection containing the map entries in order of decreasing
+     *      distance from {@code pt}
+     */
     Collection<Entry<P, V>> entriesFarToNear(P pt);
 }
