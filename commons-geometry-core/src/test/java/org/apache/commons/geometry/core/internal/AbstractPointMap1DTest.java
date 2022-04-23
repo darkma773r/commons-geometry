@@ -27,8 +27,19 @@ import java.util.Set;
 import org.apache.commons.geometry.core.collection.PointMapTestBase;
 import org.apache.commons.geometry.core.partitioning.test.TestPoint1D;
 import org.apache.commons.numbers.core.Precision;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 class AbstractPointMap1DTest extends PointMapTestBase<TestPoint1D> {
+
+    @Test
+    void testGetPrecision() {
+        // arrange
+        final TestPointMap1D<Integer> map = getMap(PRECISION);
+
+        // act/assert
+        Assertions.assertSame(PRECISION, map.getPrecision());
+    }
 
     /** {@inheritDoc} */
     @Override

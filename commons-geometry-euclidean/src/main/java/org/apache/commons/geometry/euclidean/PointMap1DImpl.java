@@ -266,7 +266,7 @@ final class PointMap1DImpl<V>
 
             final DistancedValue<Entry<Vector1D, V>> result;
             if (lowEntry != null &&
-                    (highEntry == null || lowEntry.getDistance() >= highEntry.getDistance())) {
+                    (highEntry == null || lowEntry.getDistance() > highEntry.getDistance())) {
                 result = lowEntry;
                 lowEntry = null;
             } else {
