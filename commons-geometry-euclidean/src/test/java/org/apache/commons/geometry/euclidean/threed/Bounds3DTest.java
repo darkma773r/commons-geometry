@@ -444,7 +444,7 @@ class Bounds3DTest {
 
         // -- arrange
         final Vector3D offset = normal.multiply(1.2);
-        final ConvexVolume volume = bounds.toRegion(TEST_PRECISION);
+        final Parallelepiped region = bounds.toRegion(TEST_PRECISION);
 
         EuclideanTestUtils.permute(-1, 1, 0.5, (x, y, z) -> {
             final Vector3D otherPt = facePt
@@ -452,105 +452,73 @@ class Bounds3DTest {
                     .add(offset);
             final Line3D line = Lines3D.fromPoints(otherPt, facePt, TEST_PRECISION);
 
-            // -- act
-            final LinecastPoint3D forwardPt = bounds.linecastFirst(line);
-            final List<LinecastPoint3D> forwardPts = bounds.linecast(line);
+            final LinecastPoint3D reversePt = region.linecastFirst(line.reverse());
 
-            final LinecastPoint3D reversePt = bounds.linecastFirst(line.reverse());
-            final List<LinecastPoint3D> reversePts = bounds.linecast(line.reverse());
+            // -- act/assert
+            linecastCheckerFor(bounds)
+                .expect(facePt, normal)
+                .and(reversePt.getPoint(), reversePt.getNormal())
+                .whenGiven(line);
 
-            // -- assert
-            // check the points individually
-            assertLinecast(forwardPt, facePt, normal);
-
-            Assertions.assertEquals(2, forwardPts.size());
-            assertLinecast(forwardPts.get(0), facePt, normal);
-            assertLinecast(forwardPts.get(1), reversePt.getPoint(), reversePt.getNormal());
-
-            Assertions.assertEquals(2, reversePts.size());
-            assertLinecast(reversePts.get(0), reversePt.getPoint(), reversePt.getNormal());
-            assertLinecast(reversePts.get(1), facePt, normal);
-
-            // ensure consistency with the linecast results from the convex volume
-            EuclideanTestUtils.assertCoordinatesEqual(
-                    forwardPt.getPoint(), volume.linecastFirst(line).getPoint(), TEST_EPS);
-            assertLinecastElements(forwardPts, volume.linecast(line));
-
-            EuclideanTestUtils.assertCoordinatesEqual(
-                    reversePt.getPoint(), volume.linecastFirst(line.reverse()).getPoint(), TEST_EPS);
-            assertLinecastElements(reversePts, volume.linecast(line.reverse()));
+            linecastCheckerFor(bounds)
+                .and(reversePt.getPoint(), reversePt.getNormal())
+                .expect(facePt, normal)
+                .whenGiven(line.reverse());
         });
     }
 
     @Test
-    void testLinecast_intersectsVertex() {
+    void testLinecast_intersectsSingleVertex() {
         // -- arrange
         final Bounds3D bounds = Bounds3D.from(Vector3D.ZERO, Vector3D.of(1, 1, 1));
 
         // -- act/assert
-        checkLinecastAgainstVertex(bounds, Vector3D.ZERO);
-        checkLinecastAgainstVertex(bounds, Vector3D.of(0, 0, 1));
-        checkLinecastAgainstVertex(bounds, Vector3D.of(0, 1, 0));
-        checkLinecastAgainstVertex(bounds, Vector3D.of(0, 1, 1));
-        checkLinecastAgainstVertex(bounds, Vector3D.of(1, 0, 0));
-        checkLinecastAgainstVertex(bounds, Vector3D.of(1, 0, 1));
-        checkLinecastAgainstVertex(bounds, Vector3D.of(1, 1, 0));
-        checkLinecastAgainstVertex(bounds, Vector3D.of(1, 1, 1));
+        checkLinecastAgainstSingleVertex(bounds, Vector3D.ZERO);
+        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(0, 0, 1));
+        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(0, 1, 0));
+        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(0, 1, 1));
+        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(1, 0, 0));
+        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(1, 0, 1));
+        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(1, 1, 0));
+        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(1, 1, 1));
     }
 
-    private void checkLinecastAgainstVertex(
+    private void checkLinecastAgainstSingleVertex(
             final Bounds3D bounds,
             final Vector3D vertex) {
 
         // -- arrange
-        final Vector3D axis = vertex.subtract(bounds.getCentroid()).normalize();
-        final Vector3D baseLineDir = axis.orthogonal();
-
-        final ConvexVolume volume = bounds.toRegion(TEST_PRECISION);
+        final Vector3D centerToVertex = vertex.subtract(bounds.getCentroid()).normalize();
+        final Vector3D baseLineDir = centerToVertex.orthogonal();
 
         final int runCnt = 10;
         for (double a = 0; a < Angle.TWO_PI; a += Angle.TWO_PI / runCnt) {
 
-            // -- act
-            final Vector3D lineDir = QuaternionRotation.fromAxisAngle(axis, a).apply(baseLineDir);
+            // construct a line orthogonal to the vector from the bounds center to the vertex and passing
+            // through the vertex
+            final Vector3D lineDir = QuaternionRotation.fromAxisAngle(centerToVertex, a).apply(baseLineDir);
             final Line3D line = Lines3D.fromPointAndDirection(vertex, lineDir, TEST_PRECISION);
 
-            final LinecastPoint3D forwardPt = bounds.linecastFirst(line);
-            final List<LinecastPoint3D> forwardPts = bounds.linecast(line);
+            // construct possible normals for this vertex
+            final List<Vector3D> normals = new ArrayList<>();
+            normals.add(centerToVertex.project(Vector3D.Unit.PLUS_X).normalize());
+            normals.add(centerToVertex.project(Vector3D.Unit.PLUS_Y).normalize());
+            normals.add(centerToVertex.project(Vector3D.Unit.PLUS_Z).normalize());
 
-            final LinecastPoint3D reversePt = bounds.linecastFirst(line.reverse());
-            final List<LinecastPoint3D> reversePts = bounds.linecast(line.reverse());
+            normals.sort(Vector3D.COORDINATE_ASCENDING_ORDER);
 
-            // -- assert
-            // check the points individually
-            EuclideanTestUtils.assertCoordinatesEqual(vertex, forwardPt.getPoint(), TEST_EPS);
-            Assertions.assertTrue(forwardPt.getNormal().dot(axis) > 0);
-
-            Assertions.assertEquals(forwardPt, forwardPts.get(0));
-
-            for (final LinecastPoint3D pt : forwardPts) {
-                EuclideanTestUtils.assertCoordinatesEqual(vertex, pt.getPoint(), TEST_EPS);
-                Assertions.assertTrue(pt.getNormal().dot(axis) > 0);
+            // create the checker and populate it with the normals of faces that are not parallel to
+            // the line
+            final BoundsLinecastChecker3D checker = linecastCheckerFor(bounds);
+            for (final Vector3D normal : normals) {
+                if (!TEST_PRECISION.eqZero(normal.dot(lineDir))) {
+                    checker.expect(vertex, normal);
+                }
             }
 
-            EuclideanTestUtils.assertCoordinatesEqual(vertex, reversePt.getPoint(), TEST_EPS);
-            Assertions.assertTrue(reversePt.getNormal().dot(axis) > 0);
-
-            Assertions.assertEquals(reversePt, reversePts.get(0));
-
-            for (final LinecastPoint3D pt : reversePts) {
-                EuclideanTestUtils.assertCoordinatesEqual(vertex, pt.getPoint(), TEST_EPS);
-                Assertions.assertTrue(pt.getNormal().dot(axis) > 0);
-            }
-
-            // ensure consistency with the linecast results from the convex volume
-            EuclideanTestUtils.assertCoordinatesEqual(
-                    forwardPt.getPoint(), volume.linecastFirst(line).getPoint(), TEST_EPS);
-            assertLinecastElements(forwardPts, volume.linecast(line));
-
-            EuclideanTestUtils.assertCoordinatesEqual(
-                    reversePt.getPoint(), volume.linecastFirst(line.reverse()).getPoint(), TEST_EPS);
-            assertLinecastElements(reversePts, volume.linecast(line.reverse()));
+            // -- act/assert
+            checker.whenGiven(line)
+                .whenGiven(line.reverse());
         }
     }
 
@@ -563,45 +531,37 @@ class Bounds3DTest {
         final Bounds3D bounds = Bounds3D.from(min, max);
         final Line3D line = Lines3D.fromPoints(min, max, TEST_PRECISION);
 
-        // -- act
-        final LinecastPoint3D pt = bounds.linecastFirst(line);
-        final List<LinecastPoint3D> pts = bounds.linecast(line);
-
-        // -- assert
-        assertLinecast(pt, Vector3D.ZERO, Vector3D.Unit.MINUS_X);
-
-        Assertions.assertEquals(6, pts.size());
-        assertLinecast(pts.get(0), min, Vector3D.Unit.MINUS_X);
-        assertLinecast(pts.get(1), min, Vector3D.Unit.MINUS_Y);
-        assertLinecast(pts.get(2), min, Vector3D.Unit.MINUS_Z);
-
-        assertLinecast(pts.get(3), max, Vector3D.Unit.PLUS_Z);
-        assertLinecast(pts.get(4), max, Vector3D.Unit.PLUS_Y);
-        assertLinecast(pts.get(5), max, Vector3D.Unit.PLUS_X);
+        // -- act/assert
+        linecastCheckerFor(bounds)
+            .expect(min, Vector3D.Unit.MINUS_X)
+            .and(min, Vector3D.Unit.MINUS_Y)
+            .and(min, Vector3D.Unit.MINUS_Z)
+            .and(max, Vector3D.Unit.PLUS_Z)
+            .and(max, Vector3D.Unit.PLUS_Y)
+            .and(max, Vector3D.Unit.PLUS_X)
+            .whenGiven(line);
     }
 
     @Test
     void testLinecast_edgeToEdge() {
         // -- arrange
-        final Vector3D min = Vector3D.of(0, 0, 0.5);
-        final Vector3D max = Vector3D.of(1, 1, 0.5);
+        final Vector3D min = Vector3D.of(0, 0, 0);
+        final Vector3D max = Vector3D.of(1, 1, 1);
 
         final Bounds3D bounds = Bounds3D.from(min, max);
-        final Line3D line = Lines3D.fromPoints(min, max, TEST_PRECISION);
 
-        // -- act
-        final LinecastPoint3D pt = bounds.linecastFirst(line);
-        final List<LinecastPoint3D> pts = bounds.linecast(line);
+        final Vector3D start = Vector3D.of(0, 0, 0.5);
+        final Vector3D end = Vector3D.of(1, 1, 0.5);
 
-        // -- assert
-        assertLinecast(pt, min, Vector3D.Unit.MINUS_X);
+        final Line3D line = Lines3D.fromPoints(start, end, TEST_PRECISION);
 
-        Assertions.assertEquals(4, pts.size());
-        assertLinecast(pts.get(0), min, Vector3D.Unit.MINUS_X);
-        assertLinecast(pts.get(1), min, Vector3D.Unit.MINUS_Y);
-
-        assertLinecast(pts.get(2), max, Vector3D.Unit.PLUS_Y);
-        assertLinecast(pts.get(3), max, Vector3D.Unit.PLUS_X);
+        // -- act/assert
+        linecastCheckerFor(bounds)
+            .expect(start, Vector3D.Unit.MINUS_X)
+            .and(start, Vector3D.Unit.MINUS_Y)
+            .and(end, Vector3D.Unit.PLUS_Y)
+            .and(end, Vector3D.Unit.PLUS_X)
+            .whenGiven(line);
     }
 
     @Test
@@ -623,15 +583,10 @@ class Bounds3DTest {
             final Line3D line = Lines3D.fromPoints(start, end, TEST_PRECISION);
 
             // -- act/assert
-            final LinecastPoint3D pt = bounds.linecastFirst(line);
-            final List<LinecastPoint3D> pts = bounds.linecast(line);
-
-            // -- assert
-            assertLinecast(pt, start, Vector3D.Unit.MINUS_Y);
-
-            Assertions.assertEquals(2, pts.size());
-            assertLinecast(pts.get(0), start, Vector3D.Unit.MINUS_Y);
-            assertLinecast(pts.get(1), end, Vector3D.Unit.PLUS_Y);
+            linecastCheckerFor(bounds)
+                .expect(start, Vector3D.Unit.MINUS_Y)
+                .and(end, Vector3D.Unit.PLUS_Y)
+                .whenGiven(line);
         }
     }
 
@@ -665,11 +620,15 @@ class Bounds3DTest {
         final Line3D plusYLine = Lines3D.fromPointAndDirection(offsetVertex, Vector3D.Unit.PLUS_Y, TEST_PRECISION);
         final Line3D plusZLine = Lines3D.fromPointAndDirection(offsetVertex, Vector3D.Unit.PLUS_Z, TEST_PRECISION);
 
+        final BoundsLinecastChecker3D emptyChecker = linecastCheckerFor(bounds)
+                .expectNothing();
+
         // -- act/assert
         // check axis-aligned lines
-        assertNoLinecastIntersection(bounds, plusXLine);
-        assertNoLinecastIntersection(bounds, plusYLine);
-        assertNoLinecastIntersection(bounds, plusZLine);
+        emptyChecker
+            .whenGiven(plusXLine)
+            .whenGiven(plusYLine)
+            .whenGiven(plusZLine);
 
         // check lines orthogonal to the axis
         final int runCnt = 10;
@@ -677,7 +636,7 @@ class Bounds3DTest {
             final Vector3D lineDir = QuaternionRotation.fromAxisAngle(toVertex, a).apply(baseLineDir);
             final Line3D line = Lines3D.fromPointAndDirection(offsetVertex, lineDir, TEST_PRECISION);
 
-            assertNoLinecastIntersection(bounds, line);
+            emptyChecker.whenGiven(line);
         }
     }
 
@@ -697,9 +656,30 @@ class Bounds3DTest {
         final Line3D line = Lines3D.fromPoints(start, end, TEST_PRECISION);
 
         // -- act/assert
-        assertLinecast(bounds.linecastFirst(line.rayFrom(-0.5)), end, Vector3D.Unit.MINUS_X);
-        assertLinecast(bounds.linecastFirst(line.reverseRayTo(-0.5)), start, Vector3D.Unit.PLUS_X);
-        assertNoLinecastIntersection(bounds, line.segment(-0.9, -0.1));
+        linecastCheckerFor(bounds)
+            .expect(end, Vector3D.Unit.MINUS_X)
+            .whenGiven(line.rayFrom(-0.5));
+
+        linecastCheckerFor(bounds)
+            .expect(start, Vector3D.Unit.PLUS_X)
+            .whenGiven(line.reverseRayTo(-0.5));
+
+        linecastCheckerFor(bounds)
+            .expectNothing()
+            .whenGiven(line.segment(-0.9, -0.1));
+
+        linecastCheckerFor(bounds)
+            .expect(end, Vector3D.Unit.MINUS_X)
+            .whenGiven(line.segment(-0.9, 0.1));
+
+        linecastCheckerFor(bounds)
+            .expect(start, Vector3D.Unit.PLUS_X)
+            .whenGiven(line.segment(-1.1, -0.1));
+
+        linecastCheckerFor(bounds)
+            .expect(start, Vector3D.Unit.PLUS_X)
+            .expect(end, Vector3D.Unit.MINUS_X)
+            .whenGiven(line.segment(-1.1, 0.1));
     }
 
     @Test
@@ -829,57 +809,104 @@ class Bounds3DTest {
         }
     }
 
-    private static void assertLinecast(
-            final LinecastPoint3D result,
-            final Vector3D expectedPt,
-            final Vector3D expectedNormal) {
-
-        EuclideanTestUtils.assertCoordinatesEqual(expectedPt, result.getPoint(), TEST_EPS);
-        EuclideanTestUtils.assertCoordinatesEqual(expectedNormal, result.getNormal(), TEST_EPS);
+    private static BoundsLinecastChecker3D linecastCheckerFor(final Bounds3D bounds) {
+        return new BoundsLinecastChecker3D(bounds);
     }
 
-    /** Assert that the two collections contain the same linecast points and that the elements
-     * of {@code actual} are arranged in ascending abscissa order.
-     * @param expected expected collection
-     * @param actual actual collection
-     */
-    private static void assertLinecastElements(
-            final Collection<LinecastPoint3D> expected,
-            final Collection<LinecastPoint3D> actual) {
-        Assertions.assertEquals(expected.size(), actual.size(), "Unexpected list size");
+    private static final class BoundsLinecastChecker3D {
 
-        // create a sorted copy
-        final List<LinecastPoint3D> sortedList = new ArrayList<>(actual);
-        sortedList.sort(LinecastPoint3D.ABSCISSA_ORDER);
+        private final Bounds3D bounds;
 
-        // check element membership
-        for (final LinecastPoint3D expectedPt : expected) {
-            final Iterator<LinecastPoint3D> sortedIt = sortedList.iterator();
+        private final Parallelepiped region;
 
-            boolean found = false;
-            while (sortedIt.hasNext()) {
-                if (expectedPt.eq(sortedIt.next(), TEST_PRECISION)) {
-                    found = true;
-                    break;
-                }
-            }
+        private final LinecastChecker3D checker;
 
-            if (!found) {
-                Assertions.fail("Missing expected linecast point " + expectedPt);
+        BoundsLinecastChecker3D(final Bounds3D bounds) {
+            this.bounds = bounds;
+            this.region = bounds.toRegion(TEST_PRECISION);
+            this.checker = LinecastChecker3D.with(bounds);
+        }
+
+        public BoundsLinecastChecker3D expectNothing() {
+            checker.expectNothing();
+            return this;
+        }
+
+        public BoundsLinecastChecker3D expect(final Vector3D pt, final Vector3D normal) {
+            checker.expect(pt, normal);
+            return this;
+        }
+
+        public BoundsLinecastChecker3D and(final Vector3D pt, final Vector3D normal) {
+            return expect(pt, normal);
+        }
+
+        public BoundsLinecastChecker3D whenGiven(final Line3D line) {
+            // perform the standard checks
+            checker.whenGiven(line);
+
+            // check that the returned points are equivalent to the region points
+            assertEquivalentRegionLinecastResult(region.linecast(line), bounds.linecast(line));
+
+            return this;
+        }
+
+        public BoundsLinecastChecker3D whenGiven(final LineConvexSubset3D subset) {
+            // perform the standard checks
+            checker.whenGiven(subset);
+
+            // check that the returned points are equivalent to the region points
+            assertEquivalentRegionLinecastResult(region.linecast(subset), bounds.linecast(subset));
+
+            return this;
+        }
+
+        private void assertEquivalentRegionLinecastResult(
+                final List<LinecastPoint3D> regionList,
+                final List<LinecastPoint3D> boundsList) {
+            assertLinecastElements(regionList, boundsList);
+
+            // ensure consistency with the intersects method
+            if (!boundsList.isEmpty()) {
+                final Line3D line = boundsList.get(0).getLine();
+
+                Assertions.assertTrue(bounds.intersects(line), "Expected line to intersect bounds");
             }
         }
 
-        // check the order
-        Assertions.assertEquals(sortedList, actual);
-    }
+        /** Assert that the two collections contain the same linecast points and that the elements
+         * of {@code actual} are arranged in ascending abscissa order.
+         * @param expected expected collection
+         * @param actual actual collection
+         */
+        private void assertLinecastElements(
+                final Collection<LinecastPoint3D> expected,
+                final Collection<LinecastPoint3D> actual) {
+            Assertions.assertEquals(expected.size(), actual.size(), "Unexpected list size");
 
-    private static void assertNoLinecastIntersection(final Bounds3D bounds, final Line3D line) {
-        assertNoLinecastIntersection(bounds, line.span());
-        assertNoLinecastIntersection(bounds, line.reverse().span());
-    }
+            // create a sorted copy
+            final List<LinecastPoint3D> sortedList = new ArrayList<>(actual);
+            sortedList.sort(LinecastPoint3D.ABSCISSA_ORDER);
 
-    private static void assertNoLinecastIntersection(final Bounds3D bounds, final LineConvexSubset3D subset) {
-        Assertions.assertNull(bounds.linecastFirst(subset));
-        Assertions.assertEquals(0, bounds.linecast(subset).size());
+            // check element membership
+            for (final LinecastPoint3D expectedPt : expected) {
+                final Iterator<LinecastPoint3D> sortedIt = sortedList.iterator();
+
+                boolean found = false;
+                while (sortedIt.hasNext()) {
+                    if (expectedPt.eq(sortedIt.next(), TEST_PRECISION)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    Assertions.fail("Missing expected linecast point " + expectedPt);
+                }
+            }
+
+            // check the order
+            Assertions.assertEquals(sortedList, actual);
+        }
     }
 }
