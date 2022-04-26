@@ -424,8 +424,8 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
 
         public boolean intersectsRegion() {
             return computeNearFar() &&
-                    precision.gte(near, subset.getSubspaceStart()) &&
-                    precision.lte(far, subset.getSubspaceEnd());
+                    precision.gte(subset.getSubspaceEnd(), near) &&
+                    precision.lte(subset.getSubspaceStart(), far);
         }
 
         public Segment3D getRegionIntersection() {

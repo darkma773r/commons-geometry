@@ -455,12 +455,12 @@ class Bounds3DTest {
             final LinecastPoint3D reversePt = region.linecastFirst(line.reverse());
 
             // -- act/assert
-            linecastCheckerFor(bounds)
+            linecastChecker(bounds)
                 .expect(facePt, normal)
                 .and(reversePt.getPoint(), reversePt.getNormal())
                 .whenGiven(line);
 
-            linecastCheckerFor(bounds)
+            linecastChecker(bounds)
                 .and(reversePt.getPoint(), reversePt.getNormal())
                 .expect(facePt, normal)
                 .whenGiven(line.reverse());
@@ -509,7 +509,7 @@ class Bounds3DTest {
 
             // create the checker and populate it with the normals of faces that are not parallel to
             // the line
-            final BoundsLinecastChecker3D checker = linecastCheckerFor(bounds);
+            final BoundsLinecastChecker3D checker = linecastChecker(bounds);
             for (final Vector3D normal : normals) {
                 if (!TEST_PRECISION.eqZero(normal.dot(lineDir))) {
                     checker.expect(vertex, normal);
@@ -532,7 +532,7 @@ class Bounds3DTest {
         final Line3D line = Lines3D.fromPoints(min, max, TEST_PRECISION);
 
         // -- act/assert
-        linecastCheckerFor(bounds)
+        linecastChecker(bounds)
             .expect(min, Vector3D.Unit.MINUS_X)
             .and(min, Vector3D.Unit.MINUS_Y)
             .and(min, Vector3D.Unit.MINUS_Z)
@@ -556,7 +556,7 @@ class Bounds3DTest {
         final Line3D line = Lines3D.fromPoints(start, end, TEST_PRECISION);
 
         // -- act/assert
-        linecastCheckerFor(bounds)
+        linecastChecker(bounds)
             .expect(start, Vector3D.Unit.MINUS_X)
             .and(start, Vector3D.Unit.MINUS_Y)
             .and(end, Vector3D.Unit.PLUS_Y)
@@ -583,7 +583,7 @@ class Bounds3DTest {
             final Line3D line = Lines3D.fromPoints(start, end, TEST_PRECISION);
 
             // -- act/assert
-            linecastCheckerFor(bounds)
+            linecastChecker(bounds)
                 .expect(start, Vector3D.Unit.MINUS_Y)
                 .and(end, Vector3D.Unit.PLUS_Y)
                 .whenGiven(line);
@@ -620,7 +620,7 @@ class Bounds3DTest {
         final Line3D plusYLine = Lines3D.fromPointAndDirection(offsetVertex, Vector3D.Unit.PLUS_Y, TEST_PRECISION);
         final Line3D plusZLine = Lines3D.fromPointAndDirection(offsetVertex, Vector3D.Unit.PLUS_Z, TEST_PRECISION);
 
-        final BoundsLinecastChecker3D emptyChecker = linecastCheckerFor(bounds)
+        final BoundsLinecastChecker3D emptyChecker = linecastChecker(bounds)
                 .expectNothing();
 
         // -- act/assert
@@ -656,30 +656,114 @@ class Bounds3DTest {
         final Line3D line = Lines3D.fromPoints(start, end, TEST_PRECISION);
 
         // -- act/assert
-        linecastCheckerFor(bounds)
+        linecastChecker(bounds)
             .expect(end, Vector3D.Unit.MINUS_X)
             .whenGiven(line.rayFrom(-0.5));
 
-        linecastCheckerFor(bounds)
+        linecastChecker(bounds)
             .expect(start, Vector3D.Unit.PLUS_X)
             .whenGiven(line.reverseRayTo(-0.5));
 
-        linecastCheckerFor(bounds)
+        linecastChecker(bounds)
             .expectNothing()
             .whenGiven(line.segment(-0.9, -0.1));
 
-        linecastCheckerFor(bounds)
+        linecastChecker(bounds)
             .expect(end, Vector3D.Unit.MINUS_X)
             .whenGiven(line.segment(-0.9, 0.1));
 
-        linecastCheckerFor(bounds)
+        linecastChecker(bounds)
             .expect(start, Vector3D.Unit.PLUS_X)
             .whenGiven(line.segment(-1.1, -0.1));
 
-        linecastCheckerFor(bounds)
+        linecastChecker(bounds)
             .expect(start, Vector3D.Unit.PLUS_X)
             .expect(end, Vector3D.Unit.MINUS_X)
             .whenGiven(line.segment(-1.1, 0.1));
+    }
+
+    @Test
+    void testLinecast_subsetEndpointOnBounds() {
+        // -- arrange
+        final Vector3D min = Vector3D.ZERO;
+        final Vector3D max = Vector3D.of(1, 1, 1);
+
+        final Bounds3D bounds = Bounds3D.from(min, max);
+
+        final Vector3D centroid = bounds.getCentroid();
+
+        final Vector3D start = Vector3D.of(max.getX(), centroid.getY(), centroid.getZ());
+        final Vector3D end = Vector3D.of(min.getX(), centroid.getY(), centroid.getZ());
+
+        final Line3D line = Lines3D.fromPoints(start, end, TEST_PRECISION);
+
+        // -- act/assert
+        linecastChecker(bounds)
+            .expect(end, Vector3D.Unit.MINUS_X)
+            .whenGiven(line.rayFrom(0));
+
+        linecastChecker(bounds)
+            .expect(end, Vector3D.Unit.MINUS_X)
+            .whenGiven(line.segment(0, 1));
+
+        linecastChecker(bounds)
+            .expect(start, Vector3D.Unit.PLUS_X)
+            .whenGiven(line.reverseRayTo(-1));
+
+        linecastChecker(bounds)
+            .expect(start, Vector3D.Unit.PLUS_X)
+            .whenGiven(line.segment(-2, -1));
+    }
+
+    @Test
+    void testLinecast_usesLinePrecision() {
+        // -- arrange
+        final double withinEps = 0.9 * TEST_EPS;
+        final double outsideEps = 1.1 * TEST_EPS;
+
+        final Vector3D min = Vector3D.ZERO;
+        final Vector3D max = Vector3D.of(1, 1, 1);
+
+        final Bounds3D bounds = Bounds3D.from(min, max);
+
+        final Vector3D centroid = bounds.getCentroid();
+
+        final Vector3D centerStart = Vector3D.of(max.getX(), centroid.getY(), centroid.getZ());
+        final Vector3D centerEnd = Vector3D.of(min.getX(), centroid.getY(), centroid.getZ());
+
+        final Line3D centerLine = Lines3D.fromPoints(centerStart, centerEnd, TEST_PRECISION);
+
+        final Vector3D faceStart = Vector3D.of(max.getX() + withinEps, max.getY() + withinEps, min.getZ());
+        final Vector3D faceEnd = Vector3D.of(max.getX() + withinEps, max.getY() + withinEps, max.getZ());
+
+        final Line3D faceLine = Lines3D.fromPoints(faceStart, faceEnd, TEST_PRECISION);
+
+        // -- act/assert
+        linecastChecker(bounds)
+            .expect(centerEnd, Vector3D.Unit.MINUS_X)
+            .whenGiven(centerLine.rayFrom(withinEps));
+
+        linecastChecker(bounds)
+            .expectNothing()
+            .whenGiven(centerLine.rayFrom(outsideEps));
+
+        linecastChecker(bounds)
+            .expect(centerStart, Vector3D.Unit.PLUS_X)
+            .expect(centerEnd, Vector3D.Unit.MINUS_X)
+            .whenGiven(centerLine.segment(-1 + withinEps, -withinEps));
+
+        linecastChecker(bounds)
+            .expectNothing()
+            .whenGiven(centerLine.segment(-1 + outsideEps, -outsideEps));
+
+        linecastChecker(bounds)
+            .expect(faceStart, Vector3D.Unit.MINUS_Z)
+            .expect(faceEnd, Vector3D.Unit.PLUS_Z)
+            .whenGiven(faceLine.segment(withinEps, 1 - withinEps));
+
+        linecastChecker(bounds)
+            .expectNothing()
+            .whenGiven(faceLine.segment(outsideEps, 1 - outsideEps));
     }
 
     @Test
@@ -809,7 +893,7 @@ class Bounds3DTest {
         }
     }
 
-    private static BoundsLinecastChecker3D linecastCheckerFor(final Bounds3D bounds) {
+    private static BoundsLinecastChecker3D linecastChecker(final Bounds3D bounds) {
         return new BoundsLinecastChecker3D(bounds);
     }
 
@@ -846,7 +930,15 @@ class Bounds3DTest {
             checker.whenGiven(line);
 
             // check that the returned points are equivalent to the region points
+            final List<LinecastPoint3D> boundsResults = bounds.linecast(line);
             assertEquivalentRegionLinecastResult(region.linecast(line), bounds.linecast(line));
+
+            // check consistency with the intersects method; having linecast results guarantees
+            // that we intersect the bounds but not vice versa
+            if (!boundsResults.isEmpty()) {
+                Assertions.assertTrue(bounds.intersects(line),
+                        () -> "Linecast result is inconsistent with intersects method: line= " + line);
+            }
 
             return this;
         }
@@ -856,7 +948,15 @@ class Bounds3DTest {
             checker.whenGiven(subset);
 
             // check that the returned points are equivalent to the region points
-            assertEquivalentRegionLinecastResult(region.linecast(subset), bounds.linecast(subset));
+            final List<LinecastPoint3D> boundsResults = bounds.linecast(subset);
+            assertEquivalentRegionLinecastResult(region.linecast(subset), boundsResults);
+
+            // check consistency with the intersects methods; having linecast results guarantees
+            // that we intersect the bounds but not vice versa
+            if (!boundsResults.isEmpty()) {
+                Assertions.assertTrue(bounds.intersects(subset),
+                        () -> "Linecast result is inconsistent with intersects method: line subset= " + subset);
+            }
 
             return this;
         }
@@ -865,13 +965,6 @@ class Bounds3DTest {
                 final List<LinecastPoint3D> regionList,
                 final List<LinecastPoint3D> boundsList) {
             assertLinecastElements(regionList, boundsList);
-
-            // ensure consistency with the intersects method
-            if (!boundsList.isEmpty()) {
-                final Line3D line = boundsList.get(0).getLine();
-
-                Assertions.assertTrue(bounds.intersects(line), "Expected line to intersect bounds");
-            }
         }
 
         /** Assert that the two collections contain the same linecast points and that the elements
