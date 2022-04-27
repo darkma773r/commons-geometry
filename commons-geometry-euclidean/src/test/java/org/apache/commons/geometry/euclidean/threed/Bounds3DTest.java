@@ -27,11 +27,13 @@ import java.util.function.ToDoubleFunction;
 import java.util.regex.Pattern;
 
 import org.apache.commons.geometry.core.GeometryTestUtils;
+import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.euclidean.EuclideanTestUtils;
 import org.apache.commons.geometry.euclidean.threed.line.Line3D;
 import org.apache.commons.geometry.euclidean.threed.line.LineConvexSubset3D;
 import org.apache.commons.geometry.euclidean.threed.line.LinecastPoint3D;
 import org.apache.commons.geometry.euclidean.threed.line.Lines3D;
+import org.apache.commons.geometry.euclidean.threed.line.Segment3D;
 import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
 import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
 import org.apache.commons.numbers.angle.Angle;
@@ -427,17 +429,17 @@ class Bounds3DTest {
         final Bounds3D bounds = Bounds3D.from(Vector3D.of(-0.9, -2, -3), Vector3D.of(0.9, 2, 3));
 
         // -- act/assert
-        checkLinecastAgainstFace(bounds, Vector3D.of(0.9, 0, 0), Vector3D.Unit.PLUS_X);
-        checkLinecastAgainstFace(bounds, Vector3D.of(-0.9, 0, 0), Vector3D.Unit.MINUS_X);
+        checkLinecastIntersectingFace(bounds, Vector3D.of(0.9, 0, 0), Vector3D.Unit.PLUS_X);
+        checkLinecastIntersectingFace(bounds, Vector3D.of(-0.9, 0, 0), Vector3D.Unit.MINUS_X);
 
-        checkLinecastAgainstFace(bounds, Vector3D.of(0, 2, 0), Vector3D.Unit.PLUS_Y);
-        checkLinecastAgainstFace(bounds, Vector3D.of(0, -2, 0), Vector3D.Unit.MINUS_Y);
+        checkLinecastIntersectingFace(bounds, Vector3D.of(0, 2, 0), Vector3D.Unit.PLUS_Y);
+        checkLinecastIntersectingFace(bounds, Vector3D.of(0, -2, 0), Vector3D.Unit.MINUS_Y);
 
-        checkLinecastAgainstFace(bounds, Vector3D.of(0, 0, 3), Vector3D.Unit.PLUS_Z);
-        checkLinecastAgainstFace(bounds, Vector3D.of(0, 0, -3), Vector3D.Unit.MINUS_Z);
+        checkLinecastIntersectingFace(bounds, Vector3D.of(0, 0, 3), Vector3D.Unit.PLUS_Z);
+        checkLinecastIntersectingFace(bounds, Vector3D.of(0, 0, -3), Vector3D.Unit.MINUS_Z);
     }
 
-    private void checkLinecastAgainstFace(
+    private void checkLinecastIntersectingFace(
             final Bounds3D bounds,
             final Vector3D facePt,
             final Vector3D normal) {
@@ -473,17 +475,17 @@ class Bounds3DTest {
         final Bounds3D bounds = Bounds3D.from(Vector3D.ZERO, Vector3D.of(1, 1, 1));
 
         // -- act/assert
-        checkLinecastAgainstSingleVertex(bounds, Vector3D.ZERO);
-        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(0, 0, 1));
-        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(0, 1, 0));
-        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(0, 1, 1));
-        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(1, 0, 0));
-        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(1, 0, 1));
-        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(1, 1, 0));
-        checkLinecastAgainstSingleVertex(bounds, Vector3D.of(1, 1, 1));
+        checkLinecastIntersectingSingleVertex(bounds, Vector3D.ZERO);
+        checkLinecastIntersectingSingleVertex(bounds, Vector3D.of(0, 0, 1));
+        checkLinecastIntersectingSingleVertex(bounds, Vector3D.of(0, 1, 0));
+        checkLinecastIntersectingSingleVertex(bounds, Vector3D.of(0, 1, 1));
+        checkLinecastIntersectingSingleVertex(bounds, Vector3D.of(1, 0, 0));
+        checkLinecastIntersectingSingleVertex(bounds, Vector3D.of(1, 0, 1));
+        checkLinecastIntersectingSingleVertex(bounds, Vector3D.of(1, 1, 0));
+        checkLinecastIntersectingSingleVertex(bounds, Vector3D.of(1, 1, 1));
     }
 
-    private void checkLinecastAgainstSingleVertex(
+    private void checkLinecastIntersectingSingleVertex(
             final Bounds3D bounds,
             final Vector3D vertex) {
 
@@ -767,6 +769,136 @@ class Bounds3DTest {
     }
 
     @Test
+    void testLinecast_boundsHasNoSize() {
+        // -- arrange
+        final Vector3D pt = Vector3D.of(1, 2, 3);
+
+        final Bounds3D bounds = Bounds3D.from(pt, pt);
+
+        final Line3D diagonalLine = Lines3D.fromPointAndDirection(pt, Vector3D.of(1, 1, 1), TEST_PRECISION);
+
+        final Line3D plusXLine = Lines3D.fromPointAndDirection(pt, Vector3D.Unit.PLUS_X, TEST_PRECISION);
+
+        // -- act/assert
+        linecastChecker(bounds)
+            .expect(pt, Vector3D.Unit.MINUS_X)
+            .expect(pt, Vector3D.Unit.MINUS_Y)
+            .expect(pt, Vector3D.Unit.MINUS_Z)
+            .expect(pt, Vector3D.Unit.PLUS_Z)
+            .expect(pt, Vector3D.Unit.PLUS_Y)
+            .expect(pt, Vector3D.Unit.PLUS_X)
+            .whenGiven(diagonalLine);
+
+        linecastChecker(bounds)
+            .expect(pt, Vector3D.Unit.MINUS_X)
+            .expect(pt, Vector3D.Unit.PLUS_X)
+            .whenGiven(plusXLine);
+    }
+
+    @Test
+    void testLineIntersection() {
+        // -- arrange
+        final Vector3D min = Vector3D.ZERO;
+        final Vector3D max = Vector3D.of(1, 1, 1);
+
+        final Vector3D insideMin = Vector3D.of(0.1, 0.1, 0.1);
+        final Vector3D insideMax = Vector3D.of(0.9, 0.9, 0.9);
+
+        final Vector3D outsideMin = Vector3D.of(-0.1, -0.1, -0.1);
+        final Vector3D outsideMax = Vector3D.of(1.1, 1.1, 1.1);
+
+        final Bounds3D bounds = Bounds3D.from(min, max);
+
+        final Line3D diagonal = Lines3D.fromPoints(min, max, TEST_PRECISION);
+
+        // -- act/assert
+        assertLineIntersection(bounds, diagonal, min, max);
+
+        assertLineIntersection(bounds, diagonal.segment(outsideMin, outsideMax), min, max);
+        assertLineIntersection(bounds, diagonal.segment(outsideMin, insideMax), min, insideMax);
+        assertLineIntersection(bounds, diagonal.segment(insideMin, outsideMax), insideMin, max);
+        assertLineIntersection(bounds, diagonal.segment(insideMin, insideMax), insideMin, insideMax);
+
+        assertLineIntersection(bounds, diagonal.rayFrom(min), min, max);
+        assertLineIntersection(bounds, diagonal.reverseRayTo(min), min, min);
+
+        assertLineIntersection(bounds, diagonal.rayFrom(max), max, max);
+        assertLineIntersection(bounds, diagonal.reverseRayTo(max), min, max);
+
+        assertLineIntersection(bounds, diagonal.rayFrom(insideMax), insideMax, max);
+        assertLineIntersection(bounds, diagonal.reverseRayTo(insideMax), min, insideMax);
+    }
+
+    @Test
+    void testLineIntersection_noIntersection() {
+        // -- arrange
+        final Bounds3D bounds = Bounds3D.from(Vector3D.ZERO, Vector3D.of(1, 1, 1));
+
+        final Line3D plusXLine =
+                Lines3D.fromPointAndDirection(bounds.getCentroid(), Vector3D.Unit.PLUS_X, TEST_PRECISION);
+
+        // -- act/assert
+        checkLineNoIntersection(bounds, Vector3D.ZERO);
+        checkLineNoIntersection(bounds, Vector3D.of(0, 0, 1));
+        checkLineNoIntersection(bounds, Vector3D.of(0, 1, 0));
+        checkLineNoIntersection(bounds, Vector3D.of(0, 1, 1));
+        checkLineNoIntersection(bounds, Vector3D.of(1, 0, 0));
+        checkLineNoIntersection(bounds, Vector3D.of(1, 0, 1));
+        checkLineNoIntersection(bounds, Vector3D.of(1, 1, 0));
+        checkLineNoIntersection(bounds, Vector3D.of(1, 1, 1));
+
+        assertNoLineIntersection(bounds, plusXLine.segment(-0.2, -0.1));
+        assertNoLineIntersection(bounds, plusXLine.reverseRayTo(-0.1));
+
+        assertNoLineIntersection(bounds, plusXLine.segment(1.1, 1.2));
+        assertNoLineIntersection(bounds, plusXLine.rayFrom(1.1));
+    }
+
+    private void checkLineNoIntersection(
+            final Bounds3D bounds,
+            final Vector3D vertex) {
+
+        // -- arrange
+        final Vector3D toVertex = bounds.getCentroid().directionTo(vertex);
+        final Vector3D baseLineDir = toVertex.orthogonal();
+
+        final Vector3D offsetVertex = vertex.add(toVertex);
+
+        final Line3D plusXLine = Lines3D.fromPointAndDirection(offsetVertex, Vector3D.Unit.PLUS_X, TEST_PRECISION);
+        final Line3D plusYLine = Lines3D.fromPointAndDirection(offsetVertex, Vector3D.Unit.PLUS_Y, TEST_PRECISION);
+        final Line3D plusZLine = Lines3D.fromPointAndDirection(offsetVertex, Vector3D.Unit.PLUS_Z, TEST_PRECISION);
+
+        // -- act/assert
+        // check axis-aligned lines
+        assertNoLineIntersection(bounds, plusXLine);
+        assertNoLineIntersection(bounds, plusYLine);
+        assertNoLineIntersection(bounds, plusZLine);
+
+        // check lines orthogonal to the axis
+        final int runCnt = 10;
+        for (double a = 0; a < Angle.TWO_PI; a += Angle.TWO_PI / runCnt) {
+            final Vector3D lineDir = QuaternionRotation.fromAxisAngle(toVertex, a).apply(baseLineDir);
+            final Line3D line = Lines3D.fromPointAndDirection(offsetVertex, lineDir, TEST_PRECISION);
+
+            assertNoLineIntersection(bounds, line);
+        }
+    }
+
+    @Test
+    void testLineIntersection_boundsHasNoSize() {
+        // -- arrange
+        final Vector3D pt = Vector3D.of(1, 2, 3);
+
+        final Bounds3D bounds = Bounds3D.from(pt, pt);
+
+        final Line3D plusXLine = Lines3D.fromPointAndDirection(pt, Vector3D.Unit.PLUS_X, TEST_PRECISION);
+
+        // -- act/assert
+        assertLineIntersection(bounds, plusXLine, pt, pt);
+        assertLineIntersection(bounds, plusXLine.rayFrom(pt), pt, pt);
+    }
+
+    @Test
     void testHashCode() {
         // arrange
         final Bounds3D b1 = Bounds3D.from(Vector3D.of(1, 1, 1), Vector3D.of(2, 2, 2));
@@ -893,6 +1025,51 @@ class Bounds3DTest {
         }
     }
 
+    private static void assertLineIntersection(
+            final Bounds3D bounds,
+            final Line3D line,
+            final Vector3D start,
+            final Vector3D end) {
+        final Segment3D segment = bounds.intersection(line);
+
+        Assertions.assertSame(line, segment.getLine());
+        assertSegment(segment, start, end);
+
+        Assertions.assertTrue(bounds.intersects(line));
+    }
+
+    private static void assertLineIntersection(
+            final Bounds3D bounds,
+            final LineConvexSubset3D subset,
+            final Vector3D start,
+            final Vector3D end) {
+        final Segment3D segment = bounds.intersection(subset);
+
+        Assertions.assertSame(subset.getLine(), segment.getLine());
+        assertSegment(segment, start, end);
+
+        Assertions.assertTrue(bounds.intersects(subset));
+    }
+
+    private static void assertNoLineIntersection(
+            final Bounds3D bounds,
+            final Line3D line) {
+        Assertions.assertNull(bounds.intersection(line));
+        Assertions.assertFalse(bounds.intersects(line));
+    }
+
+    private static void assertNoLineIntersection(
+            final Bounds3D bounds,
+            final LineConvexSubset3D subset) {
+        Assertions.assertNull(bounds.intersection(subset));
+        Assertions.assertFalse(bounds.intersects(subset));
+    }
+
+    private static void assertSegment(final Segment3D segment, final Vector3D start, final Vector3D end) {
+        EuclideanTestUtils.assertCoordinatesEqual(start, segment.getStartPoint(), TEST_EPS);
+        EuclideanTestUtils.assertCoordinatesEqual(end, segment.getEndPoint(), TEST_EPS);
+    }
+
     private static BoundsLinecastChecker3D linecastChecker(final Bounds3D bounds) {
         return new BoundsLinecastChecker3D(bounds);
     }
@@ -907,7 +1084,9 @@ class Bounds3DTest {
 
         BoundsLinecastChecker3D(final Bounds3D bounds) {
             this.bounds = bounds;
-            this.region = bounds.toRegion(TEST_PRECISION);
+            this.region = bounds.hasSize(TEST_PRECISION) ?
+                    bounds.toRegion(TEST_PRECISION) :
+                    null;
             this.checker = LinecastChecker3D.with(bounds);
         }
 
@@ -929,15 +1108,21 @@ class Bounds3DTest {
             // perform the standard checks
             checker.whenGiven(line);
 
-            // check that the returned points are equivalent to the region points
+            // check that the returned points are equivalent to those returned by linecasting against
+            // the region
             final List<LinecastPoint3D> boundsResults = bounds.linecast(line);
-            assertEquivalentRegionLinecastResult(region.linecast(line), bounds.linecast(line));
+
+            if (region != null) {
+                assertEquivalentRegionLinecastResults(region.linecast(line), bounds.linecast(line));
+            }
 
             // check consistency with the intersects method; having linecast results guarantees
             // that we intersect the bounds but not vice versa
             if (!boundsResults.isEmpty()) {
                 Assertions.assertTrue(bounds.intersects(line),
                         () -> "Linecast result is inconsistent with intersects method: line= " + line);
+
+                assertLinecastResultsConsistentWithSegment(boundsResults, bounds.intersection(line));
             }
 
             return this;
@@ -947,21 +1132,27 @@ class Bounds3DTest {
             // perform the standard checks
             checker.whenGiven(subset);
 
-            // check that the returned points are equivalent to the region points
+            // check that the returned points are equivalent to those returned by linecasting against
+            // the region
             final List<LinecastPoint3D> boundsResults = bounds.linecast(subset);
-            assertEquivalentRegionLinecastResult(region.linecast(subset), boundsResults);
+
+            if (region != null) {
+                assertEquivalentRegionLinecastResults(region.linecast(subset), boundsResults);
+            }
 
             // check consistency with the intersects methods; having linecast results guarantees
             // that we intersect the bounds but not vice versa
             if (!boundsResults.isEmpty()) {
                 Assertions.assertTrue(bounds.intersects(subset),
                         () -> "Linecast result is inconsistent with intersects method: line subset= " + subset);
+
+                assertLinecastResultsConsistentWithSegment(boundsResults, bounds.intersection(subset));
             }
 
             return this;
         }
 
-        private void assertEquivalentRegionLinecastResult(
+        private void assertEquivalentRegionLinecastResults(
                 final List<LinecastPoint3D> regionList,
                 final List<LinecastPoint3D> boundsList) {
             assertLinecastElements(regionList, boundsList);
@@ -1000,6 +1191,16 @@ class Bounds3DTest {
 
             // check the order
             Assertions.assertEquals(sortedList, actual);
+        }
+
+        private void assertLinecastResultsConsistentWithSegment(
+                final List<LinecastPoint3D> linecastResults,
+                final Segment3D segment) {
+
+            for (final LinecastPoint3D pt : linecastResults) {
+                Assertions.assertEquals(RegionLocation.BOUNDARY, segment.classifyAbscissa(pt.getAbscissa()),
+                        () -> "Expected linecast point to lie on segment boundary");
+            }
         }
     }
 }

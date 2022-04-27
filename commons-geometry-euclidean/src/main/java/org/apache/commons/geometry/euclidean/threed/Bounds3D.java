@@ -429,9 +429,13 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
         }
 
         public Segment3D getRegionIntersection() {
-            return intersectsRegion() ?
-                    line.segment(near, far) :
-                    null;
+            if (intersectsRegion()) {
+                final double start = Math.max(near, subset.getSubspaceStart());
+                final double end = Math.min(far, subset.getSubspaceEnd());
+
+                return line.segment(start, end);
+            }
+            return null;
         }
 
         public List<LinecastPoint3D> getBoundaryIntersections() {
