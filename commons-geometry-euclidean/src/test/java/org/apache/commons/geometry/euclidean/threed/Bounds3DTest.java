@@ -899,6 +899,21 @@ class Bounds3DTest {
     }
 
     @Test
+    void testLineIntersection_lineAlmostParallel() {
+        // -- arrange
+        final Vector3D min = Vector3D.of(1e150, -1, -1);
+        final Vector3D max = Vector3D.of(1.1e150, 1, 1);
+
+        final Bounds3D bounds = Bounds3D.from(min, max);
+
+        final Vector3D lineDir = Vector3D.of(1, -5e-11, 0);
+        final Line3D line = Lines3D.fromPointAndDirection(Vector3D.ZERO, lineDir, TEST_PRECISION);
+
+        // -- act
+        assertNoLineIntersection(bounds, line);
+    }
+
+    @Test
     void testHashCode() {
         // arrange
         final Bounds3D b1 = Bounds3D.from(Vector3D.of(1, 1, 1), Vector3D.of(2, 2, 2));
@@ -1074,6 +1089,9 @@ class Bounds3DTest {
         return new BoundsLinecastChecker3D(bounds);
     }
 
+    /**
+     * Internal test class used to perform and verify linecast operations.
+     */
     private static final class BoundsLinecastChecker3D {
 
         private final Bounds3D bounds;
@@ -1113,7 +1131,7 @@ class Bounds3DTest {
             final List<LinecastPoint3D> boundsResults = bounds.linecast(line);
 
             if (region != null) {
-                assertEquivalentRegionLinecastResults(region.linecast(line), bounds.linecast(line));
+                assertLinecastElements(region.linecast(line), bounds.linecast(line));
             }
 
             // check consistency with the intersects method; having linecast results guarantees
@@ -1137,7 +1155,7 @@ class Bounds3DTest {
             final List<LinecastPoint3D> boundsResults = bounds.linecast(subset);
 
             if (region != null) {
-                assertEquivalentRegionLinecastResults(region.linecast(subset), boundsResults);
+                assertLinecastElements(region.linecast(subset), boundsResults);
             }
 
             // check consistency with the intersects methods; having linecast results guarantees
@@ -1152,14 +1170,10 @@ class Bounds3DTest {
             return this;
         }
 
-        private void assertEquivalentRegionLinecastResults(
-                final List<LinecastPoint3D> regionList,
-                final List<LinecastPoint3D> boundsList) {
-            assertLinecastElements(regionList, boundsList);
-        }
-
         /** Assert that the two collections contain the same linecast points and that the elements
-         * of {@code actual} are arranged in ascending abscissa order.
+         * of {@code actual} are arranged in ascending abscissa order. Note that this does <em>not</em>
+         * assert that {@code expected} and {@code actual} have the same exact ordering, since the
+         * specific ordering if sensitive to floating point errors.
          * @param expected expected collection
          * @param actual actual collection
          */
@@ -1193,6 +1207,11 @@ class Bounds3DTest {
             Assertions.assertEquals(sortedList, actual);
         }
 
+        /** Assert that the linecast results are consistent with the given segment, which is taken
+         * to be the intersection of a line or line convex subset with the bounding box.
+         * @param linecastResults
+         * @param segment
+         */
         private void assertLinecastResultsConsistentWithSegment(
                 final List<LinecastPoint3D> linecastResults,
                 final Segment3D segment) {
