@@ -296,16 +296,16 @@ public abstract class AbstractBounds<
             final double dir = coordinateFn.applyAsDouble(getLineDir());
             final double origin = coordinateFn.applyAsDouble(getLineOrigin());
 
-            final double min = coordinateFn.applyAsDouble(getMin());
-            final double max = coordinateFn.applyAsDouble(getMax());
+            final double minCoord = coordinateFn.applyAsDouble(min);
+            final double maxCoord = coordinateFn.applyAsDouble(max);
 
-            double t1 = (min - origin) / dir;
-            double t2 = (max - origin) / dir;
+            double t1 = (minCoord - origin) / dir;
+            double t2 = (maxCoord - origin) / dir;
 
             if (!Double.isFinite(t1) || !Double.isFinite(t2)) {
                 // the line is parallel to this dimension; only continue if the
                 // line origin lies between the min and max for this dimension
-                return precision.gte(origin, min) && precision.lte(origin, max);
+                return precision.gte(origin, minCoord) && precision.lte(origin, maxCoord);
             }
 
             if (t1 > t2) {
