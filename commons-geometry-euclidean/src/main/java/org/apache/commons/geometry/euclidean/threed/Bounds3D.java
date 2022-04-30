@@ -16,12 +16,10 @@
  */
 package org.apache.commons.geometry.euclidean.threed;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.ToDoubleFunction;
 
 import org.apache.commons.geometry.core.RegionLocation;
 import org.apache.commons.geometry.euclidean.AbstractBounds;
@@ -150,7 +148,7 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
      *      the given line convex subset
      */
     public boolean intersects(final LineConvexSubset3D subset) {
-        return new Linecaster(subset).intersectsRegion();
+        return new BoundsLinecaster3D(subset).intersectsRegion();
     }
 
     /** Return a {@link Segment3D} representing the intersection of the region
@@ -176,19 +174,19 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
      *      if no such intersection exists
      */
     public Segment3D intersection(final LineConvexSubset3D subset) {
-        return new Linecaster(subset).getRegionIntersection();
+        return new BoundsLinecaster3D(subset).getRegionIntersection();
     }
 
     /** {@inheritDoc} */
     @Override
     public List<LinecastPoint3D> linecast(final LineConvexSubset3D subset) {
-        return new Linecaster(subset).getBoundaryIntersections();
+        return new BoundsLinecaster3D(subset).getBoundaryIntersections();
     }
 
     /** {@inheritDoc} */
     @Override
     public LinecastPoint3D linecastFirst(final LineConvexSubset3D subset) {
-        return new Linecaster(subset).getFirstBoundaryIntersection();
+        return new BoundsLinecaster3D(subset).getFirstBoundaryIntersection();
     }
 
     /** {@inheritDoc}
@@ -359,67 +357,9 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
         }
     }
 
-    /** Internal enum containing general dimension information.
+    /** Subclass of {@link BoundsLinecaster} for 3D space.
      */
-    private enum Dimension {
-        /** X axis dimension. */
-        X(Vector3D::getX, Vector3D.Unit.MINUS_X, Vector3D.Unit.PLUS_X),
-
-        /** Y axis dimension. */
-        Y(Vector3D::getY, Vector3D.Unit.MINUS_Y, Vector3D.Unit.PLUS_Y),
-
-        /** Z axis dimension. */
-        Z(Vector3D::getZ, Vector3D.Unit.MINUS_Z, Vector3D.Unit.PLUS_Z);
-
-        /** Function used to extract the coordinate value from a vector instance. */
-        private final ToDoubleFunction<Vector3D> coordinateFn;
-
-        /** Minus direction. */
-        private final Vector3D.Unit minus;
-
-        /** Plus direction. */
-        private final Vector3D.Unit plus;
-
-        Dimension(
-                final ToDoubleFunction<Vector3D> coordinateFn,
-                final Vector3D.Unit minus,
-                final Vector3D.Unit plus) {
-            this.coordinateFn = coordinateFn;
-            this.minus = minus;
-            this.plus = plus;
-        }
-
-        /** Get the minus direction for the dimension.
-         * @return minus direction for the dimension
-         */
-        public Vector3D.Unit getMinus() {
-            return minus;
-        }
-
-        /** Get the plus direction for the dimension.
-         * @return plus direction for the dimension
-         */
-        public Vector3D.Unit getPlus() {
-            return plus;
-        }
-
-        /** Get the dimension coordinate value from the argument.
-         * @param pt point to get the coordinate from
-         * @return dimension coordinate value
-         */
-        public double get(final Vector3D pt) {
-            return coordinateFn.applyAsDouble(pt);
-        }
-    }
-
-    /** Internal class used to perform linecast and line intersection operations using the "slabs" algorithm
-     * (https://education.siggraph.org/static/HyperGraph/raytrace/rtinter3.htm). Floating
-     * point comparisons use the precision of the intersecting line.
-     */
-    private final class Linecaster {
-
-        /** Maximum number of line intersections possible. */
-        private static final int MAX_LINECAST_INTERSECTIONS = 6;
+    private final class BoundsLinecaster3D extends BoundsLinecaster<Segment3D, LinecastPoint3D> {
 
         /** Line convex subset to be tested against the bounds. */
         private final LineConvexSubset3D subset;
@@ -427,188 +367,94 @@ public final class Bounds3D extends AbstractBounds<Vector3D, Bounds3D>
         /** Line instance for the subset being tested. */
         private final Line3D line;
 
-        /** Precision context for the intersection operation. */
-        private final Precision.DoubleEquivalence precision;
-
-        /** Near slab intersection abscissa value. */
-        private double near = Double.NEGATIVE_INFINITY;
-
-        /** Far slab intersection abscissa value. */
-        private double far = Double.POSITIVE_INFINITY;
-
          /** Construct a new instance for computing bounds intersection information with
           * the given line convex subset.
           * @param subset line convex subset to compute intersection information for
           */
-        Linecaster(final LineConvexSubset3D subset) {
+        BoundsLinecaster3D(final LineConvexSubset3D subset) {
+            super(subset.getLine().getPrecision());
+
             this.subset = subset;
             this.line = subset.getLine();
-            this.precision = line.getPrecision();
         }
 
-        /** Return {@code true} if the line convex subset shares any points with the
-         * bounding box.
-         * @return {@code true} if the line convex subset shares any points with the
-         *      bounding box
-         */
-        public boolean intersectsRegion() {
-            return computeNearFar() &&
-                    precision.gte(subset.getSubspaceEnd(), near) &&
-                    precision.lte(subset.getSubspaceStart(), far);
+        /** {@inheritDoc} */
+        @Override
+        protected Segment3D createSegment(final double startAbscissa, final double endAbscissa) {
+            return line.segment(startAbscissa, endAbscissa);
         }
 
-        /** Get the {@link Segment3D} containing all points shared by the line convex
-         * subset and the bounding box, or {@code null} if no points are shared.
-         * @return segment containing all points shared by the line convex
-         *      subset and the bounding box, or {@code null} if no points are shared.
-         */
-        public Segment3D getRegionIntersection() {
-            if (intersectsRegion()) {
-                final double start = Math.max(near, subset.getSubspaceStart());
-                final double end = Math.min(far, subset.getSubspaceEnd());
-
-                return line.segment(start, end);
-            }
-            return null;
+        /** {@inheritDoc} */
+        @Override
+        protected LinecastPoint3D createBoundaryIntersection(final Vector3D pt, final Vector3D normal) {
+            return new LinecastPoint3D(pt, normal, line);
         }
 
-        /** Get a list of {@link LinecastPoint3D} instances representing the intersections of
-         * the line convex subset with the faces of the bounding box. An empty list is returned
-         * if no such intersections exist.
-         * @return list of {@link LinecastPoint3D} instances representing the intersections of
-         *      the line convex subset with the faces of the bounding box
-         */
-        public List<LinecastPoint3D> getBoundaryIntersections() {
-            if (computeNearFar()) {
-                final List<LinecastPoint3D> results = new ArrayList<>(MAX_LINECAST_INTERSECTIONS);
-
-                addIntersections(near, results);
-                if (!precision.eq(near, far)) {
-                    addIntersections(far, results);
-                }
-
-                results.sort(LinecastPoint3D.ABSCISSA_ORDER);
-
-                return results;
-            }
-
-            return Collections.emptyList();
-        }
-
-        /** Get a {@link LinecastPoint3D} representing the <em>first</em> intersection of the
-         * line convex subset with the faces of the bounding box, where points are placed in
-         * ordered of increasing abscissa value. Null is returned if no such point exists.
-         * @return {@link LinecastPoint3D} representing the first intersection of the
-         *      line convex subset with the faces of the bounding box, or {@code null} if no
-         *      such point exists
-         */
-        public LinecastPoint3D getFirstBoundaryIntersection() {
-            final List<LinecastPoint3D> results = getBoundaryIntersections();
-            return results.isEmpty() ?
-                    null :
-                    results.get(0);
-        }
-
-        /** Add {@link LinecastPoint3D} instances to {@code results} for any bounding box faces
-         * that contain the point on the line at {@code abscissa}.
-         * @param abscissa line abscissa
-         * @param results list containing linecast results
-         */
-        private void addIntersections(final double abscissa, final List<LinecastPoint3D> results) {
-            if (containsAbscissa(abscissa)) {
+        /** {@inheritDoc} */
+        @Override
+        protected void addBoundaryIntersections(final double abscissa, final List<LinecastPoint3D> results) {
+            if (subset.classifyAbscissa(abscissa) != RegionLocation.OUTSIDE) {
                 final Vector3D pt = line.toSpace(abscissa);
 
-                addIntersectionIfPresent(pt, Dimension.X, results);
-                addIntersectionIfPresent(pt, Dimension.Y, results);
-                addIntersectionIfPresent(pt, Dimension.Z, results);
+                addBoundaryIntersectionIfPresent(
+                        pt,
+                        Vector3D.Unit.MINUS_X,
+                        Vector3D.Unit.PLUS_X,
+                        Vector3D::getX,
+                        results);
+
+                addBoundaryIntersectionIfPresent(
+                        pt,
+                        Vector3D.Unit.MINUS_Y,
+                        Vector3D.Unit.PLUS_Y,
+                        Vector3D::getY,
+                        results);
+
+                addBoundaryIntersectionIfPresent(
+                        pt,
+                        Vector3D.Unit.MINUS_Z,
+                        Vector3D.Unit.PLUS_Z,
+                        Vector3D::getZ,
+                        results);
             }
         }
 
-        /** Add a {@link LinecastPoint3D} instance to {@code results} if the given point lies on
-         * one of the bounding box faces orthogonal to {@code dim}.
-         * @param pt potential face intersection point
-         * @param dim dimension to test
-         * @param results list containing linecast results
-         */
-        private void addIntersectionIfPresent(
-                final Vector3D pt,
-                final Dimension dim,
-                final List<LinecastPoint3D> results) {
-
-            // only include linecast results for dimensions that are not considered
-            // parallel to the line, according to the line precision
-            if (!precision.eqZero(line.getDirection().dot(dim.getPlus()))) {
-                final double coordinate = dim.get(pt);
-                final double dimMin = dim.get(getMin());
-                final double dimMax = dim.get(getMax());
-
-                if (precision.eq(coordinate, dimMin)) {
-                    results.add(new LinecastPoint3D(pt, dim.getMinus(), line));
-                }
-
-                if (precision.eq(coordinate, dimMax)) {
-                    results.add(new LinecastPoint3D(pt, dim.getPlus(), line));
-                }
-            }
+        /** {@inheritDoc} */
+        @Override
+        protected boolean computeNearFar() {
+            return updateNearFar(Vector3D::getX) &&
+                    updateNearFar(Vector3D::getY) &&
+                    updateNearFar(Vector3D::getZ);
         }
 
-        /** Compute the {@code near} and {@code far} slab intersection values for the
-         * line under test, returning {@code true} if the line intersects the bounding
-         * box.
-         * @return {@code true} if the line intersects the bounding box
-         */
-        private boolean computeNearFar() {
-            return updateNearFar(Dimension.X) &&
-                    updateNearFar(Dimension.Y) &&
-                    updateNearFar(Dimension.Z);
+        /** {@inheritDoc} */
+        @Override
+        protected Comparator<LinecastPoint3D> getBoundaryIntersectionComparator() {
+            return LinecastPoint3D.ABSCISSA_ORDER;
         }
 
-        /** Update the {@code near} and {@code far} slab intersection points with the
-         * intersection values for the planes orthogonal to {@code dim}, returning
-         * {@code false} if the line is determined to not intersect the bounding box.
-         * @param dim dimension to compute
-         * @return {@code false} if the line is determined to not intersect the bounding
-         *      box
-         */
-        private boolean updateNearFar(final Dimension dim) {
-            final double dir = dim.get(line.getDirection());
-            final double origin = dim.get(line.getOrigin());
-
-            final double min = dim.get(getMin());
-            final double max = dim.get(getMax());
-
-            double t1 = (min - origin) / dir;
-            double t2 = (max - origin) / dir;
-
-            if (!Double.isFinite(t1) || !Double.isFinite(t2)) {
-                // the line is parallel to this dimension; only continue if the
-                // line origin lies between the min and max for this dimension
-                return precision.gte(origin, min) && precision.lte(origin, max);
-            }
-
-            if (t1 > t2) {
-                final double temp = t1;
-                t1 = t2;
-                t2 = temp;
-            }
-
-            if (t1 > near) {
-                near = t1;
-            }
-
-            if (t2 < far) {
-                far = t2;
-            }
-
-            return precision.lte(near, far);
+        /** {@inheritDoc} */
+        @Override
+        protected Vector3D getLineDir() {
+            return line.getDirection();
         }
 
-        /** Return {@code true} if the line convex subset contains the given abscissa value.
-         * @param abscissa abscissa to test
-         * @return {@code true} if the line convex subset contains the given abscissa value
-         */
-        private boolean containsAbscissa(final double abscissa) {
-            return subset.classifyAbscissa(abscissa) != RegionLocation.OUTSIDE;
+        /** {@inheritDoc} */
+        @Override
+        protected Vector3D getLineOrigin() {
+            return line.getOrigin();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getSubspaceStart() {
+            return subset.getSubspaceStart();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected double getSubspaceEnd() {
+            return subset.getSubspaceEnd();
         }
     }
 }
