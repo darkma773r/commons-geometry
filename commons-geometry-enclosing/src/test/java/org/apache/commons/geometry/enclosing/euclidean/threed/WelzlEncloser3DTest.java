@@ -50,7 +50,7 @@ class WelzlEncloser3DTest {
         }, IllegalArgumentException.class, msg);
 
         GeometryTestUtils.assertThrowsWithMessage(() -> {
-            encloser.enclose(new ArrayList<Vector3D>());
+            encloser.enclose(new ArrayList<>());
         }, IllegalArgumentException.class, msg);
     }
 
@@ -111,7 +111,7 @@ class WelzlEncloser3DTest {
     @Test
     void testLargeSamples() {
         // arrange
-        final UniformRandomProvider random = RandomSource.WELL_1024_A.create(0x35ddecfc78131e1dL);
+        final UniformRandomProvider random = RandomSource.XO_SHI_RO_256_PP.create(0x35ddecfc78131e1dL);
         final UnitSphereSampler sr = UnitSphereSampler.of(random, 3);
         for (int k = 0; k < 50; ++k) {
 

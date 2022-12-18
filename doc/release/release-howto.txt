@@ -297,7 +297,7 @@ as it is the most stable reference for traceability.
 
 Push everything (including the tag!) on the Apache repository:
 
-  $ git push --tags
+  $ git push && git push origin commons-geometry-1.0-rc1
 
 
 (9)
@@ -434,7 +434,6 @@ area on the Apache servers.
   Copy other files from the RC workspace:
 
     $ cp path-to-the-RC-workspace/RELEASE-NOTES.txt .
-    $ cp path-to-the-RC-workspace/CONTRIBUTING.md .
     $ cp path-to-the-RC-workspace/dist-archive/target/*-bin.* binaries
     $ cp path-to-the-RC-workspace/dist-archive/target/*-src.* source
 
@@ -460,7 +459,6 @@ area on the Apache servers.
   Commit to SVN:
 
     $ svn add \
-      CONTRIBUTING.md \
       README.html \
       RELEASE-NOTES.txt \
       binaries/* \
@@ -740,8 +738,10 @@ to make sure that everything looks correct.
 (21)
 Put the official final tag to point at the same commit as the last release candidate tag:
 
+  $ git tag -v commons-geometry-1.0-rc1
   $ git tag -u "__Your_key_id__" -s -m "RC1 becomes v1.0 official release." rel/commons-geometry-1.0 __commit_hash__
-  $ git push --tags
+  $ git tag -v rel/commons-geometry-1.0
+  $ git push origin rel/commons-geometry-1.0
 
 
 (22)
